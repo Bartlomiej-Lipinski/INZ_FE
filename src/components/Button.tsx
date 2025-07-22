@@ -11,13 +11,11 @@ const defaultStyles: React.CSSProperties = {
   flexDirection: "row",
   justifyContent: "center",
   alignItems: "center",
-  gap: "8px",
-  width: "106px",
-  height: "40px",
   border: "none",
   fontWeight: 500,
   fontSize: "16px",
   cursor: "pointer",
+  padding: "12px",
 };
 
 const Button: React.FC<ButtonProps> = ({ background = "#786599", style, children, ...props }) => {
