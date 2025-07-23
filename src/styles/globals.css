@@ -116,8 +116,13 @@
   background: rgba(125, 125, 125, 0.5);
   border-radius: 24px;
   padding-inline: 20px; 
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+button:hover {
+  filter: brightness(0.8);
+  transition: filter 0.2s;
 }
 
 @layer base {
@@ -125,7 +130,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-gradient-to-b from-black via-neutral-900  to-neutral-600;
+    @apply bg-gradient-to-b from-black via-neutral-800  to-neutral-500;
   }
 }
 

@@ -16,6 +16,7 @@ const defaultStyles: React.CSSProperties = {
   fontSize: "16px",
   cursor: "pointer",
   padding: "12px",
+  
 };
 
 const Button: React.FC<ButtonProps> = ({ background = "#786599", style, children, ...props }) => {
