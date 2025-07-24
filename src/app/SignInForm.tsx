@@ -84,7 +84,7 @@ export default function SignInForm() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        <Button background="#786599" className="mb-20 md:mb-30" style={{ marginTop: "10px"}}>Zaloguj się</Button>
+        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px"}}>Zaloguj się</Button>
 
       </form>      
     </div>
