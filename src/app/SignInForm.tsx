@@ -19,8 +19,8 @@ export default function SignInForm() {
     setError("Nieprawidłowy e-mail lub hasło");
     //   return;
     // }
-    // setError("");
-    alert(`Zalogowano jako: ${email}`);
+    // setError("");                                        //<--- dodać logikę wyświeltania erroru
+    alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit``` 
   };
 
   return (
