@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Button from "../components/Button";
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
-import { colors } from "@mui/material";
+import Image from "next/image";
+
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
@@ -23,12 +24,10 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex flex-col w-full items-center justify-center ">
-
-      <img src="/Keep.png" alt="Logo" className="w-40 h-40 mb-10 mt-10 sm:mt-20 2xl:mt-50" />
-
+    <div className="flex items-center justify-center min-h-screen w-full">
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
+        <Image src="/Keep.png" alt="Logo" width={160} height={160} className="w-40 h-40 mb-10" />
         <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
           E-mail
           <input
@@ -85,8 +84,9 @@ export default function SignInForm() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        <Button background="#786599" style={{ marginTop: "10px" }}>Zaloguj się</Button>
-      </form>
+        <Button background="#786599" className="mb-20 md:mb-30" style={{ marginTop: "10px"}}>Zaloguj się</Button>
+
+      </form>      
     </div>
   );
 } 
