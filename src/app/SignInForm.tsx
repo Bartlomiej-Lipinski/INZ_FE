@@ -6,6 +6,7 @@ import Button from "@/components/Button";
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Image from "next/image";
+import { IMAGES } from "@/lib/constants";
 
 
 export default function SignInForm() {
@@ -29,7 +30,7 @@ export default function SignInForm() {
     <div className="flex items-center justify-center min-h-screen w-full">
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-        <Image src="/Keep.png" alt="Logo" width={160} height={160} className="w-40 h-40 mb-10" />
+       <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={250} height={250} className="logoSize" />
         <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
           E-mail
           <input
