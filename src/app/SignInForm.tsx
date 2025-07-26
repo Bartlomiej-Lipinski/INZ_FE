@@ -30,7 +30,7 @@ export default function SignInForm() {
     <div className="flex items-center justify-center min-h-screen w-full">
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-       <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={250} height={250} className="logoSize" />
+       <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={280} height={250}/>
         <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
           E-mail
           <input

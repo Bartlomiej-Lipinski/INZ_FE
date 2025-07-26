@@ -32,10 +32,10 @@ export default function SignUpForm() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen w-full">
+        <div className=" flex items-center justify-center w-full">
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={200} height={200} className="logoSize" />
+                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={200} height={200}  />
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     E-mail*
@@ -43,7 +43,7 @@ export default function SignUpForm() {
                         type="email"
                         value={email}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                        className="inputStyle"
+                        className="inputStyle focus:ring-lilac"
                         required
                     />
                 </label>
@@ -54,7 +54,7 @@ export default function SignUpForm() {
                         type="text"
                         value={name}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                        className="inputStyle"
+                        className="inputStyle focus:ring-lilac"
                         required
                     />
                 </label>
@@ -65,18 +65,18 @@ export default function SignUpForm() {
                         type="text"
                         value={surname}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSurname(e.target.value)}
-                        className="inputStyle"
+                        className="inputStyle focus:ring-lilac"
                         required
                     />
                 </label>
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
+                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2 ">
                     Data urodzenia*
                     <input
                         type="date"
                         value={birthDate}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBirthDate(e.target.value)}
-                        className="inputStyle"
+                        className="inputStyle focus:ring-lilac h-10"
                         required
                     />
                 </label>
@@ -84,32 +84,23 @@ export default function SignUpForm() {
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white">
                     Hasło*
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="inputStyle"
-                        required
-                    />
-                </label>
-
-
-                <div className="relative w-full">
+                    <div className="relative w-full">
                     <input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="inputStyle w-full px-4 py-2 pr-10  focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        placeholder="Hasło"
+                        className="inputStyle focus:ring-lilac w-full" style={{ paddingRight: "35px" }}
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-black"
+                        className="myGray absolute right-3 top-1/2 transform -translate-y-1/2"
                     >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                 </div>
+                </label>
+               
 
                 {error && <div className="text-red-500 text-sm">{error}</div>}
 

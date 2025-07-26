@@ -5,7 +5,10 @@ import SignUpForm from "./SignUpForm";
 
 export default function SignUp() {
     return (
-      <div className="min-h-screen">
+      
+      <div>
+        <div className="h-10"></div>
+
         <SignUpForm />
       </div>
     );
