@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "../components/Button";
+import Button from "@/components/Button";
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Image from "next/image";
