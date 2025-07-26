@@ -32,7 +32,7 @@ export default function SignUpForm() {
     };
 
     return (
-        <div className=" flex items-center justify-center w-full">
+        <div className="flex items-center justify-center w-full min-h-screen">
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
                 <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={200} height={200}  />

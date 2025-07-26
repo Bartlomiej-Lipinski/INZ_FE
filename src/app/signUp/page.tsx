@@ -7,7 +7,7 @@ export default function SignUp() {
     return (
       
       <div>
-        <div className="h-10"></div>
+        {/* <div className="h-10"></div> */}
 
         <SignUpForm />
       </div>

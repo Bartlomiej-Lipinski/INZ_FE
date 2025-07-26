@@ -121,3 +121,29 @@ button:hover {
   filter: brightness(0.8);
   transition: filter 0.2s;
 }
+
+
+
+/* Styl scrolla — Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #454545;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+
+/* Styl scrolla — Firefox */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #454545 transparent;
+}
