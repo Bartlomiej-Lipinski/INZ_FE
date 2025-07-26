@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "../components/Button";
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
@@ -11,6 +12,7 @@ export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -18,9 +20,9 @@ export default function SignInForm() {
     //if (!email || !password) {
     setError("Nieprawidłowy e-mail lub hasło");
     //   return;
-    // }
-    // setError("");                                        //<--- dodać logikę wyświeltania erroru
-    alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit``` 
+    // }                                                      <--- dodać logikę wyświeltania erroru
+    setError("");                                        
+    alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit
   };
 
   return (
@@ -66,7 +68,6 @@ export default function SignInForm() {
             Zapomniałeś hasła?
           </button>
 
-
           <Stack
             direction="row"
             spacing={0.5}
@@ -74,7 +75,7 @@ export default function SignInForm() {
             <button
               type="button"
               style={{ color: "#8D8C8C", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
-              onClick={() => alert('Funkcja resetowania hasła jeszcze nie jest dostępna. (SignInForm.tsx)')}
+              onClick={() => router.push('/signUp')}
             >
               Rejestracja
             </button>
@@ -84,9 +85,9 @@ export default function SignInForm() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px"}}>Zaloguj się</Button>
+        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Zaloguj się</Button>
 
-      </form>      
+      </form>
     </div>
   );
 } 
