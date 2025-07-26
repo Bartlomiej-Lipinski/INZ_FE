@@ -19,14 +19,63 @@ export default function SignUpForm() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [birthDateError, setBirthDateError] = useState("");
 
+    // Funkcja walidująca hasło
+    const validatePassword = (value: string) => {
+        if (value.length < 8) {
+            return "Hasło musi mieć co najmniej 8 znaków";
+        }
+        if (!/[A-Z]/.test(value)) {
+            return "Hasło musi zawierać wielką literę";
+        }
+        if (!/[a-z]/.test(value)) {
+            return "Hasło musi zawierać małą literę";
+        }
+        if (!/[^A-Za-z0-9]/.test(value)) {
+            return "Hasło musi zawierać znak specjalny";
+        }
+        return "";
+    };
+
+    // Funkcja walidująca datę urodzenia
+    const validateBirthDate = (value: string) => {
+        if (!value) return "Podaj datę urodzenia";
+        const today = new Date();
+        const birth = new Date(value);
+        const age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+            return age - 1 >= 13 ? "" : "Musisz mieć co najmniej 13 lat";
+        }
+        return age >= 13 ? "" : "Musisz mieć co najmniej 13 lat";
+    };
+
+    // Dynamiczna walidacja hasła
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setPassword(value);
+        setPasswordError(validatePassword(value));
+    };
+
+    // Dynamiczna walidacja daty urodzenia
+    const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setBirthDate(value);
+        setBirthDateError(validateBirthDate(value));
+    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        //if (!email || !password) {
-        setError("Nieprawidłowy e-mail lub hasło");
-        //   return;
-        // }                                                      <--- dodać logikę wyświeltania erroru
+        const pwdErr = validatePassword(password);
+        const birthErr = validateBirthDate(birthDate);
+        setPasswordError(pwdErr);
+        setBirthDateError(birthErr);
+        if (pwdErr || birthErr) {
+            setError("Popraw błędy w formularzu");
+            return;
+        }
         setError("");
         alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit
     };
@@ -70,15 +119,16 @@ export default function SignUpForm() {
                     />
                 </label>
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2 ">
+                <label className="flex flex-col w-5/6 sm:w-full text-white">
                     Data urodzenia*
                     <input
                         type="date"
                         value={birthDate}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBirthDate(e.target.value)}
+                        onChange={handleBirthDateChange}
                         className="inputStyle focus:ring-lilac h-10"
                         required
                     />
+                    {birthDateError && <span className="text-red-500 text-xs mt-1 text-center block">{birthDateError}</span>}
                 </label>
 
 
@@ -88,7 +138,7 @@ export default function SignUpForm() {
                     <input
                         type={showPassword ? "text" : "password"}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={handlePasswordChange}
                         className="inputStyle focus:ring-lilac w-full" style={{ paddingRight: "35px" }}
                     />
                     <button
@@ -99,6 +149,7 @@ export default function SignUpForm() {
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
                 </div>
+                {passwordError && <span className="text-red-500 text-xs mt-1 text-center">{passwordError}</span>}
                 </label>
                
 
