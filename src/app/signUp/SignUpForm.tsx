@@ -132,19 +132,19 @@ export default function SignUpForm() {
                 </label>
 
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white">
+                <label className="flex flex-col w-5/6 sm:w-full text-white mt-1">
                     Hasło*
                     <div className="relative w-full">
                     <input
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={handlePasswordChange}
-                        className="inputStyle focus:ring-lilac w-full" style={{ paddingRight: "35px" }}
+                        className="inputStyle focus:ring-lilac w-full" style={{ paddingRight: "42px" }}
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
-                        className="myGray absolute right-3 top-1/2 transform -translate-y-1/2"
+                        className="myGray absolute right-4 top-1/2 transform -translate-y-1/2"
                     >
                         {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
