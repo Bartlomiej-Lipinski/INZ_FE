@@ -16,6 +16,9 @@ export default function SignUpForm() {
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [birthDateError, setBirthDateError] = useState("");
+    const [repeatPassword, setRepeatPassword] = useState("");
+    const [repeatPasswordError, setRepeatPasswordError] = useState("");
+    const [repeatPasswordFocused, setRepeatPasswordFocused] = useState(false);
 
 
     // PASSWORD VALIDATION
@@ -63,18 +66,42 @@ export default function SignUpForm() {
         setBirthDateError(validateBirthDate(value));
     };
 
+    const handleRepeatPasswordChange = (value: string) => {
+        setRepeatPassword(value);
+        if (repeatPasswordFocused && value !== password) {
+            setRepeatPasswordError("Hasła muszą być takie same");
+        } else {
+            setRepeatPasswordError("");
+        }
+    };
+
+    const handleRepeatPasswordFocus = () => {
+        setRepeatPasswordFocused(true);
+        if (repeatPassword !== password) {
+            setRepeatPasswordError("Hasła muszą być takie same");
+        } else {
+            setRepeatPasswordError("");
+        }
+    };
+
+    const handleRepeatPasswordBlur = () => {
+        setRepeatPasswordFocused(false);
+    };
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const pwdErr = validatePassword(password);
         const birthErr = validateBirthDate(birthDate);
+        const repeatPwdErr = repeatPassword !== password ? "Hasła muszą być takie same" : "";
         setPasswordError(pwdErr);
         setBirthDateError(birthErr);
-        if (pwdErr || birthErr) {
+        setRepeatPasswordError(repeatPwdErr);
+        if (pwdErr || birthErr || repeatPwdErr) {
             setError("Popraw błędy w formularzu");
             return;
         }
         setError("");
-        alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit
+        alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit 
     };
 
 
@@ -83,7 +110,7 @@ export default function SignUpForm() {
         <div className="flex items-center justify-center w-full min-h-screen">
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={200} height={200}  />
+                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 7}} />
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     E-mail*
@@ -137,6 +164,18 @@ export default function SignUpForm() {
                     error={passwordError}
                     required
                     label="Hasło*"
+                />
+
+                
+                <PasswordInput
+                    value={repeatPassword}
+                    onChange={e => handleRepeatPasswordChange(e.target.value)}
+                    onFocus={handleRepeatPasswordFocus}
+                    onBlur={handleRepeatPasswordBlur}
+                    error={repeatPasswordError}
+                    required
+                    label="Powtórz hasło*"
+            
                 />
                
 

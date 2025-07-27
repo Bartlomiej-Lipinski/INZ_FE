@@ -20,7 +20,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <label className={`flex flex-col w-5/6 sm:w-full text-white mt-1 ${className}`}>
+    <label className={`flex flex-col w-5/6 sm:w-full text-white mt-2 ${className}`}>
       {label}
       <div className="relative w-full">
         <input
