@@ -1,16 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import Button from "../components/Button";
+import { useRouter } from "next/navigation";
+import Button from "@/components/Button";
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Image from "next/image";
+import { IMAGES } from "@/lib/constants";
+import PasswordInput from "@/components/PasswordInput";
 
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -18,37 +22,33 @@ export default function SignInForm() {
     //if (!email || !password) {
     setError("Nieprawidłowy e-mail lub hasło");
     //   return;
-    // }
-    // setError("");                                        //<--- dodać logikę wyświeltania erroru
-    alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit``` 
+    // }                                                      <--- dodać logikę wyświeltania erroru
+    setError("");                                        
+    alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen w-full">
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-        <Image src="/Keep.png" alt="Logo" width={160} height={160} className="w-40 h-40 mb-10" />
+       <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={280} height={250}/>
         <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
           E-mail
           <input
             type="email"
             value={email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-            className="inputStyle"
+            className="inputStyle focus:ring-lilac"
             required
           />
         </label>
 
-        <label className="flex flex-col w-5/6 sm:w-full text-white">
-          Hasło
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="inputStyle"
-            required
-          />
-        </label>
+        <PasswordInput
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          label="Hasło"
+        />
 
 
 
@@ -66,7 +66,6 @@ export default function SignInForm() {
             Zapomniałeś hasła?
           </button>
 
-
           <Stack
             direction="row"
             spacing={0.5}
@@ -74,7 +73,7 @@ export default function SignInForm() {
             <button
               type="button"
               style={{ color: "#8D8C8C", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
-              onClick={() => alert('Funkcja resetowania hasła jeszcze nie jest dostępna. (SignInForm.tsx)')}
+              onClick={() => router.push('/signUp')}
             >
               Rejestracja
             </button>
@@ -84,9 +83,9 @@ export default function SignInForm() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px"}}>Zaloguj się</Button>
+        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Zaloguj się</Button>
 
-      </form>      
+      </form>
     </div>
   );
 } 
