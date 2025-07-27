@@ -88,6 +88,8 @@ export default function SignUpForm() {
         setRepeatPasswordFocused(false);
     };
 
+
+    // NOTE: DODAĆ WALIDACJE DO E-MAIL (UNIKALNOŚĆ W BAZIE DANYCH)
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const pwdErr = validatePassword(password);
@@ -112,7 +114,7 @@ export default function SignUpForm() {
     }, [passwordError, birthDateError, repeatPasswordError]);
 
 
-    
+
     return (
         <div className="flex items-center justify-center w-full min-h-screen">
 
@@ -184,7 +186,6 @@ export default function SignUpForm() {
                     label="Powtórz hasło*"
             
                 />
-               
 
                 {error && <div className="text-red-500 text-sm">{error}</div>}
 

@@ -39,6 +39,7 @@ export default function SignInForm() {
             value={email}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
             className="inputStyle focus:ring-lilac"
+            autoComplete="email"
             required
           />
         </label>

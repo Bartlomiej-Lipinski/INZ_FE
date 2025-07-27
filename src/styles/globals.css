@@ -4,10 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Import animacji jeśli masz zdefiniowaną paczkę */
 
-
-/* Definicje zmiennych CSS jako globalny theme */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -94,7 +91,7 @@ html, body {
   }
 }
 
-/* Niestandardowe kolory i style */
+/* Colors and styles */
 .myGray {
   color: #454545;
 }
@@ -117,6 +114,7 @@ html, body {
   box-shadow: 0 0 0 2px var(--tw-ring-color);
 }
 
+
 button:hover {
   filter: brightness(0.8);
   transition: filter 0.2s;
@@ -124,7 +122,7 @@ button:hover {
 
 
 
-/* Styl scrolla — Chrome, Edge, Safari */
+/* Styl scrolla */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -141,8 +139,6 @@ button:hover {
   background-clip: content-box;
 }
 
-
-/* Styl scrolla — Firefox */
 html {
   scrollbar-width: thin;
   scrollbar-color: #454545 transparent;
