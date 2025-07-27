@@ -7,14 +7,13 @@ import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Image from "next/image";
 import { IMAGES } from "@/lib/constants";
-import { Eye, EyeOff } from "lucide-react"; // opcjonalnie ikony
+import PasswordInput from "@/components/PasswordInput";
 
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
 
@@ -44,24 +43,12 @@ export default function SignInForm() {
           />
         </label>
 
-        <label className="flex flex-col w-5/6 sm:w-full text-white">
-          Hasło
-          <div className="relative w-full">
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="inputStyle focus:ring-lilac w-full" style={{ paddingRight: "35px" }}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        className="myGray absolute right-3 top-1/2 transform -translate-y-1/2"
-                    >
-                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                </div>
-        </label>
+        <PasswordInput
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          label="Hasło"
+        />
 
 
 
