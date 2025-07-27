@@ -28,7 +28,7 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen w-full">
+    <div className="fixed inset-0 flex items-center justify-center ">
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
        <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={280} height={250}/>
@@ -62,7 +62,7 @@ export default function SignInForm() {
           <button
             type="button"
             style={{ color: "#8D8C8C", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
-            onClick={() => alert('Funkcja resetowania hasła jeszcze nie jest dostępna. (SignInForm.tsx)')}
+            onClick={() => router.push('/password/forgot')}
           >
             Zapomniałeś hasła?
           </button>
@@ -84,7 +84,7 @@ export default function SignInForm() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Zaloguj się</Button>
+        <Button background="#786599" style={{ marginTop: "10px" }}>Zaloguj się</Button>
 
       </form>
     </div>
