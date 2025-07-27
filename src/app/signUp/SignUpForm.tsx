@@ -1,7 +1,7 @@
 import { IMAGES } from "@/lib/constants";
 
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import Image from "next/image";
 import PasswordInput from "@/components/PasswordInput";
@@ -105,12 +105,19 @@ export default function SignUpForm() {
     };
 
 
+    useEffect(() => {
+        if (!passwordError && !birthDateError && !repeatPasswordError && error) {
+            setError("");
+        }
+    }, [passwordError, birthDateError, repeatPasswordError]);
 
+
+    
     return (
         <div className="flex items-center justify-center w-full min-h-screen">
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 7}} />
+                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 15}} />
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     E-mail*
