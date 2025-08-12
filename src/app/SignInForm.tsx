@@ -18,13 +18,17 @@ export default function SignInForm() {
 
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        //if (!email || !password) {
+        // setError("Nieprawidłowy e-mail lub hasło");
+        //   return;
+        // }                                                      <--- dodać logikę wyświeltania erroru
     e.preventDefault();
-    //if (!email || !password) {
-    setError("Nieprawidłowy e-mail lub hasło");
-    //   return;
-    // }                                                      <--- dodać logikę wyświeltania erroru
+    if (!email || !password) {
+      setError("Nieprawidłowy e-mail lub hasło");
+      return;
+    }
     setError("");                                        
-    alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit
+    router.push('/verification');                     //Zmiana logiki pod backend
   };
 
   return (
@@ -84,7 +88,7 @@ export default function SignInForm() {
 
         {error && <div className="text-red-500 text-sm">{error}</div>}
 
-        <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Zaloguj się</Button>
+        <Button background="#786599" className="mb-20" style={{ marginTop: "10px" }}>Zaloguj się</Button>
 
       </form>
     </div>
