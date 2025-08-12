@@ -89,8 +89,7 @@ export default function SignUpForm() {
     };
 
 
-    // NOTE: DODAĆ WALIDACJE DO E-MAIL (UNIKALNOŚĆ W BAZIE DANYCH)
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const pwdErr = validatePassword(password);
         const birthErr = validateBirthDate(birthDate);
@@ -103,7 +102,38 @@ export default function SignUpForm() {
             return;
         }
         setError("");
-        alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit 
+        
+        try {
+            const response = await fetch('https://localhost:7215/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    Name: name,
+                    UserName: email, 
+                    Surname: surname,
+                    Email: email,
+                    BirthDate: birthDate,
+                    Password: password
+                })
+            });
+
+            if (response.ok) {
+                alert('Rejestracja zakończona pomyślnie!');
+               
+            } else {
+                const errorData = await response.json();
+                if (response.status === 400 && errorData.includes("Email already exists")) {
+                    setError("Ten adres email jest już zajęty");
+                } else {
+                    setError("Wystąpił błąd podczas rejestracji");
+                }
+            }
+        } catch (error) {
+            console.error('Błąd podczas rejestracji:', error);
+            setError("Błąd połączenia z serwerem");
+        }
     };
 
 
