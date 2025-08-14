@@ -18,7 +18,6 @@ export default function SignUpForm() {
     const [birthDateError, setBirthDateError] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [repeatPasswordError, setRepeatPasswordError] = useState("");
-    const [repeatPasswordFocused, setRepeatPasswordFocused] = useState(false);
     const [emailError, setEmailError] = useState("");
 
 
@@ -67,26 +66,14 @@ export default function SignUpForm() {
         setBirthDateError(validateBirthDate(value));
     };
 
+
     const handleRepeatPasswordChange = (value: string) => {
         setRepeatPassword(value);
-        if (repeatPasswordFocused && value !== password) {
+        if (value !== password) {
             setRepeatPasswordError("Hasła muszą być takie same");
         } else {
             setRepeatPasswordError("");
         }
-    };
-
-    const handleRepeatPasswordFocus = () => {
-        setRepeatPasswordFocused(true);
-        if (repeatPassword !== password) {
-            setRepeatPasswordError("Hasła muszą być takie same");
-        } else {
-            setRepeatPasswordError("");
-        }
-    };
-
-    const handleRepeatPasswordBlur = () => {
-        setRepeatPasswordFocused(false);
     };
 
 
@@ -99,6 +86,7 @@ export default function SignUpForm() {
         setBirthDateError(birthErr);
         setRepeatPasswordError(repeatPwdErr);
         setEmailError(""); 
+
         if (pwdErr || birthErr || repeatPwdErr) {
             setError("Popraw błędy!");
             return;
@@ -121,10 +109,10 @@ export default function SignUpForm() {
                 })
             });
 
+
             if (response.ok) {
                 const userId = await response.text();
                 alert(`Rejestracja zakończona pomyślnie! ID użytkownika: ${userId}`);
-               
             } else if (response.status === 500) {
                 const errorData = await response.json();
                 if (errorData.error?.message === "Email already exists.") {
@@ -147,7 +135,7 @@ export default function SignUpForm() {
         if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && error) {
             setError("");
         }
-    }, [passwordError, birthDateError, repeatPasswordError, emailError]);
+    }, [passwordError, birthDateError, repeatPasswordError, emailError, error]);
 
 
 
@@ -170,6 +158,7 @@ export default function SignUpForm() {
                     {emailError && <span className="text-red-400 text-sm mt-2 text-center block">{emailError}</span>}
                 </label>
 
+
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     Imię*
                     <input
@@ -181,6 +170,7 @@ export default function SignUpForm() {
                     />
                 </label>
 
+
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     Nazwisko*
                     <input
@@ -191,6 +181,7 @@ export default function SignUpForm() {
                         required
                     />
                 </label>
+
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white">
                     Data urodzenia*
@@ -213,16 +204,12 @@ export default function SignUpForm() {
                     label="Hasło*"
                 />
 
-                
                 <PasswordInput
                     value={repeatPassword}
                     onChange={e => handleRepeatPasswordChange(e.target.value)}
-                    onFocus={handleRepeatPasswordFocus}
-                    onBlur={handleRepeatPasswordBlur}
                     error={repeatPasswordError}
                     required
                     label="Powtórz hasło*"
-            
                 />
 
                 {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
