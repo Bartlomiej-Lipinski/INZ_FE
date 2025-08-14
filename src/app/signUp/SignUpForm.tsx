@@ -19,6 +19,7 @@ export default function SignUpForm() {
     const [repeatPassword, setRepeatPassword] = useState("");
     const [repeatPasswordError, setRepeatPasswordError] = useState("");
     const [repeatPasswordFocused, setRepeatPasswordFocused] = useState(false);
+    const [emailError, setEmailError] = useState("");
 
 
     // PASSWORD VALIDATION
@@ -97,6 +98,7 @@ export default function SignUpForm() {
         setPasswordError(pwdErr);
         setBirthDateError(birthErr);
         setRepeatPasswordError(repeatPwdErr);
+        setEmailError(""); // Reset email error
         if (pwdErr || birthErr || repeatPwdErr) {
             setError("Popraw błędy w formularzu");
             return;
@@ -104,7 +106,7 @@ export default function SignUpForm() {
         setError("");
         
         try {
-            const response = await fetch('https://localhost:7215/api/auth/register', {
+            const response = await fetch('https://localhost:7215/api/Auth/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,15 +122,18 @@ export default function SignUpForm() {
             });
 
             if (response.ok) {
-                alert('Rejestracja zakończona pomyślnie!');
+                const userId = await response.text();
+                alert(`Rejestracja zakończona pomyślnie! ID użytkownika: ${userId}`);
                
-            } else {
+            } else if (response.status === 500) {
                 const errorData = await response.json();
-                if (response.status === 400 && errorData.includes("Email already exists")) {
-                    setError("Ten adres email jest już zajęty");
+                if (errorData.error?.message === "Email already exists.") {
+                    setEmailError("Ten adres email jest już zajęty");
                 } else {
                     setError("Wystąpił błąd podczas rejestracji");
                 }
+            } else {
+                setError("Wystąpił błąd podczas rejestracji");
             }
         } catch (error) {
             console.error('Błąd podczas rejestracji:', error);
@@ -138,10 +143,10 @@ export default function SignUpForm() {
 
 
     useEffect(() => {
-        if (!passwordError && !birthDateError && !repeatPasswordError && error) {
+        if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && error) {
             setError("");
         }
-    }, [passwordError, birthDateError, repeatPasswordError]);
+    }, [passwordError, birthDateError, repeatPasswordError, emailError]);
 
 
 
@@ -161,6 +166,7 @@ export default function SignUpForm() {
                         className="inputStyle focus:ring-lilac"
                         required
                     />
+                    {emailError && <span className="text-red-400 text-sm mt-1 text-center block">{emailError}</span>}
                 </label>
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
@@ -194,7 +200,7 @@ export default function SignUpForm() {
                         className="inputStyle focus:ring-lilac h-10"
                         required
                     />
-                    {birthDateError && <span className="text-red-500 text-xs mt-1 text-center block">{birthDateError}</span>}
+                    {birthDateError && <span className="text-red-400 text-sm mt-2 text-center block">{birthDateError}</span>}
                 </label>
 
 
@@ -218,7 +224,7 @@ export default function SignUpForm() {
             
                 />
 
-                {error && <div className="text-red-500 text-sm">{error}</div>}
+                {error && <div className="text-red-400 text-sm">{error}</div>}
 
                 <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Potwierdź</Button>
 
