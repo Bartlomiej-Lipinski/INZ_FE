@@ -98,9 +98,9 @@ export default function SignUpForm() {
         setPasswordError(pwdErr);
         setBirthDateError(birthErr);
         setRepeatPasswordError(repeatPwdErr);
-        setEmailError(""); // Reset email error
+        setEmailError(""); 
         if (pwdErr || birthErr || repeatPwdErr) {
-            setError("Popraw błędy w formularzu");
+            setError("Popraw błędy!");
             return;
         }
         setError("");
@@ -128,7 +128,8 @@ export default function SignUpForm() {
             } else if (response.status === 500) {
                 const errorData = await response.json();
                 if (errorData.error?.message === "Email already exists.") {
-                    setEmailError("Ten adres email jest już zajęty");
+                    setEmailError("Ten adres e-mail jest już zajęty");
+                    setError("Popraw błędy!");
                 } else {
                     setError("Wystąpił błąd podczas rejestracji");
                 }
@@ -166,7 +167,7 @@ export default function SignUpForm() {
                         className="inputStyle focus:ring-lilac"
                         required
                     />
-                    {emailError && <span className="text-red-400 text-sm mt-1 text-center block">{emailError}</span>}
+                    {emailError && <span className="text-red-400 text-sm mt-2 text-center block">{emailError}</span>}
                 </label>
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
@@ -224,7 +225,7 @@ export default function SignUpForm() {
             
                 />
 
-                {error && <div className="text-red-400 text-sm">{error}</div>}
+                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
 
                 <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Potwierdź</Button>
 
