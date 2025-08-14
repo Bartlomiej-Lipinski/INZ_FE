@@ -5,9 +5,12 @@ import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import Image from "next/image";
 import PasswordInput from "@/components/PasswordInput";
+import LoadingDots from "@/components/LoadingDots";
+import { useRouter } from "next/navigation";
 
 
 export default function SignUpForm() {
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [surname, setSurname] = useState("");
@@ -19,6 +22,7 @@ export default function SignUpForm() {
     const [repeatPassword, setRepeatPassword] = useState("");
     const [repeatPasswordError, setRepeatPasswordError] = useState("");
     const [emailError, setEmailError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
 
     // PASSWORD VALIDATION
@@ -93,6 +97,8 @@ export default function SignUpForm() {
         }
         setError("");
         
+        setIsLoading(true);
+        
         try {
             const response = await fetch('https://localhost:7215/api/Auth/register', {
                 method: 'POST',
@@ -112,21 +118,27 @@ export default function SignUpForm() {
 
             if (response.ok) {
                 const userId = await response.text();
-                alert(`Rejestracja zakończona pomyślnie! ID użytkownika: ${userId}`);
+                router.push('/');
+                // alert(`Rejestracja zakończona pomyślnie! Możesz się teraz zalogować.`);
+                
             } else if (response.status === 500) {
                 const errorData = await response.json();
+
                 if (errorData.error?.message === "Email already exists.") {
                     setEmailError("Ten adres e-mail jest już zajęty");
                     setError("Popraw błędy!");
                 } else {
                     setError("Wystąpił błąd podczas rejestracji");
                 }
+
             } else {
                 setError("Wystąpił błąd podczas rejestracji");
             }
         } catch (error) {
             console.error('Błąd podczas rejestracji:', error);
             setError("Błąd połączenia z serwerem");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -214,9 +226,16 @@ export default function SignUpForm() {
 
                 {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
 
-                <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Potwierdź</Button>
+                <Button 
+                    background="#786599" 
+                    className="mb-20" 
+                    style={{ marginTop: "10px" }}
+                    disabled={isLoading}
+                >
+                    {isLoading ? <LoadingDots /> : "Potwierdź"}
+                </Button>
 
             </form>
         </div>
     );
-} 
+}
