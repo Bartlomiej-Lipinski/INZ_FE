@@ -98,7 +98,7 @@ export default function SignUpForm() {
     };
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value; // Normalizuj na małe litery
+        const value = e.target.value; 
         setEmail(value);
         setEmailError(validateEmail(value));
     };
