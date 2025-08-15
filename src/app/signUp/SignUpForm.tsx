@@ -22,6 +22,8 @@ export default function SignUpForm() {
     const [repeatPassword, setRepeatPassword] = useState("");
     const [repeatPasswordError, setRepeatPasswordError] = useState("");
     const [emailError, setEmailError] = useState("");
+    const [nameError, setNameError] = useState("");
+    const [surnameError, setSurnameError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
 
@@ -38,6 +40,38 @@ export default function SignUpForm() {
         }
         if (!/[^A-Za-z0-9]/.test(value)) {
             return "Hasło musi zawierać znak specjalny";
+        }
+        return "";
+    };
+
+    // EMAIL VALIDATION
+    const validateEmail = (value: string) => {
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            return "Podaj adres e-mail";
+        }
+
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(trimmedValue)) {
+            return "Podaj poprawny adres e-mail";
+        }
+        return "";
+    };
+
+    // NAME VALIDATION
+    const validateName = (value: string) => {
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            return "Podaj imię";
+        }
+        return "";
+    };
+
+    // SURNAME VALIDATION
+    const validateSurname = (value: string) => {
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            return "Podaj nazwisko";
         }
         return "";
     };
@@ -63,13 +97,29 @@ export default function SignUpForm() {
         setPasswordError(validatePassword(value));
     };
 
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value; // Normalizuj na małe litery
+        setEmail(value);
+        setEmailError(validateEmail(value));
+    };
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setName(value);
+        setNameError(validateName(value));
+    };
+
+    const handleSurnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSurname(value);
+        setSurnameError(validateSurname(value));
+    };
     
     const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setBirthDate(value);
         setBirthDateError(validateBirthDate(value));
     };
-
 
     const handleRepeatPasswordChange = (value: string) => {
         setRepeatPassword(value);
@@ -83,15 +133,21 @@ export default function SignUpForm() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const emailErr = validateEmail(email);
+        const nameErr = validateName(name);
+        const surnameErr = validateSurname(surname);
         const pwdErr = validatePassword(password);
         const birthErr = validateBirthDate(birthDate);
         const repeatPwdErr = repeatPassword !== password ? "Hasła muszą być takie same" : "";
+        
+        setEmailError(emailErr);
         setPasswordError(pwdErr);
         setBirthDateError(birthErr);
         setRepeatPasswordError(repeatPwdErr);
-        setEmailError(""); 
+        setNameError(nameErr);
+        setSurnameError(surnameErr);
 
-        if (pwdErr || birthErr || repeatPwdErr) {
+        if (emailErr || nameErr || surnameErr || pwdErr || birthErr || repeatPwdErr) {
             setError("Popraw błędy!");
             return;
         }
@@ -106,10 +162,10 @@ export default function SignUpForm() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    Name: name,
-                    UserName: email, 
-                    Surname: surname,
-                    Email: email,
+                    Name: name.trim(),
+                    UserName: email.trim().toLowerCase(), 
+                    Surname: surname.trim(),
+                    Email: email.trim().toLowerCase(),
                     BirthDate: birthDate,
                     Password: password
                 })
@@ -119,7 +175,7 @@ export default function SignUpForm() {
             if (response.ok) {
                 const userId = await response.text();
                 router.push('/');
-                // alert(`Rejestracja zakończona pomyślnie! Możesz się teraz zalogować.`);
+                return; 
                 
             } else if (response.status === 500) {
                 const errorData = await response.json();
@@ -144,10 +200,10 @@ export default function SignUpForm() {
 
 
     useEffect(() => {
-        if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && error) {
+        if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && !nameError && !surnameError && error) {
             setError("");
         }
-    }, [passwordError, birthDateError, repeatPasswordError, emailError, error]);
+    }, [passwordError, birthDateError, repeatPasswordError, emailError, nameError, surnameError, error]);
 
 
 
@@ -163,7 +219,7 @@ export default function SignUpForm() {
                     <input
                         type="email"
                         value={email}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                        onChange={handleEmailChange}
                         className="inputStyle focus:ring-lilac"
                         required
                     />
@@ -176,10 +232,11 @@ export default function SignUpForm() {
                     <input
                         type="text"
                         value={name}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                        onChange={handleNameChange}
                         className="inputStyle focus:ring-lilac"
                         required
                     />
+                    {nameError && <span className="text-red-400 text-sm mt-2 text-center block">{nameError}</span>}
                 </label>
 
 
@@ -188,10 +245,11 @@ export default function SignUpForm() {
                     <input
                         type="text"
                         value={surname}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSurname(e.target.value)}
+                        onChange={handleSurnameChange}
                         className="inputStyle focus:ring-lilac"
                         required
                     />
+                    {surnameError && <span className="text-red-400 text-sm mt-2 text-center block">{surnameError}</span>}
                 </label>
 
 
