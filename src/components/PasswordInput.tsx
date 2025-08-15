@@ -15,6 +15,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   error,
   label = "Hasło",
   className = "",
+  disabled,
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,6 +30,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
           onChange={onChange}
           className="inputStyle focus:ring-lilac w-full"
           style={{ paddingRight: "42px" }}
+          disabled={disabled}
           {...props}
         />
         <button
@@ -36,6 +38,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
           onClick={() => setShowPassword((prev) => !prev)}
           className="myGray absolute right-4 top-1/2 transform -translate-y-1/2"
           tabIndex={-1}
+          disabled={disabled}
         >
           {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
         </button>
