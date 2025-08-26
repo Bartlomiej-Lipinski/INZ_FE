@@ -5,9 +5,12 @@ import { useState, useEffect } from "react";
 import Button from "@/components/Button";
 import Image from "next/image";
 import PasswordInput from "@/components/PasswordInput";
+import LoadingDots from "@/components/LoadingDots";
+import { useRouter } from "next/navigation";
 
 
 export default function SignUpForm() {
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [surname, setSurname] = useState("");
@@ -18,7 +21,10 @@ export default function SignUpForm() {
     const [birthDateError, setBirthDateError] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [repeatPasswordError, setRepeatPasswordError] = useState("");
-    const [repeatPasswordFocused, setRepeatPasswordFocused] = useState(false);
+    const [emailError, setEmailError] = useState("");
+    const [nameError, setNameError] = useState("");
+    const [surnameError, setSurnameError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
 
     // PASSWORD VALIDATION
@@ -34,6 +40,38 @@ export default function SignUpForm() {
         }
         if (!/[^A-Za-z0-9]/.test(value)) {
             return "Hasło musi zawierać znak specjalny";
+        }
+        return "";
+    };
+
+    // EMAIL VALIDATION
+    const validateEmail = (value: string) => {
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            return "Podaj adres e-mail";
+        }
+
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(trimmedValue)) {
+            return "Podaj poprawny adres e-mail";
+        }
+        return "";
+    };
+
+    // NAME VALIDATION
+    const validateName = (value: string) => {
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            return "Podaj imię";
+        }
+        return "";
+    };
+
+    // SURNAME VALIDATION
+    const validateSurname = (value: string) => {
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            return "Podaj nazwisko";
         }
         return "";
     };
@@ -59,6 +97,23 @@ export default function SignUpForm() {
         setPasswordError(validatePassword(value));
     };
 
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value; 
+        setEmail(value);
+        setEmailError(validateEmail(value));
+    };
+
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setName(value);
+        setNameError(validateName(value));
+    };
+
+    const handleSurnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSurname(value);
+        setSurnameError(validateSurname(value));
+    };
     
     const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
@@ -68,50 +123,87 @@ export default function SignUpForm() {
 
     const handleRepeatPasswordChange = (value: string) => {
         setRepeatPassword(value);
-        if (repeatPasswordFocused && value !== password) {
+        if (value !== password) {
             setRepeatPasswordError("Hasła muszą być takie same");
         } else {
             setRepeatPasswordError("");
         }
     };
 
-    const handleRepeatPasswordFocus = () => {
-        setRepeatPasswordFocused(true);
-        if (repeatPassword !== password) {
-            setRepeatPasswordError("Hasła muszą być takie same");
-        } else {
-            setRepeatPasswordError("");
-        }
-    };
 
-    const handleRepeatPasswordBlur = () => {
-        setRepeatPasswordFocused(false);
-    };
-
-
-    // NOTE: DODAĆ WALIDACJE DO E-MAIL (UNIKALNOŚĆ W BAZIE DANYCH)
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const emailErr = validateEmail(email);
+        const nameErr = validateName(name);
+        const surnameErr = validateSurname(surname);
         const pwdErr = validatePassword(password);
         const birthErr = validateBirthDate(birthDate);
         const repeatPwdErr = repeatPassword !== password ? "Hasła muszą być takie same" : "";
+        
+        setEmailError(emailErr);
         setPasswordError(pwdErr);
         setBirthDateError(birthErr);
         setRepeatPasswordError(repeatPwdErr);
-        if (pwdErr || birthErr || repeatPwdErr) {
-            setError("Popraw błędy w formularzu");
+        setNameError(nameErr);
+        setSurnameError(surnameErr);
+
+        if (emailErr || nameErr || surnameErr || pwdErr || birthErr || repeatPwdErr) {
+            setError("Popraw błędy!");
             return;
         }
         setError("");
-        alert(`Zalogowano jako: ${email}`);                     //<--- zmiana logiki handleSubmit 
+        
+        setIsLoading(true);
+        
+        try {
+            const response = await fetch('https://localhost:7215/api/Auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    Name: name.trim(),
+                    UserName: email.trim().toLowerCase(), 
+                    Surname: surname.trim(),
+                    Email: email.trim().toLowerCase(),
+                    BirthDate: birthDate,
+                    Password: password
+                })
+            });
+
+
+            if (response.ok) {
+                const userId = await response.text();
+                router.push('/');
+                return; 
+                
+            } else if (response.status === 500) {
+                const errorData = await response.json();
+
+                if (errorData.error?.message === "Email already exists.") {
+                    setEmailError("Ten adres e-mail jest już zajęty");
+                    setError("Popraw błędy!");
+                } else {
+                    setError("Wystąpił błąd podczas rejestracji");
+                }
+
+            } else {
+                setError("Wystąpił błąd podczas rejestracji");
+            }
+        } catch (error) {
+            console.error('Błąd podczas rejestracji:', error);
+            setError("Błąd połączenia z serwerem");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
 
     useEffect(() => {
-        if (!passwordError && !birthDateError && !repeatPasswordError && error) {
+        if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && !nameError && !surnameError && error) {
             setError("");
         }
-    }, [passwordError, birthDateError, repeatPasswordError]);
+    }, [passwordError, birthDateError, repeatPasswordError, emailError, nameError, surnameError, error]);
 
 
 
@@ -127,33 +219,39 @@ export default function SignUpForm() {
                     <input
                         type="email"
                         value={email}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                        onChange={handleEmailChange}
                         className="inputStyle focus:ring-lilac"
                         required
                     />
+                    {emailError && <span className="text-red-400 text-sm mt-2 text-center block">{emailError}</span>}
                 </label>
+
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     Imię*
                     <input
                         type="text"
                         value={name}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                        onChange={handleNameChange}
                         className="inputStyle focus:ring-lilac"
                         required
                     />
+                    {nameError && <span className="text-red-400 text-sm mt-2 text-center block">{nameError}</span>}
                 </label>
+
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     Nazwisko*
                     <input
                         type="text"
                         value={surname}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSurname(e.target.value)}
+                        onChange={handleSurnameChange}
                         className="inputStyle focus:ring-lilac"
                         required
                     />
+                    {surnameError && <span className="text-red-400 text-sm mt-2 text-center block">{surnameError}</span>}
                 </label>
+
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white">
                     Data urodzenia*
@@ -164,7 +262,7 @@ export default function SignUpForm() {
                         className="inputStyle focus:ring-lilac h-10"
                         required
                     />
-                    {birthDateError && <span className="text-red-500 text-xs mt-1 text-center block">{birthDateError}</span>}
+                    {birthDateError && <span className="text-red-400 text-sm mt-2 text-center block">{birthDateError}</span>}
                 </label>
 
 
@@ -176,23 +274,26 @@ export default function SignUpForm() {
                     label="Hasło*"
                 />
 
-                
                 <PasswordInput
                     value={repeatPassword}
                     onChange={e => handleRepeatPasswordChange(e.target.value)}
-                    onFocus={handleRepeatPasswordFocus}
-                    onBlur={handleRepeatPasswordBlur}
                     error={repeatPasswordError}
                     required
                     label="Powtórz hasło*"
-            
                 />
 
-                {error && <div className="text-red-500 text-sm">{error}</div>}
+                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
 
-                <Button background="#786599" className="mb-20 " style={{ marginTop: "10px" }}>Potwierdź</Button>
+                <Button 
+                    background="#786599" 
+                    className="mb-20" 
+                    style={{ marginTop: "10px" }}
+                    disabled={isLoading}
+                >
+                    {isLoading ? <LoadingDots /> : "Potwierdź"}
+                </Button>
 
             </form>
         </div>
     );
-} 
+}

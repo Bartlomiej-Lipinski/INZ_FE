@@ -67,9 +67,9 @@ export default function SignInForm() {
   return (
     <div className="flex items-center justify-center min-h-screen w-full">
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
+      <form onSubmit={handleSubmit} className="flex flex-col w-full max-w-xs items-center justify-center">
        <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={280} height={250}/>
-        <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
+        <label className="flex flex-col w-72 sm:w-full text-white mb-3 mt-5">
           E-mail
           <input
             type="email"
@@ -84,17 +84,22 @@ export default function SignInForm() {
 
         <PasswordInput
           value={password}
-          onChange={handlePasswordChange}
+          className="w-72"
+          onChange={(e) => setPassword(e.target.value)}
+
           required
           label="Hasło"
           disabled={isLoading}
         />
 
+
         <Stack
           direction="row"
+          style={{marginTop: 15, marginBottom: 10}}
           divider={<Divider orientation="vertical" flexItem style={{ borderColor: '#8D8C8C' }} />}
           spacing={1}
         >
+
           <button
             type="button"
             style={{ color: "#8D8C8C", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
