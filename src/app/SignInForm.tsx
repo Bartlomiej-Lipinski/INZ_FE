@@ -46,6 +46,7 @@ export default function SignInForm() {
           Email: email.trim(),
           Password: password
         }),
+        credentials: 'include'
       });
 
 
@@ -86,7 +87,7 @@ export default function SignInForm() {
         <PasswordInput
           value={password}
           className="w-72"
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={handlePasswordChange}
 
           required
           label="Hasło"
