@@ -8,6 +8,7 @@ import Divider from '@mui/material/Divider';
 import Image from "next/image";
 import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
 import PasswordInput from "@/components/PasswordInput";
+import LoadingDots from "@/components/LoadingDots";
 
 
 export default function SignInForm() {
@@ -137,7 +138,7 @@ export default function SignInForm() {
           style={{ marginTop: "10px" }}
           disabled={isLoading}
         >
-          {isLoading ? "Logowanie..." : "Zaloguj się"}
+          {isLoading ? <LoadingDots /> : "Zaloguj się"}
         </Button>
 
       </form>
