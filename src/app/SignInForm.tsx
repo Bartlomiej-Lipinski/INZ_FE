@@ -21,6 +21,7 @@ export default function SignInForm() {
   const { setUser } = useAuth();
 
 
+  // HANDLERS
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     setError("");
@@ -37,7 +38,6 @@ export default function SignInForm() {
     setIsLoading(true);
     setError("");
 
-
     try {
       const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
@@ -53,23 +53,51 @@ export default function SignInForm() {
 
 
       if (response.ok) {
-        const userId = await response.text(); // Backend zwraca userId jako string
+        const userId = await response.text(); 
         
-        // Ustawiamy dane użytkownika w aplikacji
-        setUser({
-          id: userId,
-          email: email.trim(),
-          role: 'Member' // Domyślnie ustawiamy rolę Member
-        });
-        
-        // Przekierowujemy do strony weryfikacji
-        router.push('/verification');
+        try {
+          const userResponse = await fetch(`${API_ENDPOINTS.GET_USER_BY_ID}/${userId}`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          const userData = await userResponse.json();
+          console.log('Backend response:', userData);
+          
+          if (userData.data) {
+            const user = userData.data;
+
+            setUser({
+              id: user.id,
+              email: user.email,
+              userName: user.userName,
+              name: user.name,
+              surname: user.surname,
+              birthDate: new Date(user.birthDate),
+              status: user.status || '',
+              description: user.description || '',
+              photo: user.photo || '',
+              role: 'Member' 
+            });
+            
+            console.log(user);
+         
+            router.push('/verification');
+            return;
+          } else {
+            setError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
+          }
+        } catch (userError) {
+          console.error('Błąd pobierania danych użytkownika:', userError);
+          setError("Wystąpił błąd połączenia");
+        }
         return;
       } else if (response.status === 401 || response.status === 403) {
         setError("Nieprawidłowy e-mail lub hasło");
       } else {
         setError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
       }
+
     } catch (error) {
       console.error('Błąd logowania:', error);
       setError("Wystąpił błąd połączenia");
@@ -78,6 +106,8 @@ export default function SignInForm() {
     }
   };
 
+
+  //RENDER
   return (
     <div className="flex items-center justify-center min-h-screen w-full">
 

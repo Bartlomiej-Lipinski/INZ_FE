@@ -2,13 +2,13 @@ export type UserRole = 'Admin' | 'Member';
 
 export interface User {
   id: string;
-  username: string;
+  userName: string;
   email: string;
   name: string;
   surname: string;
   birthDate: Date;
-  status: string;
-  description: string;
-  photo: string;
+  status: string | null;
+  description: string | null;
+  photo: string | null;
   role: UserRole;
 }

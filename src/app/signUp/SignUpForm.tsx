@@ -91,7 +91,7 @@ export default function SignUpForm() {
 
     
 
-    //HANDLES
+    //HANDLERS
     const handlePasswordChange = (value: string) => {
         setPassword(value);
         setPasswordError(validatePassword(value));
