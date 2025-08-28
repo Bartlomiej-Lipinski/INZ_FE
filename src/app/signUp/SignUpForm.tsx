@@ -173,7 +173,6 @@ export default function SignUpForm() {
 
 
             if (response.ok) {
-                const userId = await response.text();
                 router.push('/');
                 return; 
                 
