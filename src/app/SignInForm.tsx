@@ -9,6 +9,7 @@ import Image from "next/image";
 import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
 import PasswordInput from "@/components/PasswordInput";
 import LoadingDots from "@/components/LoadingDots";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 export default function SignInForm() {
@@ -17,6 +18,7 @@ export default function SignInForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { setUser } = useAuth();
 
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,6 +53,16 @@ export default function SignInForm() {
 
 
       if (response.ok) {
+        const userId = await response.text(); // Backend zwraca userId jako string
+        
+        // Ustawiamy dane użytkownika w aplikacji
+        setUser({
+          id: userId,
+          email: email.trim(),
+          role: 'Member' // Domyślnie ustawiamy rolę Member
+        });
+        
+        // Przekierowujemy do strony weryfikacji
         router.push('/verification');
         return;
       } else if (response.status === 401 || response.status === 403) {
