@@ -87,7 +87,8 @@ html, body {
   }
 
   body {
-    @apply bg-gradient-to-b from-black via-neutral-800 to-neutral-500;
+    /* @apply bg-gradient-to-b from-black via-neutral-800 to-neutral-500; */
+    background: linear-gradient(to bottom, #000000, #303030, #737373);
   }
 }
 

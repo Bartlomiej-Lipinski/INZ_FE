@@ -6,5 +6,7 @@ export const IMAGES = {
 
 export const API_ENDPOINTS = {
   LOGIN: "https://localhost:7215/api/Auth/login",
+  REGISTER: "https://localhost:7215/api/Auth/register",
+  GET_USER_BY_ID: "https://localhost:7215/users",
 } as const; 
 
