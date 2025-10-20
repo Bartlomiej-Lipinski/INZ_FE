@@ -1,4 +1,4 @@
-import { IMAGES } from "@/lib/constants";
+import { API_ENDPOINTS, IMAGES } from "@/lib/constants";
 
 
 import { useState, useEffect } from "react";
@@ -91,7 +91,7 @@ export default function SignUpForm() {
 
     
 
-    //HANDLES
+    //HANDLERS
     const handlePasswordChange = (value: string) => {
         setPassword(value);
         setPasswordError(validatePassword(value));
@@ -156,7 +156,7 @@ export default function SignUpForm() {
         setIsLoading(true);
         
         try {
-            const response = await fetch('https://localhost:7215/api/Auth/register', {
+            const response = await fetch(API_ENDPOINTS.REGISTER, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -173,7 +173,6 @@ export default function SignUpForm() {
 
 
             if (response.ok) {
-                const userId = await response.text();
                 router.push('/');
                 return; 
                 
