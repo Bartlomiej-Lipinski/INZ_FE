@@ -1,6 +1,7 @@
 
 export const IMAGES = {
   KEEP_LOGO: "/Keep.png",
+  MATES_LOGO: "/mates.png",
 } as const; 
 
 

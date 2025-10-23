@@ -211,7 +211,7 @@ export default function SignUpForm() {
         <div className="flex items-center justify-center w-full min-h-screen">
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-                <Image src={IMAGES.KEEP_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 15}} />
+                <Image src={IMAGES.MATES_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 15}} />
 
                 <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
                     E-mail*
