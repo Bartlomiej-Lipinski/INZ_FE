@@ -9,7 +9,8 @@ import Image from "next/image";
 import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
 import PasswordInput from "@/components/common/Password-input";
 import LoadingDots from "@/components/common/Loading-dots";
-import { useAuth } from "@/contexts/AuthContext";
+import { User } from "@/lib/types";
+
 
 
 export default function SignInForm() {
@@ -18,7 +19,7 @@ export default function SignInForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { setUser } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
 
 
   // HANDLERS
