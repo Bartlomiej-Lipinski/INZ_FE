@@ -9,7 +9,6 @@ import Image from "next/image";
 import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
 import PasswordInput from "@/components/common/Password-input";
 import LoadingDots from "@/components/common/Loading-dots";
-import { User } from "@/lib/types";
 
 
 
@@ -19,7 +18,6 @@ export default function SignInForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
 
 
   // HANDLERS
@@ -54,44 +52,14 @@ export default function SignInForm() {
 
 
       if (response.ok) {
-        const userId = await response.text(); 
+        const loginResponse = await response.json(); 
+        console.log('Backend response:', loginResponse);
         
-        try {
-          const userResponse = await fetch(`${API_ENDPOINTS.GET_USER_BY_ID}/${userId}`, {
-            method: 'GET',
-            credentials: 'include'
-          });
-
-          const userData = await userResponse.json();
-          console.log('Backend response:', userData);
-          
-          if (userData.data) {
-            const user = userData.data;
-
-            setUser({
-              id: user.id,
-              email: user.email,
-              userName: user.userName,
-              name: user.name,
-              surname: user.surname,
-              birthDate: new Date(user.birthDate),
-              status: user.status || '',
-              description: user.description || '',
-              photo: user.photo || '',
-              role: 'Member' 
-            });
-            
-            console.log(user);
-         
-            router.push('/verification');
-            return;
-          } else {
-            setError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
-          }
-        } catch (userError) {
-          console.error('Błąd pobierania danych użytkownika:', userError);
-          setError("Wystąpił błąd połączenia");
-        }
+        // Sprawdź czy odpowiedź ma strukturę ApiResponse
+        const userId = loginResponse.data;
+        console.log('User ID:', userId);
+        
+        router.push('/verification');
         return;
       } else if (response.status === 401 || response.status === 403) {
         setError("Nieprawidłowy e-mail lub hasło");
