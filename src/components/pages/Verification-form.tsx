@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 
 export default function VerificationForm() {
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);

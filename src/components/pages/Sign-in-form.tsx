@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Image from "next/image";
 import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
-import PasswordInput from "@/components/PasswordInput";
-import LoadingDots from "@/components/LoadingDots";
+import PasswordInput from "@/components/common/Password-input";
+import LoadingDots from "@/components/common/Loading-dots";
 import { useAuth } from "@/contexts/AuthContext";
 
 

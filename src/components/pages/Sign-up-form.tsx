@@ -2,10 +2,10 @@ import { API_ENDPOINTS, IMAGES } from "@/lib/constants";
 
 
 import { useState, useEffect } from "react";
-import Button from "@/components/Button";
+import Button from "@/components/common/Button";
 import Image from "next/image";
-import PasswordInput from "@/components/PasswordInput";
-import LoadingDots from "@/components/LoadingDots";
+import PasswordInput from "@/components/common/Password-input";
+import LoadingDots from "@/components/common/Loading-dots";
 import { useRouter } from "next/navigation";
 
 
