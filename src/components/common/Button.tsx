@@ -19,7 +19,7 @@ const defaultStyles: React.CSSProperties = {
   transition: "all 0.2s ease-in-out",
 };
 
-const Button: React.FC<ButtonProps> = ({ background = "#786599", style, children, disabled, ...props }) => {
+const Button: React.FC<ButtonProps> = ({ background = "#9042fb", style, children, disabled, ...props }) => {
   const buttonStyles: React.CSSProperties = {
     ...defaultStyles,
     background: disabled ? "#cccccc" : background,

@@ -93,7 +93,7 @@ export default function VerificationForm() {
         </button>
 
         <Button 
-          background="#786599" 
+          background="#9042fb" 
           onClick={handleVerifyCode}
           disabled={!isCodeComplete}
           className={!isCodeComplete ? "opacity-50 cursor-not-allowed focus:outline-none focus:ring-0" : ""}

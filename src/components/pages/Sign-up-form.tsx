@@ -284,7 +284,7 @@ export default function SignUpForm() {
                 {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
 
                 <Button 
-                    background="#786599" 
+                    background="#9042fb" 
                     className="mb-20" 
                     style={{ marginTop: "10px" }}
                     disabled={isLoading}
