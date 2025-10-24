@@ -4,9 +4,11 @@ export const IMAGES = {
 } as const; 
 
 
+export const BASE_URL = "https://localhost:7215";
+
 export const API_ENDPOINTS = {
-  LOGIN: "https://localhost:7215/api/auth/login",
-  REGISTER: "https://localhost:7215/api/auth/register",
-  GET_USER_BY_ID: "https://localhost:7215/users",
+  LOGIN: `${BASE_URL}/api/auth/login`,
+  REGISTER: `${BASE_URL}/api/auth/register`,
+  USERS: `${BASE_URL}/users`,
 } as const; 
 
