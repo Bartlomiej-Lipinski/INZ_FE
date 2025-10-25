@@ -68,9 +68,6 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             '& fieldset': {
               borderColor: 'transparent',
             },
-            '&:hover fieldset': {
-              borderColor: 'rgba(144, 66, 251, 0.3)',
-            },
             '&.Mui-focused fieldset': {
               borderColor: 'primary.main',
               borderWidth: 2,

@@ -1,9 +1,9 @@
 import { API_ENDPOINTS, IMAGES } from "@/lib/constants";
 import { useState, useEffect } from "react";
-import Button from "@/components/common/Button";
+import { Button as MuiButton } from '@mui/material';
 import Image from "next/image";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingDots from "@/components/common/Loading-spinner";
+import LoadingSpinner from "@/components/common/Loading-spinner";
 import { useRouter } from "next/navigation";
 import { 
   Box, 
@@ -245,180 +245,44 @@ export default function SignUpForm() {
                     type="email"
                     value={email}
                     onChange={handleEmailChange}
-                    label="E-mail*"
+                    label="E-mail"
                     required
                     error={!!emailError}
                     helperText={emailError}
                     fullWidth
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 3,
-                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
-                            color: 'white',
-                            '& fieldset': {
-                                borderColor: 'transparent',
-                            },
-                            '&:hover fieldset': {
-                                borderColor: 'rgba(144, 66, 251, 0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: 'primary.main',
-                                borderWidth: 2,
-                            },
-                            '&.Mui-error fieldset': {
-                                borderColor: 'error.main',
-                            },
-                        },
-                        '& .MuiInputLabel-root': {
-                            color: 'white',
-                            '&.Mui-focused': {
-                                color: 'primary.main',
-                            },
-                            '&.Mui-error': {
-                                color: 'error.main',
-                            },
-                        },
-                        '& .MuiFormHelperText-root': {
-                            color: 'error.main',
-                            textAlign: 'center',
-                        },
-                    }}
                 />
 
                 <TextField
                     type="text"
                     value={name}
                     onChange={handleNameChange}
-                    label="Imię*"
+                    label="Imię"
                     required
                     error={!!nameError}
                     helperText={nameError}
                     fullWidth
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 3,
-                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
-                            color: 'white',
-                            '& fieldset': {
-                                borderColor: 'transparent',
-                            },
-                            '&:hover fieldset': {
-                                borderColor: 'rgba(144, 66, 251, 0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: 'primary.main',
-                                borderWidth: 2,
-                            },
-                            '&.Mui-error fieldset': {
-                                borderColor: 'error.main',
-                            },
-                        },
-                        '& .MuiInputLabel-root': {
-                            color: 'white',
-                            '&.Mui-focused': {
-                                color: 'primary.main',
-                            },
-                            '&.Mui-error': {
-                                color: 'error.main',
-                            },
-                        },
-                        '& .MuiFormHelperText-root': {
-                            color: 'error.main',
-                            textAlign: 'center',
-                        },
-                    }}
                 />
 
                 <TextField
                     type="text"
                     value={surname}
                     onChange={handleSurnameChange}
-                    label="Nazwisko*"
+                    label="Nazwisko"
                     required
                     error={!!surnameError}
                     helperText={surnameError}
                     fullWidth
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 3,
-                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
-                            color: 'white',
-                            '& fieldset': {
-                                borderColor: 'transparent',
-                            },
-                            '&:hover fieldset': {
-                                borderColor: 'rgba(144, 66, 251, 0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: 'primary.main',
-                                borderWidth: 2,
-                            },
-                            '&.Mui-error fieldset': {
-                                borderColor: 'error.main',
-                            },
-                        },
-                        '& .MuiInputLabel-root': {
-                            color: 'white',
-                            '&.Mui-focused': {
-                                color: 'primary.main',
-                            },
-                            '&.Mui-error': {
-                                color: 'error.main',
-                            },
-                        },
-                        '& .MuiFormHelperText-root': {
-                            color: 'error.main',
-                            textAlign: 'center',
-                        },
-                    }}
                 />
 
                 <TextField
                     type="date"
                     value={birthDate}
                     onChange={handleBirthDateChange}
-                    label="Data urodzenia*"
+                    label="Data urodzenia"
                     required
                     error={!!birthDateError}
                     helperText={birthDateError}
                     fullWidth
-                    InputLabelProps={{
-                        shrink: true,
-                    }}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 3,
-                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
-                            color: 'white',
-                            height: 56,
-                            '& fieldset': {
-                                borderColor: 'transparent',
-                            },
-                            '&:hover fieldset': {
-                                borderColor: 'rgba(144, 66, 251, 0.3)',
-                            },
-                            '&.Mui-focused fieldset': {
-                                borderColor: 'primary.main',
-                                borderWidth: 2,
-                            },
-                            '&.Mui-error fieldset': {
-                                borderColor: 'error.main',
-                            },
-                        },
-                        '& .MuiInputLabel-root': {
-                            color: 'white',
-                            '&.Mui-focused': {
-                                color: 'primary.main',
-                            },
-                            '&.Mui-error': {
-                                color: 'error.main',
-                            },
-                        },
-                        '& .MuiFormHelperText-root': {
-                            color: 'error.main',
-                            textAlign: 'center',
-                        },
-                    }}
                 />
 
                 <PasswordInput
@@ -426,7 +290,7 @@ export default function SignUpForm() {
                     onChange={e => handlePasswordChange(e.target.value)}
                     error={passwordError}
                     required
-                    label="Hasło*"
+                    label="Hasło"
                     sx={{ width: '100%' }}
                 />
 
@@ -435,7 +299,7 @@ export default function SignUpForm() {
                     onChange={e => handleRepeatPasswordChange(e.target.value)}
                     error={repeatPasswordError}
                     required
-                    label="Powtórz hasło*"
+                    label="Powtórz hasło"
                     sx={{ width: '100%' }}
                 />
 
@@ -452,13 +316,14 @@ export default function SignUpForm() {
                     </Typography>
                 )}
 
-                <Button
+                <MuiButton
                     type="submit"
+                    variant="contained"
                     sx={{ mt: 1, mb: 5 }}
                     disabled={isLoading}
                 >
-                    {isLoading ? <LoadingDots /> : "Potwierdź"}
-                </Button>
+                    {isLoading ? <LoadingSpinner /> : "Potwierdź"}
+                </MuiButton>
             </Box>
         </Box>
     );

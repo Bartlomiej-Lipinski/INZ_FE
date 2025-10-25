@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Button from "@/components/common/Button";
+import { Button as MuiButton } from '@mui/material';
 import { 
   Stack, 
   Divider, 
@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingDots from "@/components/common/Loading-spinner";
+import LoadingSpinner from "@/components/common/Loading-spinner";
 
 
 
@@ -105,7 +105,7 @@ export default function SignInForm() {
           justifyContent: 'center',
         }}
       >
-        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={280} height={250} />
+        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={250} height={230} />
         
         <TextField
           type="email"
@@ -116,31 +116,7 @@ export default function SignInForm() {
           required
           disabled={isLoading}
           fullWidth
-          sx={{
-            mt: 3,
-            mb: 2,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 3,
-              backgroundColor: 'rgba(125, 125, 125, 0.5)',
-              color: 'white',
-              '& fieldset': {
-                borderColor: 'transparent',
-              },
-              '&:hover fieldset': {
-                borderColor: 'rgba(144, 66, 251, 0.3)',
-              },
-              '&.Mui-focused fieldset': {
-                borderColor: 'primary.main',
-                borderWidth: 2,
-              },
-            },
-            '& .MuiInputLabel-root': {
-              color: 'white',
-              '&.Mui-focused': {
-                color: 'primary.main',
-              },
-            },
-          }}
+          sx={{ mt: 3, mb: 2 }}
         />
 
         <PasswordInput
@@ -183,7 +159,7 @@ export default function SignInForm() {
             <Link
               component="button"
               type="button"
-              onClick={() => router.push('/signUp')}
+              onClick={() => router.push('/sign-up')}
               disabled={isLoading}
               sx={{
                 color: 'text.secondary',
@@ -219,13 +195,14 @@ export default function SignInForm() {
           </Typography>
         )}
 
-        <Button
+        <MuiButton
           type="submit"
+          variant="contained"
           sx={{ mt: 1, mb: 5 }}
           disabled={isLoading}
         >
-          {isLoading ? <LoadingDots /> : "Zaloguj się"}
-        </Button>
+          {isLoading ? <LoadingSpinner /> : "Zaloguj się"}
+        </MuiButton>
       </Box>
     </Box>
   );

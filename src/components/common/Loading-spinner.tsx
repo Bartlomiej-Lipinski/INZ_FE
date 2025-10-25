@@ -1,12 +1,12 @@
 import React from "react";
 import { CircularProgress, Box } from '@mui/material';
 
-interface LoadingDotsProps {
+interface LoadingSpinnerProps {
   size?: number;
   sx?: any;
 }
 
-const LoadingDots: React.FC<LoadingDotsProps> = ({ size = 20, sx }) => {
+const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 20, sx }) => {
   return (
     <Box
       sx={{
@@ -28,4 +28,4 @@ const LoadingDots: React.FC<LoadingDotsProps> = ({ size = 20, sx }) => {
   );
 };
 
-export default LoadingDots;
+export default LoadingSpinner;

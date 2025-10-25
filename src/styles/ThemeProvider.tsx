@@ -106,7 +106,8 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 30,
+          backgroundColor: 'primary.main',
           padding: '12px 24px',
           fontSize: '16px',
           fontWeight: 500,
@@ -126,27 +127,33 @@ const theme = createTheme({
       },
     },
     MuiTextField: {
+      defaultProps: {
+        InputLabelProps: {
+          shrink: true,
+        },
+      },
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 24,
+            borderRadius: 30,
             backgroundColor: 'rgba(125, 125, 125, 0.5)',
             color: '#ffffff',
             '& fieldset': {
               borderColor: 'transparent',
             },
-            '&:hover fieldset': {
-              borderColor: 'rgba(144, 66, 251, 0.3)',
-            },
             '&.Mui-focused fieldset': {
-              borderColor: '#9042fb',
+              borderColor: 'primary.main',
               borderWidth: 2,
             },
           },
           '& .MuiInputLabel-root': {
             color: '#ffffff',
+            transform: 'translate(14px, -9px) scale(0.75)',
             '&.Mui-focused': {
-              color: '#9042fb',
+              color: 'primary.main',
+            },
+            '&.MuiInputLabel-shrink': {
+              transform: 'translate(14px, -9px) scale(0.75)',
             },
           },
         },
@@ -158,7 +165,7 @@ const theme = createTheme({
           color: '#ffffff',
           '&.Mui-focused': {
             '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: '#9042fb',
+              borderColor: 'primary.main',
             },
           },
         },

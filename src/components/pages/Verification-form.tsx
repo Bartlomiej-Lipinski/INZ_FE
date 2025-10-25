@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import Button from "@/components/common/Button";
+import { Button as MuiButton } from '@mui/material';
 import { 
   Box, 
   TextField, 
@@ -158,8 +158,9 @@ export default function VerificationForm() {
           {isResending ? "Wysyłanie..." : "Wyślij ponownie kod"}
         </Link>
 
-        <Button
+        <MuiButton
           onClick={handleVerifyCode}
+          variant="contained"
           disabled={!isCodeComplete}
           sx={{
             opacity: !isCodeComplete ? 0.5 : 1,
@@ -167,7 +168,7 @@ export default function VerificationForm() {
           }}
         >
           Zweryfikuj kod
-        </Button>
+        </MuiButton>
       </Stack>
     </Box>
   );
