@@ -1,12 +1,15 @@
 import { API_ENDPOINTS, IMAGES } from "@/lib/constants";
-
-
 import { useState, useEffect } from "react";
 import Button from "@/components/common/Button";
 import Image from "next/image";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingDots from "@/components/common/Loading-dots";
+import LoadingDots from "@/components/common/Loading-spinner";
 import { useRouter } from "next/navigation";
+import { 
+  Box, 
+  TextField, 
+  Typography 
+} from '@mui/material';
 
 
 export default function SignUpForm() {
@@ -208,62 +211,215 @@ export default function SignUpForm() {
 
     //RENDER
     return (
-        <div className="flex items-center justify-center w-full min-h-screen">
+        <Box
+            sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                minHeight: '100vh',
+            }}
+        >
+            <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    width: '100%',
+                    maxWidth: 320,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <Image 
+                    src={IMAGES.MATES_LOGO} 
+                    alt="Logo" 
+                    width={150} 
+                    height={130} 
+                    style={{ marginTop: 15 }} 
+                />
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-                <Image src={IMAGES.MATES_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 15}} />
+                <TextField
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    label="E-mail*"
+                    required
+                    error={!!emailError}
+                    helperText={emailError}
+                    fullWidth
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
+                            color: 'white',
+                            '& fieldset': {
+                                borderColor: 'transparent',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: 'rgba(144, 66, 251, 0.3)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: 'primary.main',
+                                borderWidth: 2,
+                            },
+                            '&.Mui-error fieldset': {
+                                borderColor: 'error.main',
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white',
+                            '&.Mui-focused': {
+                                color: 'primary.main',
+                            },
+                            '&.Mui-error': {
+                                color: 'error.main',
+                            },
+                        },
+                        '& .MuiFormHelperText-root': {
+                            color: 'error.main',
+                            textAlign: 'center',
+                        },
+                    }}
+                />
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
-                    E-mail*
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={handleEmailChange}
-                        className="inputStyle focus:ring-lilac"
-                        required
-                    />
-                    {emailError && <span className="text-red-400 text-sm mt-2 text-center block">{emailError}</span>}
-                </label>
+                <TextField
+                    type="text"
+                    value={name}
+                    onChange={handleNameChange}
+                    label="Imię*"
+                    required
+                    error={!!nameError}
+                    helperText={nameError}
+                    fullWidth
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
+                            color: 'white',
+                            '& fieldset': {
+                                borderColor: 'transparent',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: 'rgba(144, 66, 251, 0.3)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: 'primary.main',
+                                borderWidth: 2,
+                            },
+                            '&.Mui-error fieldset': {
+                                borderColor: 'error.main',
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white',
+                            '&.Mui-focused': {
+                                color: 'primary.main',
+                            },
+                            '&.Mui-error': {
+                                color: 'error.main',
+                            },
+                        },
+                        '& .MuiFormHelperText-root': {
+                            color: 'error.main',
+                            textAlign: 'center',
+                        },
+                    }}
+                />
 
+                <TextField
+                    type="text"
+                    value={surname}
+                    onChange={handleSurnameChange}
+                    label="Nazwisko*"
+                    required
+                    error={!!surnameError}
+                    helperText={surnameError}
+                    fullWidth
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
+                            color: 'white',
+                            '& fieldset': {
+                                borderColor: 'transparent',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: 'rgba(144, 66, 251, 0.3)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: 'primary.main',
+                                borderWidth: 2,
+                            },
+                            '&.Mui-error fieldset': {
+                                borderColor: 'error.main',
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white',
+                            '&.Mui-focused': {
+                                color: 'primary.main',
+                            },
+                            '&.Mui-error': {
+                                color: 'error.main',
+                            },
+                        },
+                        '& .MuiFormHelperText-root': {
+                            color: 'error.main',
+                            textAlign: 'center',
+                        },
+                    }}
+                />
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
-                    Imię*
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={handleNameChange}
-                        className="inputStyle focus:ring-lilac"
-                        required
-                    />
-                    {nameError && <span className="text-red-400 text-sm mt-2 text-center block">{nameError}</span>}
-                </label>
-
-
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
-                    Nazwisko*
-                    <input
-                        type="text"
-                        value={surname}
-                        onChange={handleSurnameChange}
-                        className="inputStyle focus:ring-lilac"
-                        required
-                    />
-                    {surnameError && <span className="text-red-400 text-sm mt-2 text-center block">{surnameError}</span>}
-                </label>
-
-
-                <label className="flex flex-col w-5/6 sm:w-full text-white">
-                    Data urodzenia*
-                    <input
-                        type="date"
-                        value={birthDate}
-                        onChange={handleBirthDateChange}
-                        className="inputStyle focus:ring-lilac h-10"
-                        required
-                    />
-                    {birthDateError && <span className="text-red-400 text-sm mt-2 text-center block">{birthDateError}</span>}
-                </label>
-
+                <TextField
+                    type="date"
+                    value={birthDate}
+                    onChange={handleBirthDateChange}
+                    label="Data urodzenia*"
+                    required
+                    error={!!birthDateError}
+                    helperText={birthDateError}
+                    fullWidth
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            backgroundColor: 'rgba(125, 125, 125, 0.5)',
+                            color: 'white',
+                            height: 56,
+                            '& fieldset': {
+                                borderColor: 'transparent',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: 'rgba(144, 66, 251, 0.3)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: 'primary.main',
+                                borderWidth: 2,
+                            },
+                            '&.Mui-error fieldset': {
+                                borderColor: 'error.main',
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white',
+                            '&.Mui-focused': {
+                                color: 'primary.main',
+                            },
+                            '&.Mui-error': {
+                                color: 'error.main',
+                            },
+                        },
+                        '& .MuiFormHelperText-root': {
+                            color: 'error.main',
+                            textAlign: 'center',
+                        },
+                    }}
+                />
 
                 <PasswordInput
                     value={password}
@@ -271,6 +427,7 @@ export default function SignUpForm() {
                     error={passwordError}
                     required
                     label="Hasło*"
+                    sx={{ width: '100%' }}
                 />
 
                 <PasswordInput
@@ -279,20 +436,30 @@ export default function SignUpForm() {
                     error={repeatPasswordError}
                     required
                     label="Powtórz hasło*"
+                    sx={{ width: '100%' }}
                 />
 
-                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+                {error && (
+                    <Typography
+                        sx={{
+                            color: 'error.main',
+                            fontSize: '14px',
+                            textAlign: 'center',
+                            mt: 1,
+                        }}
+                    >
+                        {error}
+                    </Typography>
+                )}
 
-                <Button 
-                    background="#9042fb" 
-                    className="mb-20" 
-                    style={{ marginTop: "10px" }}
+                <Button
+                    type="submit"
+                    sx={{ mt: 1, mb: 5 }}
                     disabled={isLoading}
                 >
                     {isLoading ? <LoadingDots /> : "Potwierdź"}
                 </Button>
-
-            </form>
-        </div>
+            </Box>
+        </Box>
     );
 }

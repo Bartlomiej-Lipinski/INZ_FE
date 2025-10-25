@@ -2,6 +2,13 @@
 
 import { useState, useRef } from "react";
 import Button from "@/components/common/Button";
+import { 
+  Box, 
+  TextField, 
+  Typography, 
+  Stack,
+  Link 
+} from '@mui/material';
 
 export default function VerificationForm() {
   const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
@@ -59,48 +66,109 @@ export default function VerificationForm() {
 
   //RENDER
   return (
-    <div className="flex flex-col gap-3 w-full max-w-xs items-center justify-center mb-20">
- 
-      <div className="flex gap-2 justify-center ">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        width: '100%',
+        maxWidth: 320,
+        alignItems: 'center',
+        justifyContent: 'center',
+        mb: 5,
+      }}
+    >
+      <Stack direction="row" spacing={2} justifyContent="center">
         {verificationCode.map((digit, index) => (
-          <input
+          <TextField
             key={index}
-            ref={(el) => {
+            inputRef={(el) => {
               inputRefs.current[index] = el;
             }}
             type="text"
             value={digit}
             onChange={(e) => handleCodeChange(index, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-12 h-12 text-center text-lg font-semibold bg-transparent border border-gray rounded-lg focus:border-lilac focus:ring-2 focus:ring-lilac focus:outline-none text-white"
-            maxLength={1}
-            inputMode="numeric"
-            pattern="[0-9]*"
+            onKeyDown={(e) => handleKeyDown(index, e as React.KeyboardEvent<HTMLInputElement>)}
+            inputProps={{
+              maxLength: 1,
+              inputMode: "numeric",
+              pattern: "[0-9]*",
+              style: {
+                textAlign: 'center',
+                fontSize: '18px',
+                fontWeight: 600,
+              },
+            }}
+            sx={{
+              width: 48,
+              height: 48,
+              '& .MuiOutlinedInput-root': {
+                height: 48,
+                borderRadius: 2,
+                backgroundColor: 'transparent',
+                border: '1px solid #666666',
+                color: 'white',
+                '& fieldset': {
+                  borderColor: 'transparent',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(144, 66, 251, 0.3)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: 'primary.main',
+                  borderWidth: 2,
+                },
+              },
+            }}
           />
         ))}
-      </div>
+      </Stack>
 
-      {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+      {error && (
+        <Typography
+          sx={{
+            color: 'error.main',
+            fontSize: '14px',
+            textAlign: 'center',
+          }}
+        >
+          {error}
+        </Typography>
+      )}
 
-      <div className="flex flex-col gap-3">
-        <button
+      <Stack direction="column" spacing={3} sx={{ width: '100%' }}>
+        <Link
+          component="button"
           type="button"
           onClick={handleResendCode}
           disabled={isResending}
-          style={{ color: "#8D8C8C", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
+          sx={{
+            color: 'text.secondary',
+            textDecoration: 'underline',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontSize: '14px',
+            '&:disabled': {
+              opacity: 0.5,
+              cursor: 'not-allowed',
+            },
+          }}
         >
           {isResending ? "Wysyłanie..." : "Wyślij ponownie kod"}
-        </button>
+        </Link>
 
-        <Button 
-          background="#9042fb" 
+        <Button
           onClick={handleVerifyCode}
           disabled={!isCodeComplete}
-          className={!isCodeComplete ? "opacity-50 cursor-not-allowed focus:outline-none focus:ring-0" : ""}
+          sx={{
+            opacity: !isCodeComplete ? 0.5 : 1,
+            cursor: !isCodeComplete ? 'not-allowed' : 'pointer',
+          }}
         >
           Zweryfikuj kod
         </Button>
-      </div>
-    </div>
+      </Stack>
+    </Box>
   );
 } 

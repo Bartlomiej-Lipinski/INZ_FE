@@ -1,57 +1,45 @@
 import React from "react";
+import { Button as MuiButton, ButtonProps as MuiButtonProps } from '@mui/material';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<MuiButtonProps, 'color'> {
   background?: string;
 }
 
-const defaultStyles: React.CSSProperties = {
-  color: "#fff",
-  borderRadius: "12px",
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "center",
-  alignItems: "center",
-  border: "none",
-  fontWeight: 500,
-  fontSize: "16px",
-  cursor: "pointer",
-  padding: "12px",
-  transition: "all 0.2s ease-in-out",
-};
-
-const Button: React.FC<ButtonProps> = ({ background = "#9042fb", style, children, disabled, ...props }) => {
-  const buttonStyles: React.CSSProperties = {
-    ...defaultStyles,
-    background: disabled ? "#cccccc" : background,
-    cursor: disabled ? "not-allowed" : "pointer",
-    opacity: disabled ? 0.6 : 1,
-    ...style,
-  };
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!disabled && e.currentTarget) {
-      e.currentTarget.style.opacity = "0.8"; // Ciemniejszy efekt przez zmniejszenie opacity
-      e.currentTarget.style.transform = "translateY(-1px)";
-    }
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!disabled && e.currentTarget) {
-      e.currentTarget.style.opacity = "1";
-      e.currentTarget.style.transform = "translateY(0)";
-    }
-  };
-
+const Button: React.FC<ButtonProps> = ({ 
+  background, 
+  children, 
+  disabled, 
+  sx,
+  ...props 
+}) => {
   return (
-    <button
-      style={buttonStyles}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+    <MuiButton
+      variant="contained"
       disabled={disabled}
+      sx={{
+        backgroundColor: background || 'primary.main',
+        color: 'white',
+        borderRadius: 3,
+        padding: '12px 24px',
+        fontSize: '16px',
+        fontWeight: 500,
+        textTransform: 'none',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          backgroundColor: background || 'primary.dark',
+          transform: 'translateY(-1px)',
+          opacity: 0.8,
+        },
+        '&:disabled': {
+          backgroundColor: '#cccccc',
+          opacity: 0.6,
+        },
+        ...sx,
+      }}
       {...props}
     >
       {children}
-    </button>
+    </MuiButton>
   );
 };
 
