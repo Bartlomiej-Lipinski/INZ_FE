@@ -165,7 +165,7 @@ export default function SignInForm() {
               color: 'error.main',
               fontSize: '14px',
               textAlign: 'center',
-              mt: 1,
+              mb: 1,
             }}
           >
             {error}

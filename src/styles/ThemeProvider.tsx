@@ -229,6 +229,10 @@ const theme = createTheme({
           border: '2px solid transparent',
           backgroundClip: 'content-box',
         },
+        // do wyłączenia efektów autofill
+        'input:-webkit-autofill': {
+          WebkitBoxShadow: 'none !important',
+        },
       },
     },
   },
