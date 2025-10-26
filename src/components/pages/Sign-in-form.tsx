@@ -100,12 +100,13 @@ export default function SignInForm() {
           display: 'flex',
           flexDirection: 'column',
           width: '100%',
-          maxWidth: 320,
+          maxWidth: 300,
           alignItems: 'center',
           justifyContent: 'center',
+          gap:0.5
         }}
       >
-        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={250} height={230} />
+        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={220} height={200} style={{ marginTop: 10}} />
         
         <TextField
           type="email"
@@ -116,7 +117,7 @@ export default function SignInForm() {
           required
           disabled={isLoading}
           fullWidth
-          sx={{ mt: 3, mb: 2 }}
+          sx={{ mt: 3, mb: 3 }}
         />
 
         <PasswordInput

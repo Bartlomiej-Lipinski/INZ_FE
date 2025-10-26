@@ -214,32 +214,36 @@ export default function SignUpForm() {
         <Box
             sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 width: '100%',
                 minHeight: '100vh',
             }}
         >
+            
+            <Image 
+                    src={IMAGES.MATES_LOGO} 
+                    alt="Logo" 
+                    width={150} 
+                    height={130} 
+                    style={{ marginTop: 30, marginBottom: 40 }} 
+                />
+                
             <Box
                 component="form"
                 onSubmit={handleSubmit}
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 2,
+                    gap: 4,
                     width: '100%',
-                    maxWidth: 320,
+                    maxWidth: 290,
                     alignItems: 'center',
                     justifyContent: 'center',
                 }}
             >
-                <Image 
-                    src={IMAGES.MATES_LOGO} 
-                    alt="Logo" 
-                    width={150} 
-                    height={130} 
-                    style={{ marginTop: 15 }} 
-                />
+               
 
                 <TextField
                     type="email"
@@ -291,7 +295,7 @@ export default function SignUpForm() {
                     error={passwordError}
                     required
                     label="Hasło"
-                    sx={{ width: '100%' }}
+        
                 />
 
                 <PasswordInput
@@ -300,7 +304,7 @@ export default function SignUpForm() {
                     error={repeatPasswordError}
                     required
                     label="Powtórz hasło"
-                    sx={{ width: '100%' }}
+             
                 />
 
                 {error && (
@@ -309,7 +313,8 @@ export default function SignUpForm() {
                             color: 'error.main',
                             fontSize: '14px',
                             textAlign: 'center',
-                            mt: 1,
+                            mt: -2,
+                            mb: -1
                         }}
                     >
                         {error}
@@ -319,7 +324,7 @@ export default function SignUpForm() {
                 <MuiButton
                     type="submit"
                     variant="contained"
-                    sx={{ mt: 1, mb: 5 }}
+                    sx={{  mb: 5 }}
                     disabled={isLoading}
                 >
                     {isLoading ? <LoadingSpinner /> : "Potwierdź"}

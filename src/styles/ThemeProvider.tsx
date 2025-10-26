@@ -60,7 +60,7 @@ const customColors = {
 const theme = createTheme({
   palette: customColors,
   typography: {
-    fontFamily: '"Geist", "Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Nunito", sans-serif',
     h1: {
       fontSize: '2.5rem',
       fontWeight: 600,
@@ -108,9 +108,9 @@ const theme = createTheme({
         root: {
           borderRadius: 30,
           backgroundColor: 'primary.main',
-          padding: '12px 24px',
-          fontSize: '16px',
-          fontWeight: 500,
+          padding: '10px 18px',
+          fontSize: '15px',
+          fontWeight: 600,
           textTransform: 'none',
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
@@ -138,6 +138,10 @@ const theme = createTheme({
             borderRadius: 30,
             backgroundColor: 'rgba(125, 125, 125, 0.5)',
             color: '#ffffff',
+            height: '46px',
+            paddingRight: '20px', 
+            paddingLeft: '10px', 
+            fontSize: '15px',
             '& fieldset': {
               borderColor: 'transparent',
             },
@@ -148,6 +152,8 @@ const theme = createTheme({
           },
           '& .MuiInputLabel-root': {
             color: '#ffffff',
+            fontWeight: 600,
+            fontSize: '17px',
             transform: 'translate(14px, -9px) scale(0.75)',
             '&.Mui-focused': {
               color: 'primary.main',
@@ -175,6 +181,13 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderColor: '#8D8C8C',
+        },
+      },
+    },
+    MuiLink: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"Nunito", sans-serif',
         },
       },
     },
