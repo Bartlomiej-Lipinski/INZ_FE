@@ -287,6 +287,13 @@ export default function SignUpForm() {
                     error={!!birthDateError}
                     helperText={birthDateError}
                     fullWidth
+                    sx={{
+                        '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                            color: 'white',
+                            marginRight: '-16px',
+                            cursor: 'pointer'
+                        }
+                    }}
                 />
 
                 <PasswordInput

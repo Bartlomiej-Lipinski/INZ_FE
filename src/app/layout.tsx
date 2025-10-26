@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Nunito } from "next/font/google";
 import ThemeProvider from '@/styles/ThemeProvider';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 
@@ -27,13 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="theme-color" content="#9042fb" />
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&display=swap" 
-          rel="stylesheet" 
-        />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${nunito.variable} antialiased`}
       >
         <ThemeProvider>
           {children}

@@ -1,9 +1,9 @@
 import React from "react";
-import { CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box, SxProps, Theme } from '@mui/material';
 
 interface LoadingSpinnerProps {
   size?: number;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 20, sx }) => {

@@ -5,7 +5,8 @@ import {
   InputAdornment, 
   IconButton, 
   Box,
-  Typography 
+  SxProps,
+  Theme,
 } from '@mui/material';
 
 interface PasswordInputProps {
@@ -15,7 +16,7 @@ interface PasswordInputProps {
   label?: string;
   disabled?: boolean;
   required?: boolean;
-  sx?: any;
+  sx?: SxProps<Theme>;
 }
 
 const PasswordInput: React.FC<PasswordInputProps> = ({

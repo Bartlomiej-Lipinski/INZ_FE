@@ -60,7 +60,7 @@ const customColors = {
 const theme = createTheme({
   palette: customColors,
   typography: {
-    fontFamily: '"Nunito", sans-serif',
+    fontFamily: 'var(--font-nunito), sans-serif',
     h1: {
       fontSize: '2.5rem',
       fontWeight: 600,
@@ -106,9 +106,9 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 30,
+          borderRadius: 40,
           backgroundColor: customColors.primary.main,
-          padding: '10px 18px',
+          padding: '11px 19px',
           fontSize: '15px',
           fontWeight: 600,
           textTransform: 'none',
@@ -232,6 +232,36 @@ const theme = createTheme({
         // do wyłączenia efektów autofill
         'input:-webkit-autofill': {
           WebkitBoxShadow: 'none !important',
+          WebkitTextFillColor: '#ffffff !important',
+          backgroundColor: 'rgba(125, 125, 125, 0.5) !important',
+          transition: 'background-color 5000s ease-in-out 0s',
+          boxShadow: 'none !important',
+        },
+        'input:-webkit-autofill:hover': {
+          WebkitBoxShadow: 'none !important',
+          WebkitTextFillColor: '#ffffff !important',
+          backgroundColor: 'rgba(125, 125, 125, 0.5) !important',
+          boxShadow: 'none !important',
+        },
+        'input:-webkit-autofill:focus': {
+          WebkitBoxShadow: 'none !important',
+          WebkitTextFillColor: '#ffffff !important',
+          backgroundColor: 'rgba(125, 125, 125, 0.5) !important',
+          boxShadow: 'none !important',
+        },
+        'input:-webkit-autofill:active': {
+          WebkitBoxShadow: 'none !important',
+          WebkitTextFillColor: '#ffffff !important',
+          backgroundColor: 'rgba(125, 125, 125, 0.5) !important',
+          boxShadow: 'none !important',
+        },
+        'input[data-autocompleted]': {
+          WebkitBoxShadow: 'none !important',
+          boxShadow: 'none !important',
+        },
+        'input[autocomplete]': {
+          WebkitBoxShadow: 'none !important',
+          boxShadow: 'none !important',
         },
       },
     },
