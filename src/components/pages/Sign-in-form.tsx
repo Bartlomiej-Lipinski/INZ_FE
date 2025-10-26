@@ -106,7 +106,7 @@ export default function SignInForm() {
           gap:0.5
         }}
       >
-        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={220} height={200} style={{ marginTop: 10}} />
+        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={220} height={200} style={{ marginTop: 10, marginBottom: 20 }} />
         
         <TextField
           type="email"
@@ -140,18 +140,6 @@ export default function SignInForm() {
             type="button"
             onClick={() => alert('Funkcja resetowania hasła jeszcze nie jest dostępna. (SignInForm.tsx)')}
             disabled={isLoading}
-            sx={{
-              color: 'text.secondary',
-              textDecoration: 'underline',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              '&:disabled': {
-                opacity: 0.5,
-                cursor: 'not-allowed',
-              },
-            }}
           >
             Zapomniałeś hasła?
           </Link>
@@ -162,18 +150,6 @@ export default function SignInForm() {
               type="button"
               onClick={() => router.push('/sign-up')}
               disabled={isLoading}
-              sx={{
-                color: 'text.secondary',
-                textDecoration: 'underline',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                '&:disabled': {
-                  opacity: 0.5,
-                  cursor: 'not-allowed',
-                },
-              }}
             >
               Rejestracja
             </Link>

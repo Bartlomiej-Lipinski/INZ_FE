@@ -60,36 +60,6 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             </InputAdornment>
           ),
         }}
-        // sx={{
-        //   '& .MuiOutlinedInput-root': {
-        //     borderRadius: 3,
-        //     backgroundColor: 'rgba(125, 125, 125, 0.5)',
-        //     color: 'white',
-        //     '& fieldset': {
-        //       borderColor: 'transparent',
-        //     },
-        //     '&.Mui-focused fieldset': {
-        //       borderColor: 'primary.main',
-        //       borderWidth: 2,
-        //     },
-        //     '&.Mui-error fieldset': {
-        //       borderColor: 'error.main',
-        //     },
-        //   },
-        //   '& .MuiInputLabel-root': {
-        //     color: 'white',
-        //     '&.Mui-focused': {
-        //       color: 'primary.main',
-        //     },
-        //     '&.Mui-error': {
-        //       color: 'error.main',
-        //     },
-        //   },
-        //   '& .MuiFormHelperText-root': {
-        //     color: 'error.main',
-        //     textAlign: 'center',
-        //   },
-        // }}
       />
     </Box>
   );

@@ -107,7 +107,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 30,
-          backgroundColor: 'primary.main',
+          backgroundColor: customColors.primary.main,
           padding: '10px 18px',
           fontSize: '15px',
           fontWeight: 600,
@@ -137,7 +137,7 @@ const theme = createTheme({
           '& .MuiOutlinedInput-root': {
             borderRadius: 30,
             backgroundColor: 'rgba(125, 125, 125, 0.5)',
-            color: '#ffffff',
+            color: customColors.text.primary,
             height: '46px',
             paddingRight: '20px', 
             paddingLeft: '10px', 
@@ -146,17 +146,17 @@ const theme = createTheme({
               borderColor: 'transparent',
             },
             '&.Mui-focused fieldset': {
-              borderColor: 'primary.main',
+              borderColor: customColors.primary.main,
               borderWidth: 2,
             },
           },
           '& .MuiInputLabel-root': {
-            color: '#ffffff',
+            color: customColors.text.primary,
             fontWeight: 600,
             fontSize: '17px',
             transform: 'translate(14px, -9px) scale(0.75)',
             '&.Mui-focused': {
-              color: 'primary.main',
+              color: customColors.primary.main,
             },
             '&.MuiInputLabel-shrink': {
               transform: 'translate(14px, -9px) scale(0.75)',
@@ -168,10 +168,10 @@ const theme = createTheme({
     MuiInputBase: {
       styleOverrides: {
         root: {
-          color: '#ffffff',
+          color: customColors.text.primary,
           '&.Mui-focused': {
             '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: 'primary.main',
+              borderColor: customColors.primary.main,
             },
           },
         },
@@ -180,14 +180,27 @@ const theme = createTheme({
     MuiDivider: {
       styleOverrides: {
         root: {
-          borderColor: '#8D8C8C',
+          borderColor: customColors.text.secondary,
         },
       },
     },
     MuiLink: {
       styleOverrides: {
         root: {
+          color: customColors.text.secondary,
           fontFamily: '"Nunito", sans-serif',
+          fontSize: '15px',
+          textDecoration: 'underline',
+          cursor: 'pointer',
+          
+          '&:hover': {
+            color: customColors.primary.main,
+            textDecoration: 'underline',
+          },
+          '&:disabled': {
+            opacity: 0.5,
+            cursor: 'not-allowed',
+          },
         },
       },
     },

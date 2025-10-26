@@ -191,20 +191,6 @@ export default function VerificationForm() {
         type="button"
         onClick={handleResendCode}
         disabled={isLoading}
-        sx={{
-          color: 'text.secondary',
-          fontSize: '14px',
-          textDecoration: 'underline',
-          cursor: 'pointer',
-          '&:hover': {
-            color: 'primary.main',
-            textDecoration: 'underline',
-          },
-          '&:disabled': {
-            opacity: 0.5,
-            cursor: 'not-allowed',
-          },
-        }}
       >
         Wyślij ponownie kod
       </Link>
