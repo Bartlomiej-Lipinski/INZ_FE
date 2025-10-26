@@ -17,16 +17,13 @@ export default function VerificationPage() {
         width: '100%',
       }}
     >
-      <Image src={IMAGES.MATES_LOGO} alt="Logo" width={280} height={250} />
+      <Image src={IMAGES.MATES_LOGO} alt="Logo" width={200} height={180} style={{ marginTop: 30, marginBottom: 20 }} />
       
       <Typography
         variant="h4"
         sx={{
-          color: 'white',
           textAlign: 'center',
-          pb: 1,
-          pt: 1,
-          fontWeight: 600,
+          mb: 1,
         }}
       >
         Weryfikacja dwuetapowa
@@ -38,7 +35,7 @@ export default function VerificationPage() {
           textAlign: 'center',
           fontSize: '14px',
           pb: 3,
-          px: 2,
+         
           wordBreak: 'break-word',
         }}
       >
