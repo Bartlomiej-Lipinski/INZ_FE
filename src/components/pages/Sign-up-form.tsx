@@ -289,8 +289,10 @@ export default function SignUpForm() {
                     fullWidth
                     sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
-                            color: 'white',
-                            marginRight: '-16px',
+                            color: '#ffffff',
+                            filter: 'invert(1)',
+                            opacity: 0.3,
+                            marginRight: '-18px',
                             cursor: 'pointer'
                         }
                     }}
