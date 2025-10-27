@@ -61,7 +61,7 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
             </InputAdornment>
           ),
         }}
-      />i
+      />
     </Box>
   );
 };
