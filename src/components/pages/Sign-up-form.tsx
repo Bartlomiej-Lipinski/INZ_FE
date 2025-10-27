@@ -179,10 +179,11 @@ export default function SignUpForm() {
                 router.push('/');
                 return; 
                 
-            } else if (response.status === 500) {
+            } else if (response.status === 400) {
                 const errorData = await response.json();
+                console.log('Error data:', errorData);
 
-                if (errorData.error?.message === "Email already exists.") {
+                if (errorData.message === "Email already exists.") {
                     setEmailError("Ten adres e-mail jest już zajęty");
                     setError("Popraw błędy!");
                 } else {
@@ -289,7 +290,7 @@ export default function SignUpForm() {
                     fullWidth
                     sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
-                            color: '#ffffff',
+                            
                             filter: 'invert(1)',
                             opacity: 0.3,
                             marginRight: '-18px',
@@ -322,7 +323,7 @@ export default function SignUpForm() {
                             color: 'error.main',
                             fontSize: '14px',
                             textAlign: 'center',
-                            mt: -2,
+                            mt: -1,
                             mb: -1
                         }}
                     >
