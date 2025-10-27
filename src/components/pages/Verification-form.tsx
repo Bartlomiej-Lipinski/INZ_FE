@@ -136,9 +136,10 @@ export default function VerificationForm() {
       <Box
         sx={{
           display: 'flex',
-          gap: 2,
+          gap: { xs: 1, sm: 2 },
           justifyContent: 'center',
           alignItems: 'center',
+          width: '100%',
         }}
       >
         {code.map((digit, index) => (
@@ -161,14 +162,14 @@ export default function VerificationForm() {
               },
             }}
             sx={{
-              width: '50px',
-              height: '50px',
+              width: { xs: '40px', sm: '50px' },
+              height: { xs: '40px', sm: '50px' },
               '& .MuiOutlinedInput-root': {
                
                 backgroundColor: 'rgba(125, 125, 125, 0.3)',
                 border: '1px solid rgba(255, 255, 255, 0.3)',
-                height: '50px',
-                width: '50px',
+                height: { xs: '40px', sm: '50px' },
+                width: { xs: '40px', sm: '50px' },
                 
                 '&.Mui-focused fieldset': {
                   border: '2px solid',
@@ -177,7 +178,7 @@ export default function VerificationForm() {
               },
               '& .MuiInputBase-input': {
                 textAlign: 'center',
-                fontSize: '20px',
+                fontSize: { xs: '18px', sm: '20px' },
                 fontWeight: 400,
               },
             }}
@@ -213,6 +214,9 @@ export default function VerificationForm() {
         type="submit"
         variant="contained"
         disabled={isLoading || code.some(digit => !digit)}
+        sx={{
+          mb: 5,
+        }}
       >
         {isLoading ? <LoadingSpinner /> : 'Zweryfikuj kod'}
       </Button>
