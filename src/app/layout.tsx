@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "@/styles/globals.css";
+import { Nunito } from "next/font/google";
+import ThemeProvider from '@/styles/ThemeProvider';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Mates",
@@ -25,13 +22,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#000000" />
+        <meta name="theme-color" content="#9042fb" />
       </head>
-    <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-    >
-        {children}
-    </body>
+      <body
+        className={`${nunito.variable} antialiased`}
+      >
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

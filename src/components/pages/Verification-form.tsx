@@ -1,106 +1,225 @@
-"use client";
+'use client';
 
-import { useState, useRef } from "react";
-import Button from "@/components/common/Button";
+import { useState, useRef, useEffect } from 'react';
+import { 
+  Box, 
+  Button, 
+  Typography,
+  TextField,
+  Link
+} from '@mui/material';
+import { useRouter } from 'next/navigation';
+import LoadingSpinner from '@/components/common/Loading-spinner';
 
 export default function VerificationForm() {
-  const [verificationCode, setVerificationCode] = useState(["", "", "", "", "", ""]);
-  const [error, setError] = useState("");
-  const [isResending, setIsResending] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const router = useRouter();
+  const [code, setCode] = useState(['', '', '', '', '', '']);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const inputRefs = useRef<(HTMLElement | null)[]>([]);
 
-
-  //HANDLES
-  const handleCodeChange = (index: number, value: string) => {
-    if (value.length > 1) return;
-    
-    const newCode = [...verificationCode];
-    newCode[index] = value;
-    setVerificationCode(newCode);
-    setError("");
-
-    // Przejście do następnego pola
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Przejście do poprzedniego pola 
-    if (e.key === "Backspace" && !verificationCode[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-  };
-
-  const handleVerifyCode = () => {
-    const code = verificationCode.join("");
-    if (code.length !== 6) {
-      setError("Wprowadź pełny kod weryfikacyjny");
-      return;
-    }
-    
-                                                                                    // Dodać logikę weryfikacji kodu
-    console.log("Kod weryfikacyjny:", code);
-    alert(`Kod weryfikacyjny: ${code} - funkcja weryfikacji jeszcze nie jest dostępna`);
-  };
-
-  const handleResendCode = () => {
-    setIsResending(true);
-   
-    setTimeout(() => {
-      setIsResending(false);
-      alert("Kod weryfikacyjny został wysłany ponownie");                           // Dodać logikę wysłania kodu
-    }, 2000);
-  };
-
-  const isCodeComplete = verificationCode.every(digit => digit !== "");
-
-
-
-  //RENDER
-  return (
-    <div className="flex flex-col gap-3 w-full max-w-xs items-center justify-center mb-20">
  
-      <div className="flex gap-2 justify-center ">
-        {verificationCode.map((digit, index) => (
-          <input
+
+  const handleCodeChange = (index: number, value: string) => {
+
+    if (!/^\d*$/.test(value)) return;
+    
+    const newCode = [...code];
+    newCode[index] = value;
+    setCode(newCode);
+    setError('');
+
+    if (value && index < 5) {
+      setTimeout(() => {
+        inputRefs.current[index + 1]?.focus();
+      }, 0);
+    }
+  };
+
+
+  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace') {
+      if (code[index]) {
+        const newCode = [...code];
+        newCode[index] = '';
+        setCode(newCode);
+      } else if (index > 0) {
+        const newCode = [...code];
+        newCode[index - 1] = '';
+        setCode(newCode);
+        inputRefs.current[index - 1]?.focus();
+      }
+    }
+  };
+
+ 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
+    if (pastedData.length === 6) {
+      const newCode = pastedData.split('');
+      setCode(newCode);
+      setError('');
+      // Przenieś focus na ostatnie pole
+      inputRefs.current[5]?.focus();
+    }
+  };
+
+
+  // Obsługa wysłania formularza
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+  
+    setIsLoading(true);
+    setError('');
+
+    try {
+      
+      const codeString = code.join('');
+      
+      // Symulacja wysyłania (zastąp prawdziwym API call)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Zastapic prawdziwą walidacją
+      if (codeString === '123456') {
+        router.push('/'); 
+      } else {
+        setError('Nieprawidłowy kod weryfikacyjny');
+      }
+    } catch (error) {
+      console.error('Błąd podczas weryfikacji:', error);
+      setError('Wystąpił błąd podczas weryfikacji');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Obsługa ponownego wysłania kodu
+  const handleResendCode = async () => {
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Tutaj logika ponownego wysłania kodu
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setCode(['', '', '', '', '', '']);
+      inputRefs.current[0]?.focus();
+      
+    } catch (error) {
+      console.error('Błąd podczas ponownego wysłania kodu:', error);
+      setError('Wystąpił błąd podczas ponownego wysłania kodu');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
+
+  return (
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: 3,
+        width: '100%',
+        maxWidth: 400,
+      }}
+    >
+      {/* Pola kodu weryfikacyjnego */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: { xs: 1, sm: 2 },
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        {code.map((digit, index) => (
+          <TextField
             key={index}
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
-            type="text"
+            inputRef={(el) => { inputRefs.current[index] = el; }}
             value={digit}
             onChange={(e) => handleCodeChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
-            className="w-12 h-12 text-center text-lg font-semibold bg-transparent border border-gray rounded-lg focus:border-lilac focus:ring-2 focus:ring-lilac focus:outline-none text-white"
-            maxLength={1}
-            inputMode="numeric"
-            pattern="[0-9]*"
+            onPaste={handlePaste}
+            slotProps={{
+              input: {
+                style: {
+                  padding: 0,
+                  paddingTop: '2px',
+                },
+              },
+              htmlInput: {
+                maxLength: 1,
+              },
+            }}
+            sx={{
+              width: { xs: '40px', sm: '50px' },
+              height: { xs: '40px', sm: '50px' },
+              '& .MuiOutlinedInput-root': {
+               
+                backgroundColor: 'rgba(125, 125, 125, 0.3)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                height: { xs: '40px', sm: '50px' },
+                width: { xs: '40px', sm: '50px' },
+                
+                '&.Mui-focused fieldset': {
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                },
+              },
+              '& .MuiInputBase-input': {
+                textAlign: 'center',
+                fontSize: { xs: '18px', sm: '20px' },
+                fontWeight: 400,
+              },
+            }}
           />
         ))}
-      </div>
+      </Box>
 
-      {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+      {/* Link do ponownego wysłania kodu */}
+      <Link
+        component="button"
+        type="button"
+        onClick={handleResendCode}
+        disabled={isLoading}
+      >
+        Wyślij ponownie kod
+      </Link>
 
-      <div className="flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={handleResendCode}
-          disabled={isResending}
-          style={{ color: "#8D8C8C", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
+      {/* Komunikat o błędzie */}
+      {error && (
+        <Typography
+          sx={{
+            color: 'error.main',
+            fontSize: '14px',
+            textAlign: 'center',
+          }}
         >
-          {isResending ? "Wysyłanie..." : "Wyślij ponownie kod"}
-        </button>
+          {error}
+        </Typography>
+      )}
 
-        <Button 
-          background="#9042fb" 
-          onClick={handleVerifyCode}
-          disabled={!isCodeComplete}
-          className={!isCodeComplete ? "opacity-50 cursor-not-allowed focus:outline-none focus:ring-0" : ""}
-        >
-          Zweryfikuj kod
-        </Button>
-      </div>
-    </div>
+      {/* Przycisk weryfikacji */}
+      <Button
+        type="submit"
+        variant="contained"
+        disabled={isLoading || code.some(digit => !digit)}
+        sx={{
+          mb: 5,
+        }}
+      >
+        {isLoading ? <LoadingSpinner /> : 'Zweryfikuj kod'}
+      </Button>
+    </Box>
   );
-} 
+}

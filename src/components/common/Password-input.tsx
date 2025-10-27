@@ -1,12 +1,22 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { 
+  TextField, 
+  InputAdornment, 
+  IconButton, 
+  Box,
+  SxProps,
+  Theme,
+} from '@mui/material';
 
-interface PasswordInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface PasswordInputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   error?: string;
   label?: string;
-  className?: string;
+  disabled?: boolean;
+  required?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 const PasswordInput: React.FC<PasswordInputProps> = ({
@@ -14,37 +24,45 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
   onChange,
   error,
   label = "Hasło",
-  className = "",
   disabled,
-  ...props
+  required,
+  sx,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
+  };
+
   return (
-    <label className={`flex flex-col w-5/6 sm:w-full text-white mt-2 ${className}`}>
-      {label}
-      <div className="relative w-full">
-        <input
-          type={showPassword ? "text" : "password"}
-          value={value}
-          onChange={onChange}
-          className="inputStyle focus:ring-lilac w-full"
-          style={{ paddingRight: "42px" }}
-          disabled={disabled}
-          {...props}
-        />
-        <button
-          type="button"
-          onClick={() => setShowPassword((prev) => !prev)}
-          className="myGray absolute right-4 top-1/2 transform -translate-y-1/2"
-          tabIndex={-1}
-          disabled={disabled}
-        >
-          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-        </button>
-      </div>
-      {error && <span className="text-red-400 text-sm mt-2 text-center">{error}</span>}
-    </label>
+    <Box sx={{ width: '100%', ...sx }}>
+      <TextField
+        type={showPassword ? "text" : "password"}
+        value={value}
+        onChange={onChange}
+        label={label}
+        disabled={disabled}
+        required={required}
+        error={!!error}
+        helperText={error}
+        fullWidth
+        variant="outlined"
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={handleClickShowPassword}
+                disabled={disabled}
+                edge="end"
+                sx={{ color: 'text.secondary' }}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+    </Box>
   );
 };
 

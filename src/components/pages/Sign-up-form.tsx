@@ -1,12 +1,15 @@
 import { API_ENDPOINTS, IMAGES } from "@/lib/constants";
-
-
 import { useState, useEffect } from "react";
-import Button from "@/components/common/Button";
+import { Button as MuiButton } from '@mui/material';
 import Image from "next/image";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingDots from "@/components/common/Loading-dots";
+import LoadingSpinner from "@/components/common/Loading-spinner";
 import { useRouter } from "next/navigation";
+import { 
+  Box, 
+  TextField, 
+  Typography 
+} from '@mui/material';
 
 
 export default function SignUpForm() {
@@ -176,10 +179,11 @@ export default function SignUpForm() {
                 router.push('/');
                 return; 
                 
-            } else if (response.status === 500) {
+            } else if (response.status === 400) {
                 const errorData = await response.json();
+                console.log('Error data:', errorData);
 
-                if (errorData.error?.message === "Email already exists.") {
+                if (errorData.message === "Email already exists.") {
                     setEmailError("Ten adres e-mail jest już zajęty");
                     setError("Popraw błędy!");
                 } else {
@@ -208,69 +212,100 @@ export default function SignUpForm() {
 
     //RENDER
     return (
-        <div className="flex items-center justify-center w-full min-h-screen">
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                minHeight: '100vh',
+            }}
+        >
+            
+            <Image 
+                    src={IMAGES.MATES_LOGO} 
+                    alt="Logo" 
+                    width={150} 
+                    height={130} 
+                    style={{ marginTop: 30, marginBottom: 40 }} 
+                />
+                
+            <Box
+                component="form"
+                onSubmit={handleSubmit}
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4,
+                    width: '100%',
+                    maxWidth: 290,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+               
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs items-center justify-center">
-                <Image src={IMAGES.MATES_LOGO} alt="Logo" width={150} height={150} style={{marginTop: 15}} />
+                <TextField
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    label="E-mail"
+                    required
+                    error={!!emailError}
+                    helperText={emailError}
+                    fullWidth
+                />
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
-                    E-mail*
-                    <input
-                        type="email"
-                        value={email}
-                        onChange={handleEmailChange}
-                        className="inputStyle focus:ring-lilac"
-                        required
-                    />
-                    {emailError && <span className="text-red-400 text-sm mt-2 text-center block">{emailError}</span>}
-                </label>
+                <TextField
+                    type="text"
+                    value={name}
+                    onChange={handleNameChange}
+                    label="Imię"
+                    required
+                    error={!!nameError}
+                    helperText={nameError}
+                    fullWidth
+                />
 
+                <TextField
+                    type="text"
+                    value={surname}
+                    onChange={handleSurnameChange}
+                    label="Nazwisko"
+                    required
+                    error={!!surnameError}
+                    helperText={surnameError}
+                    fullWidth
+                />
 
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
-                    Imię*
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={handleNameChange}
-                        className="inputStyle focus:ring-lilac"
-                        required
-                    />
-                    {nameError && <span className="text-red-400 text-sm mt-2 text-center block">{nameError}</span>}
-                </label>
-
-
-                <label className="flex flex-col w-5/6 sm:w-full text-white mb-2">
-                    Nazwisko*
-                    <input
-                        type="text"
-                        value={surname}
-                        onChange={handleSurnameChange}
-                        className="inputStyle focus:ring-lilac"
-                        required
-                    />
-                    {surnameError && <span className="text-red-400 text-sm mt-2 text-center block">{surnameError}</span>}
-                </label>
-
-
-                <label className="flex flex-col w-5/6 sm:w-full text-white">
-                    Data urodzenia*
-                    <input
-                        type="date"
-                        value={birthDate}
-                        onChange={handleBirthDateChange}
-                        className="inputStyle focus:ring-lilac h-10"
-                        required
-                    />
-                    {birthDateError && <span className="text-red-400 text-sm mt-2 text-center block">{birthDateError}</span>}
-                </label>
-
+                <TextField
+                    type="date"
+                    value={birthDate}
+                    onChange={handleBirthDateChange}
+                    label="Data urodzenia"
+                    required
+                    error={!!birthDateError}
+                    helperText={birthDateError}
+                    fullWidth
+                    sx={{
+                        '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                            
+                            filter: 'invert(1)',
+                            opacity: 0.3,
+                            marginRight: '-18px',
+                            cursor: 'pointer'
+                        }
+                    }}
+                />
 
                 <PasswordInput
                     value={password}
                     onChange={e => handlePasswordChange(e.target.value)}
                     error={passwordError}
                     required
-                    label="Hasło*"
+                    label="Hasło"
+        
                 />
 
                 <PasswordInput
@@ -278,21 +313,33 @@ export default function SignUpForm() {
                     onChange={e => handleRepeatPasswordChange(e.target.value)}
                     error={repeatPasswordError}
                     required
-                    label="Powtórz hasło*"
+                    label="Powtórz hasło"
+             
                 />
 
-                {error && <div className="text-red-400 text-sm mt-2">{error}</div>}
+                {error && (
+                    <Typography
+                        sx={{
+                            color: 'error.main',
+                            fontSize: '14px',
+                            textAlign: 'center',
+                            mt: -1,
+                            mb: -1
+                        }}
+                    >
+                        {error}
+                    </Typography>
+                )}
 
-                <Button 
-                    background="#9042fb" 
-                    className="mb-20" 
-                    style={{ marginTop: "10px" }}
+                <MuiButton
+                    type="submit"
+                    variant="contained"
+                    sx={{  mb: 5 }}
                     disabled={isLoading}
                 >
-                    {isLoading ? <LoadingDots /> : "Potwierdź"}
-                </Button>
-
-            </form>
-        </div>
+                    {isLoading ? <LoadingSpinner /> : "Potwierdź"}
+                </MuiButton>
+            </Box>
+        </Box>
     );
 }
