@@ -1,10 +1,11 @@
-import { API_ENDPOINTS, IMAGES } from "@/lib/constants";
+import { IMAGES } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import { Button as MuiButton } from '@mui/material';
 import Image from "next/image";
 import PasswordInput from "@/components/common/Password-input";
 import LoadingSpinner from "@/components/common/Loading-spinner";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   Box, 
   TextField, 
@@ -14,11 +15,11 @@ import {
 
 export default function SignUpForm() {
     const router = useRouter();
+    const { register, isLoading: hookIsLoading, setErrorMessage, error } = useAuth();
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [surname, setSurname] = useState("");
     const [birthDate, setBirthDate] = useState("");
-    const [error, setError] = useState("");
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [birthDateError, setBirthDateError] = useState("");
@@ -27,7 +28,6 @@ export default function SignUpForm() {
     const [emailError, setEmailError] = useState("");
     const [nameError, setNameError] = useState("");
     const [surnameError, setSurnameError] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
 
     // PASSWORD VALIDATION
@@ -151,60 +151,39 @@ export default function SignUpForm() {
         setSurnameError(surnameErr);
 
         if (emailErr || nameErr || surnameErr || pwdErr || birthErr || repeatPwdErr) {
-            setError("Popraw błędy!");
+            setErrorMessage("Popraw błędy!");
             return;
         }
-        setError("");
-        
-        setIsLoading(true);
+        setErrorMessage("");
         
         try {
-            const response = await fetch(API_ENDPOINTS.REGISTER, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    Name: name.trim(),
-                    UserName: email.trim().toLowerCase(), 
-                    Surname: surname.trim(),
-                    Email: email.trim().toLowerCase(),
-                    BirthDate: birthDate,
-                    Password: password
-                })
+            const response = await register({
+                email,
+                name,
+                surname,
+                userName: email.trim().toLowerCase(),
+                birthDate,
+                password
             });
 
 
-            if (response.ok) {
+            if (response && (response.success !== false)) {
+                console.log('Register successful, response:', response);
                 router.push('/');
-                return; 
-                
-            } else if (response.status === 400) {
-                const errorData = await response.json();
-                console.log('Error data:', errorData);
-
-                if (errorData.message === "Email already exists.") {
-                    setEmailError("Ten adres e-mail jest już zajęty");
-                    setError("Popraw błędy!");
-                } else {
-                    setError("Wystąpił błąd podczas rejestracji");
-                }
-
             } else {
-                setError("Wystąpił błąd podczas rejestracji");
+                if (response?.message === "Email already exists.") {
+                    setEmailError("Ten adres e-mail jest już zajęty");
             }
-        } catch (error) {
-            console.error('Błąd podczas rejestracji:', error);
-            setError("Błąd połączenia z serwerem");
-        } finally {
-            setIsLoading(false);
+         }
+        } catch (error: any) {
+            console.log('Register error:', error);
         }
     };
 
 
     useEffect(() => {
         if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && !nameError && !surnameError && error) {
-            setError("");
+                setErrorMessage("");
         }
     }, [passwordError, birthDateError, repeatPasswordError, emailError, nameError, surnameError, error]);
 
@@ -335,9 +314,9 @@ export default function SignUpForm() {
                     type="submit"
                     variant="contained"
                     sx={{  mb: 5 }}
-                    disabled={isLoading}
+                    disabled={hookIsLoading}
                 >
-                    {isLoading ? <LoadingSpinner /> : "Potwierdź"}
+                    {hookIsLoading ? <LoadingSpinner /> : "Potwierdź"}
                 </MuiButton>
             </Box>
         </Box>

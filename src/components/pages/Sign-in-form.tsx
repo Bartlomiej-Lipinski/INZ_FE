@@ -12,72 +12,47 @@ import {
   Link 
 } from '@mui/material';
 import Image from "next/image";
-import { IMAGES, API_ENDPOINTS } from "@/lib/constants";
+import { IMAGES } from "@/lib/constants";
 import PasswordInput from "@/components/common/Password-input";
 import LoadingSpinner from "@/components/common/Loading-spinner";
+import { useAuth } from "@/hooks/use-auth";
 
 
 
 export default function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
+  const { login, isLoading: hookIsLoading, error, setErrorMessage } = useAuth();
 
   // HANDLERS
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    setError("");
+    if (error) setErrorMessage("");
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-    setError("");
+    if (error) setErrorMessage("");
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    setIsLoading(true);
-    setError("");
+    if (error) setErrorMessage("");
 
     try {
-      const response = await fetch(API_ENDPOINTS.LOGIN, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          Email: email.trim(),
-          Password: password
-        }),
-        credentials: 'include'
+      const response = await login({
+        email,
+        password
       });
 
-
-      if (response.ok) {
-        const loginResponse = await response.json(); 
-        console.log('Backend response:', loginResponse);
-        
-        // Sprawdź czy odpowiedź ma strukturę ApiResponse
-        const userId = loginResponse.data;
-        console.log('User ID:', userId);
-        
+      if (response && (response.success !== false)) {
+        console.log('Login successful, response:', response);
         router.push('/verification');
-        return;
-      } else if (response.status === 401 || response.status === 403) {
-        setError("Nieprawidłowy e-mail lub hasło");
-      } else {
-        setError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
-      }
-
-    } catch (error) {
-      console.error('Błąd logowania:', error);
-      setError("Wystąpił błąd połączenia");
-    } finally {
-      setIsLoading(false);
+      } 
+      
+    } catch (error: any) {
+      console.log('Login error:', error);
     }
   };
 
@@ -115,7 +90,7 @@ export default function SignInForm() {
           label="E-mail"
           autoComplete="email"
           required
-          disabled={isLoading}
+          disabled={hookIsLoading}
           fullWidth
           sx={{ mt: 3, mb: 3 }}
         />
@@ -125,7 +100,7 @@ export default function SignInForm() {
           onChange={handlePasswordChange}
           required
           label="Hasło"
-          disabled={isLoading}
+          disabled={hookIsLoading}
           sx={{ width: '100%' }}
         />
 
@@ -139,7 +114,7 @@ export default function SignInForm() {
             component="button"
             type="button"
             onClick={() => alert('Funkcja resetowania hasła jeszcze nie jest dostępna. (SignInForm.tsx)')}
-            disabled={isLoading}
+            disabled={hookIsLoading}
           >
             Zapomniałeś hasła?
           </Link>
@@ -149,7 +124,7 @@ export default function SignInForm() {
               component="button"
               type="button"
               onClick={() => router.push('/sign-up')}
-              disabled={isLoading}
+              disabled={hookIsLoading}
             >
               Rejestracja
             </Link>
@@ -176,9 +151,9 @@ export default function SignInForm() {
           type="submit"
           variant="contained"
           sx={{ mt: 1, mb: 5 }}
-          disabled={isLoading}
+          disabled={hookIsLoading}
         >
-          {isLoading ? <LoadingSpinner /> : "Zaloguj się"}
+          {hookIsLoading ? <LoadingSpinner /> : "Zaloguj się"}
         </MuiButton>
       </Box>
     </Box>

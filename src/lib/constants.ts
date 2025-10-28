@@ -7,8 +7,8 @@ export const IMAGES = {
 export const BASE_URL = "https://localhost:7215";
 
 export const API_ENDPOINTS = {
-  LOGIN: `${BASE_URL}/api/auth/login`,
-  REGISTER: `${BASE_URL}/api/auth/register`,
-  USERS: `${BASE_URL}/users`,
+  LOGIN: '/api/auth/login',
+  REGISTER: '/api/auth/register',
+  USERS: `/users`,
 } as const; 
 
