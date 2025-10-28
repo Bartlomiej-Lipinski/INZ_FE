@@ -1,4 +1,7 @@
+"use client";
+
 import { useState } from 'react';
+import { fetchWithAuth } from '@/lib/api/fetchWithAuth';
 
 interface UseUserResult {
   getUser: (userId: string) => Promise<any>;
@@ -16,9 +19,8 @@ export function useUser(): UseUserResult {
     setError(null);
 
     try {
-      const response = await fetch(`/api/user/${userId}`, {
-        method: 'GET',
-        credentials: 'include'
+      const response = await fetchWithAuth(`/api/user/${userId}`, {
+        method: 'GET'
       });
 
       const data: any = await response.json();

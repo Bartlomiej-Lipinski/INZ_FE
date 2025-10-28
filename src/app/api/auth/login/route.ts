@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
       credentials: 'include',
     });
 
-    const data = await response.json();
+    // Backend może zwrócić pusty body; bezpieczne parsowanie
+    const textBody = await response.text();
+    const data = textBody ? JSON.parse(textBody) : {};
 
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });

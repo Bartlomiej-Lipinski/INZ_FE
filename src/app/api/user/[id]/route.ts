@@ -18,11 +18,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       credentials: 'include'
     });
 
-    
-    const data = await response.json();
-    
+    const textBody = await response.text();
+    const data = textBody ? JSON.parse(textBody) : {};
 
-    const nextResponse = NextResponse.json(data ?? {}, { status: response.status });
+    const nextResponse = NextResponse.json(data, { status: response.status });
 
     const setCookieHeaders = response.headers.getSetCookie();
     setCookieHeaders.forEach((cookie) => {
