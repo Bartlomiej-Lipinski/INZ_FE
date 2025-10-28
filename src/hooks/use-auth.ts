@@ -118,6 +118,7 @@ export function useAuth(): AuthHookResult {
   };
 
 
+
   const setErrorMessage = (message: string) => {
     setError(message);
   };
