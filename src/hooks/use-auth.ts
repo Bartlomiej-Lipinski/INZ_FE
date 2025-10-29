@@ -1,6 +1,10 @@
+"use client";
+
 import { useState } from 'react';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
-import { UserCreate } from '@/lib/types/user';
+import { User, UserCreate } from '@/lib/types/user';
+import { useAuthContext } from '@/contexts/AuthContext';
+import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 
 interface LoginRequest {
   email: string;
@@ -19,7 +23,7 @@ interface AuthHookResult {
 export function useAuth(): AuthHookResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const { setUser } = useAuthContext();
 
   const login = async (request: LoginRequest): Promise<any> => {
     setIsLoading(true);
@@ -42,6 +46,22 @@ export function useAuth(): AuthHookResult {
       const data: any = await response.json();
 
       if (response.ok && data.success) {
+        if (data.data) {
+          try {
+            const userResponse = await fetchWithAuth(`${API_ROUTES.USER_BY_ID}/${data.data}`, {
+              method: 'GET',
+              credentials: 'include'
+            });
+            const userData = await userResponse.json();
+            if (userResponse.ok && userData.success && userData.data) {
+              console.log('User data:', userData.data);
+              setUser(userData.data as User);
+            }
+          } catch (userError) {
+            console.error('Error fetching user data:', userError);
+          }
+        }
+        
         return data;
       } else if (response.status === 401) {
         setError("Nieprawidłowy e-mail lub hasło");
