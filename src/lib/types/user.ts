@@ -12,3 +12,13 @@ export interface User {
   photo: string | null;
   role: UserRole;
 }
+
+
+export interface UserCreate{
+  name: string;
+  surname: string;
+  userName: string;
+  email: string;
+  birthDate: string;
+  password: string;
+}
