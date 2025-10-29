@@ -12,9 +12,15 @@ interface LoginRequest {
   captchaToken?: string;
 }
 
+interface ApiResponse {
+  success: boolean;
+  data?: unknown;
+  message?: string;
+}
+
 interface AuthHookResult {
-  login: (request: LoginRequest) => Promise<any>;
-  register: (request: UserCreate) => Promise<any>;
+  login: (request: LoginRequest) => Promise<ApiResponse>;
+  register: (request: UserCreate) => Promise<ApiResponse>;
   setErrorMessage: (message: string) => void;
   isLoading: boolean;
   error: string | null;
@@ -25,7 +31,7 @@ export function useAuth(): AuthHookResult {
   const [error, setError] = useState<string | null>(null);
   const { setUser } = useAuthContext();
 
-  const login = async (request: LoginRequest): Promise<any> => {
+  const login = async (request: LoginRequest): Promise<ApiResponse> => {
     setIsLoading(true);
     setError(null);
 
@@ -43,14 +49,13 @@ export function useAuth(): AuthHookResult {
         credentials: 'include'
       });
 
-      const data: any = await response.json();
+      const data = await response.json() as { success: boolean; data?: string; message?: string };
 
       if (response.ok && data.success) {
         if (data.data) {
           try {
             const userResponse = await fetchWithAuth(`${API_ROUTES.USER_BY_ID}/${data.data}`, {
               method: 'GET',
-              credentials: 'include'
             });
             const userData = await userResponse.json();
             if (userResponse.ok && userData.success && userData.data) {
@@ -70,9 +75,9 @@ export function useAuth(): AuthHookResult {
         setError("Wystąpił błąd podczas logowania. Spróbuj ponownie.");
         return { success: false };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
-      if (!error.message) {
+      if (error instanceof Error && !error.message) {
         setError("Wystąpił błąd połączenia");
       }
       return { success: false };
@@ -82,7 +87,7 @@ export function useAuth(): AuthHookResult {
   };
 
 
-  const register = async (request: UserCreate): Promise<any> => {
+  const register = async (request: UserCreate): Promise<ApiResponse> => {
     setIsLoading(true);
     setError(null);
 
@@ -102,7 +107,7 @@ export function useAuth(): AuthHookResult {
         }),
       });
 
-      const data: any = await response.json();
+      const data = await response.json() as { success: boolean; data?: string; message?: string };
 
       if (response.ok && data.success) {
         return data;
@@ -117,10 +122,10 @@ export function useAuth(): AuthHookResult {
         setError("Wystąpił błąd podczas rejestracji");
         return { success: false };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Register error:', error);
-      if (!error?.message) {
-        setError("Błąd połączenia z serwerem");
+      if (error instanceof Error && !error.message) {
+        setError("Wystąpił błąd połączenia");
       }
       return { success: false, message: "Błąd połączenia z serwerem" };
     } finally {

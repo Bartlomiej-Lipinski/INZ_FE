@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
         BirthDate: body.birthDate,
         Password: body.password
       }),
+      credentials: 'include',
     });
 
     const data = await response.json();

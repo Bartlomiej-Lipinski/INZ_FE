@@ -175,7 +175,7 @@ export default function SignUpForm() {
                     setEmailError("Ten adres e-mail jest już zajęty");
             }
          }
-        } catch (error: any) {
+        } catch (error: unknown) {
            console.log('Register error:', error);
         }
     };
@@ -185,7 +185,7 @@ export default function SignUpForm() {
         if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && !nameError && !surnameError && error) {
                 setErrorMessage("");
         }
-    }, [passwordError, birthDateError, repeatPasswordError, emailError, nameError, surnameError, error]);
+    }, [passwordError, birthDateError, repeatPasswordError, emailError, nameError, surnameError, error, setErrorMessage]);
 
 
 

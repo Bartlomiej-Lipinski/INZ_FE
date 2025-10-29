@@ -13,7 +13,7 @@ import { useState } from "react";
 
 export default function Page() {
   const { getUser, isLoading, error } = useUser();
-  const [testResult, setTestResult] = useState<any>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean; data?: unknown; message?: string } | null>(null);
   const [userId, setUserId] = useState('');
 
   const testUserEndpoint = async () => {

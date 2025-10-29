@@ -7,41 +7,32 @@ export async function POST(request: NextRequest) {
   
     const refreshToken = request.cookies.get('refresh_token')?.value;
     const cookieHeader = request.headers.get('cookie') ?? '';
-    
-    console.log('Refresh attempt - refresh token exists:', !!refreshToken);
-    console.log('Refresh attempt - cookies:', cookieHeader);
+
     
     if (!refreshToken) {
-      console.log('No refresh token found');
       return NextResponse.json(
-        { success: false, message: 'Brak refresh token' },
+        { success: false, message: 'No refresh token' },
         { status: 401 }
       );
     }
-
-    
+ 
     const backendUrl = `${BASE_URL}${REFRESH}?RefreshToken=${encodeURIComponent(refreshToken)}`;
     const backendResponse = await fetch(backendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Cookie': cookieHeader,
-        'credentials': 'include',
       },
+      credentials: 'include',
     });
 
     const textBody = await backendResponse.text();
-    
-    console.log('Backend response status:', backendResponse.status);
-    console.log('Backend response body:', textBody);
-    console.log('Backend Set-Cookie headers:', backendResponse.headers.get('set-cookie'));
-
- 
+     
     const response = new NextResponse(textBody, { status: backendResponse.status });
 
-    const anyHeaders: any = backendResponse.headers as any;
-    const setCookies: string[] | undefined = typeof anyHeaders.getSetCookie === 'function'
-      ? anyHeaders.getSetCookie()
+    const headers = backendResponse.headers as Headers & { getSetCookie?: () => string[] };
+    const setCookies: string[] | undefined = typeof headers.getSetCookie === 'function'
+      ? headers.getSetCookie()
       : undefined;
 
     if (Array.isArray(setCookies) && setCookies.length > 0) {

@@ -1,37 +1,52 @@
+import { API_ROUTES } from "./api-routes-endpoints";
+
 let isRefreshing = false;
-let refreshPromise: Promise<boolean> | null = null;
+let refreshPromise: Promise<{ success: boolean; noRefreshToken?: boolean }> | null = null;
 let failedQueue: Array<{
   resolve: (token: string | null) => void;
-  reject: (error: any) => void;
+  reject: (error: unknown) => void;
 }> = [];
+let logoutCallback: (() => void) | null = null;
 
 
-//Funkcja do odświeżania tokena dostępu
+export function setLogoutCallback(callback: () => void) {
+  logoutCallback = callback;
+}
 
-async function refreshAccessToken(): Promise<boolean> {
+
+//do odświeżania tokena dostępu
+async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
-    const response = await fetch('/api/auth/refresh', {
+    const response = await fetch(API_ROUTES.REFRESH, {
       method: 'POST',
       credentials: 'include',
     });
 
     if (response.ok) {
-      // Backend ustawia nowe cookies przez Set-Cookie; nie potrzebujemy tokena w body
-      return true;
+      return { success: true };
     } else {
-      // Jeśli odświeżanie się nie powiodło, nie przekierowuj automatycznie
+
+      if (response.status === 401) {
+        try {
+          const data = await response.json();
+          if (data.message === 'No refresh token') {
+            return { success: false, noRefreshToken: true };
+          }
+        } catch {
+          return { success: false, noRefreshToken: true };
+        }
+      }
       console.warn('Refresh token failed:', response.status, response.statusText);
-      return false;
+      return { success: false };
     }
   } catch (error) {
     console.error('Błąd podczas odświeżania tokena:', error);
-    return false;
+    return { success: false };
   }
 }
 
-//Funkcja do przetwarzania kolejki nieudanych żądań
-
-function processQueue(error: any) {
+//do przetwarzania kolejki nieudanych żądań
+function processQueue(error: unknown) {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {
       reject(error);
@@ -44,16 +59,13 @@ function processQueue(error: any) {
 }
 
 
-//Centralna funkcja do wykonywania autoryzowanych żądań HTTP
-//Automatycznie obsługuje odświeżanie tokena w przypadku błędu 401
-
 export async function fetchWithAuth(
   url: string, 
   options: RequestInit = {}
 ): Promise<Response> {
-  // Ustaw domyślne opcje
-  const defaultOptions: RequestInit = {
-    method: 'GET',
+  const requestOptions: RequestInit = {
+    ...options,
+    method: options.method ,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
@@ -61,24 +73,19 @@ export async function fetchWithAuth(
     },
   };
 
-  const requestOptions = { ...defaultOptions, ...options };
-
 
   let response = await fetch(url, requestOptions);
 
-  // Jeśli żądanie się powiodło, zwróć odpowiedź
+
   if (response.ok) {
     return response;
   }
 
-  // Jeśli otrzymano błąd 401 (Unauthorized)
   if (response.status === 401) {
-    // Jeśli już trwa odświeżanie tokena, dodaj żądanie do kolejki
     if (isRefreshing) {
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({ 
           resolve: () => {
-            // Po udanym refreshu po prostu ponawiamy żądanie; cookies są już zaktualizowane
             fetch(url, requestOptions).then(resolve).catch(reject);
           }, 
           reject 
@@ -86,37 +93,41 @@ export async function fetchWithAuth(
       });
     }
 
-    // Rozpocznij proces odświeżania tokena
     isRefreshing = true;
     refreshPromise = refreshAccessToken();
 
     try {
-      const refreshed = await refreshPromise;
+      const result = await refreshPromise;
       
-      if (refreshed) {
-        // Przetwórz kolejkę nieudanych żądań
+      if (result.noRefreshToken) {
+        if (logoutCallback) {
+          logoutCallback();
+        }
+
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
+
+        processQueue(new Error('Brak refresh token - sesja wygasła'));
+      }
+      
+      if (result.success) {
         processQueue(null);
         
-        // Ponów oryginalne żądanie (cookies już zawierają nowy token)
         response = await fetch(url, requestOptions);
         return response;
       } else {
-        // Jeśli nie udało się odświeżyć tokena, przetwórz kolejkę z błędem
         processQueue(new Error('Nie udało się odświeżyć tokena'));
-        throw new Error('Nie udało się odświeżyć tokena');
       }
     } catch (error) {
-      // Przetwórz kolejkę z błędem
       processQueue(error);
       throw error;
     } finally {
-      // Zakończ proces odświeżania
       isRefreshing = false;
       refreshPromise = null;
     }
   }
 
-  // Jeśli to nie jest błąd 401, zwróć oryginalną odpowiedź
   return response;
 }
 

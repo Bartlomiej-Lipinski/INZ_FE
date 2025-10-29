@@ -4,8 +4,14 @@ import { useState } from 'react';
 import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 
+interface ApiResponse {
+  success: boolean;
+  data?: unknown;
+  message?: string;
+}
+
 interface UseUserResult {
-  getUser: (userId: string) => Promise<any>;
+  getUser: (userId: string) => Promise<ApiResponse>;
   isLoading: boolean;
   error: string | null;
   setErrorMessage: (message: string) => void;
@@ -15,17 +21,16 @@ export function useUser(): UseUserResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const getUser = async (userId: string): Promise<any> => {
+  const getUser = async (userId: string): Promise<ApiResponse> => {
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await fetchWithAuth(`${API_ROUTES.USER_BY_ID}/${userId}`, {
         method: 'GET',
-        credentials: 'include'
       });
 
-      const data: any = await response.json();
+      const data = await response.json() as { success: boolean; data?: unknown; message?: string };
 
       if (response.ok && data.success) {
         return data;
@@ -41,7 +46,7 @@ export function useUser(): UseUserResult {
         setError("Wystąpił błąd podczas pobierania danych użytkownika");
         return { success: false };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Get user error:', error);
       setError("Wystąpił błąd połączenia");
       return { success: false };

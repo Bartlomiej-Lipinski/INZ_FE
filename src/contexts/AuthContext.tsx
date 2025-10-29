@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '@/lib/types/user';
+import { setLogoutCallback } from '@/lib/api/fetch-with-auth';
 
 
 interface AuthContextType {
@@ -18,6 +19,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsLoading(false);
+    setLogoutCallback(() => {
+      setUser(null);
+    });
   }, []);
 
   const value: AuthContextType = {

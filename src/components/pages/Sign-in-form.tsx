@@ -51,7 +51,7 @@ export default function SignInForm() {
         router.push('/verification');
       } 
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.log('Login error:', error);
     }
   };
