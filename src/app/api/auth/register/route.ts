@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { UserCreate } from '@/lib/types/user';
+
 const BASE_URL = process.env.BASE_URL;
 const REGISTER = process.env.REGISTER;
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body: UserCreate = await request.json();
     
     const response = await fetch(`${BASE_URL}${REGISTER}`, {
       method: 'POST',

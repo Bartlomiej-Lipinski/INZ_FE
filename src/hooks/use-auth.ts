@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
+import { UserCreate } from '@/lib/types/user';
 
 interface LoginRequest {
   email: string;
@@ -8,18 +8,9 @@ interface LoginRequest {
   captchaToken?: string;
 }
 
-interface RegisterRequest {
-  email: string;
-  name: string;
-  surname: string;
-  userName: string;
-  birthDate: string;
-  password: string;
-}
-
 interface AuthHookResult {
   login: (request: LoginRequest) => Promise<any>;
-  register: (request: RegisterRequest) => Promise<any>;
+  register: (request: UserCreate) => Promise<any>;
   setErrorMessage: (message: string) => void;
   isLoading: boolean;
   error: string | null;
@@ -71,7 +62,7 @@ export function useAuth(): AuthHookResult {
   };
 
 
-  const register = async (request: RegisterRequest): Promise<any> => {
+  const register = async (request: UserCreate): Promise<any> => {
     setIsLoading(true);
     setError(null);
 

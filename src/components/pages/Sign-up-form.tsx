@@ -176,7 +176,7 @@ export default function SignUpForm() {
             }
          }
         } catch (error: any) {
-            console.log('Register error:', error);
+           console.log('Register error:', error);
         }
     };
 
