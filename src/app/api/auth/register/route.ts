@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { BASE_URL } from '@/lib/constants';
+const BASE_URL = process.env.BASE_URL;
+const REGISTER = process.env.REGISTER;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const response = await fetch(`${BASE_URL}/api/auth/register`, {
+    const response = await fetch(`${BASE_URL}${REGISTER}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

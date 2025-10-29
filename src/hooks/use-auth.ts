@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_ENDPOINTS } from '@/lib/constants';
+import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 
 interface LoginRequest {
   email: string;
@@ -35,7 +35,7 @@ export function useAuth(): AuthHookResult {
     setError(null);
 
     try {
-      const response = await fetch(API_ENDPOINTS.LOGIN, {
+      const response = await fetch(API_ROUTES.LOGIN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ export function useAuth(): AuthHookResult {
     setError(null);
 
     try {
-      const response = await fetch(API_ENDPOINTS.REGISTER, {
+      const response = await fetch(API_ROUTES.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

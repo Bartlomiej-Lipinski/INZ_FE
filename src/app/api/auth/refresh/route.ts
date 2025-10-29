@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+const BASE_URL = process.env.BASE_URL;
+const REFRESH = process.env.REFRESH;
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,12 +20,13 @@ export async function POST(request: NextRequest) {
     }
 
     
-    const backendUrl = `https://localhost:7215/api/auth/refresh?RefreshToken=${encodeURIComponent(refreshToken)}`;
+    const backendUrl = `${BASE_URL}${REFRESH}?RefreshToken=${encodeURIComponent(refreshToken)}`;
     const backendResponse = await fetch(backendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Cookie': cookieHeader,
+        'credentials': 'include',
       },
     });
 
