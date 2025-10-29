@@ -77,7 +77,7 @@ export function useAuth(): AuthHookResult {
       }
     } catch (error: unknown) {
       console.error('Login error:', error);
-      if (error instanceof Error && !error.message) {
+      if (error instanceof Error && error.message) {
         setError("Wystąpił błąd połączenia");
       }
       return { success: false };
@@ -124,7 +124,7 @@ export function useAuth(): AuthHookResult {
       }
     } catch (error: unknown) {
       console.error('Register error:', error);
-      if (error instanceof Error && !error.message) {
+      if (error instanceof Error && error.message) {
         setError("Wystąpił błąd połączenia");
       }
       return { success: false, message: "Błąd połączenia z serwerem" };

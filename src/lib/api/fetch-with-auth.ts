@@ -65,7 +65,7 @@ export async function fetchWithAuth(
 ): Promise<Response> {
   const requestOptions: RequestInit = {
     ...options,
-    method: options.method ,
+    method: options.method,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export async function fetchWithAuth(
     if (isRefreshing) {
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({ 
-          resolve: () => {
+          resolve: (_token: string | null) => {
             fetch(url, requestOptions).then(resolve).catch(reject);
           }, 
           reject 
@@ -109,6 +109,7 @@ export async function fetchWithAuth(
         }
 
         processQueue(new Error('Brak refresh token - sesja wygasła'));
+        return response;
       }
       
       if (result.success) {
