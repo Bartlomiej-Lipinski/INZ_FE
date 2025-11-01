@@ -48,7 +48,7 @@ export default function SignInForm() {
 
       if (response && (response.success !== false)) {
         console.log('Login successful, response:', response);
-        router.push('/verification');
+
       } 
       
     } catch (error: unknown) {
