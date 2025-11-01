@@ -7,25 +7,21 @@ import { Users, User } from "lucide-react";
 
 type NavItem = {
   label: string;
-  value: string;
   href: string;
-  icon: React.ReactNode;
+  IconComponent: React.ComponentType<{ strokeWidth: number }>;
 };
 
 export default function AccountGroupsNav() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const PeopleIcon = <Users size={30} strokeWidth={2} />;
-  const PersonIcon = <User size={30} strokeWidth={2} />;
-
   const items: NavItem[] = useMemo(() => [
-    { label: "Grupy", value: "/groups", href: "/groups", icon: PeopleIcon },
-    { label: "Moje konto", value: "/account", href: "/account", icon: PersonIcon },
+    { label: "Grupy", href: "/groups", IconComponent: Users },
+    { label: "Moje konto", href: "/account", IconComponent: User },
   ], []);
 
-  const currentValue = items.some(i => pathname?.startsWith(i.value))
-    ? items.find(i => pathname?.startsWith(i.value))!.value
+  const currentValue = items.some(i => pathname?.startsWith(i.href))
+    ? items.find(i => pathname?.startsWith(i.href))!.href
     : "/groups";
 
   const go = (href: string) => {
@@ -44,25 +40,42 @@ export default function AccountGroupsNav() {
       }}
     >
       {items.map((item) => {
-        const isActive = currentValue === item.value;
+        const isActive = currentValue === item.href;
         return (
-          <Tooltip key={item.value} title={item.label} arrow>
+          <Tooltip 
+            key={item.href} 
+            title={item.label} 
+            arrow
+            slotProps={{
+              tooltip: {
+                sx: {
+                  fontSize: '14px',
+                  padding: '8px 12px',
+                }
+              }
+            }}
+          >
             <IconButton
               aria-label={item.label}
               onClick={() => go(item.href)}
               disableRipple
               sx={(theme) => ({
-                width: 70,
-                height: 70,
+                width: { xs: 50,  md: 65, xl: 75 },
+                height: { xs: 50,  md: 65,  xl: 75 },
                 bgcolor: theme.palette.grey[800],
                 color: theme.palette.grey[300],
                 '&:hover': {
                   bgcolor: theme.palette.grey[700],
                 },
                 boxShadow: isActive ? `0 0 0 3px ${theme.palette.primary.main}` : "none",
+                transition: 'all 0.2s ease-in-out',
+                '& svg': {
+                  width: { xs: 25, md: 32.5,  xl: 35.5 },
+                  height: { xs: 25, md: 32.5,  xl: 35.5 },
+                },
               })}
             >
-              {item.icon}
+              <item.IconComponent strokeWidth={1.5} />
             </IconButton>
           </Tooltip>
         );
