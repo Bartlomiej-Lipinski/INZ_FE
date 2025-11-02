@@ -26,9 +26,11 @@ export default function GroupItem({ group, onClick }: GroupItemProps) {
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
+        border: '2px solid transparent',
         '&:hover':  {
           bgcolor: alpha(theme.palette.grey[600], 0.7),
           transform: 'translateY(-1px)',
+          borderColor: group.color,
         },
       })}
     >

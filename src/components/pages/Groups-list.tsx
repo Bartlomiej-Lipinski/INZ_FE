@@ -99,7 +99,7 @@ export default function GroupsList() {
           width: '100%',
           maxWidth: '300px',
           mx: 'auto',
-          mb: 4,
+          mb: 3,
         }}
       >
         <TextField
@@ -170,6 +170,7 @@ export default function GroupsList() {
             overflowY: 'auto',
             overflowX: 'hidden',
             pr: 1,
+            pt: 0.5,
             '&::-webkit-scrollbar': {
               width: '8px',
             },
