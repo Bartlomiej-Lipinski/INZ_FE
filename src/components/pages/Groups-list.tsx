@@ -42,7 +42,21 @@ export default function GroupsList() {
         name: 'Design Studio',
         color: '#e91e63',
       },
-
+      {
+        id: '8',
+        name: 'QA Department',
+        color: '#9c27b0',
+      },
+      {
+        id: '9',
+        name: 'Design Studio',
+        color: '#e91e63',
+      },
+      {
+        id: '10',
+        name: 'QA Department',
+        color: '#9c27b0',
+      }, 
   ]);
 
   const handleGroupClick = (group: Group) => {
@@ -56,6 +70,7 @@ export default function GroupsList() {
         justifyItems: 'center',
         maxWidth: '80%',
         mx: 'auto',
+        mt: 3,
       }}
     >
       {groups.length === 0 ? (
@@ -88,7 +103,23 @@ export default function GroupsList() {
             gap: 3,
             width: '100%',
             maxWidth: '800px',
-            overflow: 'hidden',
+            maxHeight: 'calc(100vh - 300px)',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            pr: 1,
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-track': {
+              bgcolor: 'transparent',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              bgcolor: 'grey.700',
+              borderRadius: '4px',
+              '&:hover': {
+                bgcolor: 'grey.600',
+              },
+            },
           }}
         >
           {groups.map((group) => (
