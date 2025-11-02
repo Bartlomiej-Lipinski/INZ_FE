@@ -96,7 +96,7 @@ export default function GroupsList() {
       {/* search box */}
       <Box
         sx={{
-          width: '100%',
+          width: '80%',
           maxWidth: '300px',
           mx: 'auto',
           mb: 3,
@@ -142,31 +142,52 @@ export default function GroupsList() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            minHeight: '50vh',
+            minHeight: '30vh',
           }}
         >
           <Typography
             sx={{
               color: 'text.secondary',
-              fontSize: '16px',
+              fontSize: '20px',
               textAlign: 'center',
             }}
           >
             Brak grup. Dodaj pierwszą grupę, aby rozpocząć.
           </Typography>
         </Box>
+      ) : filteredGroups.length === 0 && searchQuery.trim() ? (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '30vh',
+          }}
+        >
+          <Typography
+            sx={{
+              color: 'text.secondary',
+              fontSize: '20px',
+              textAlign: 'center',
+            }}
+          >
+            Nie znaleziono grupy
+          </Typography>
+        </Box>
       ) : (
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: {
-              xs:  '1fr',
-              sm: 'repeat(2, 1fr)',
-            },
+            gridTemplateColumns: filteredGroups.length === 1 
+              ? '1fr' 
+              : {
+                  xs:  '1fr',
+                  sm: 'repeat(2, 1fr)',
+                },
             gap: 3,
             width: '100%',
-            maxWidth: '800px',
-            maxHeight: 'calc(100vh - 300px)',
+            maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
+            maxHeight: 'calc(100vh - 360px)',
             overflowY: 'auto',
             overflowX: 'hidden',
             pr: 1,
