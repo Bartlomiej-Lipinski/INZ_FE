@@ -16,7 +16,7 @@ export default function AccountGroupsNav() {
   const pathname = usePathname();
 
   const items: NavItem[] = useMemo(() => [
-    { label: "Grupy", href: "/groups", IconComponent: Users },
+    { label: "Moje grupy", href: "/groups", IconComponent: Users },
     { label: "Moje konto", href: "/account", IconComponent: User },
   ], []);
 
@@ -41,10 +41,12 @@ export default function AccountGroupsNav() {
     >
       {items.map((item) => {
         const isActive = currentValue === item.href;
+        const placement = item.href === "/groups" ? "left" : "right";
         return (
           <Tooltip 
             key={item.href} 
             title={item.label} 
+            placement={placement}
             arrow
             slotProps={{
               tooltip: {

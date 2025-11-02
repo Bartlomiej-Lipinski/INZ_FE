@@ -90,21 +90,21 @@ export default function GroupsList() {
         justifyItems: 'center',
         maxWidth: '80%',
         mx: 'auto',
-        mt: 3,
+        mt: 1,
       }}
     >
       {/* search box */}
       <Box
         sx={{
           width: '100%',
-          maxWidth: '500px',
+          maxWidth: '300px',
           mx: 'auto',
-          mb: 3,
+          mb: 4,
         }}
       >
         <TextField
           fullWidth
-          placeholder="Wyszukaj grupę"
+          placeholder="Wyszukaj swoją grupę"
           value={searchQuery}
           onChange={handleSearchChange}
           slotProps={{
