@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Box, Typography, Stack } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { Group } from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 
@@ -37,6 +37,12 @@ export default function GroupsList() {
         name: 'QA Department',
         color: '#9c27b0',
       },
+      {
+        id: '7',
+        name: 'Design Studio',
+        color: '#e91e63',
+      },
+
   ]);
 
   const handleGroupClick = (group: Group) => {
@@ -49,7 +55,6 @@ export default function GroupsList() {
       sx={{
         justifyItems: 'center',
         maxWidth: '80%',
-        minHeight: '100vh',
         mx: 'auto',
       }}
     >
@@ -73,15 +78,35 @@ export default function GroupsList() {
           </Typography>
         </Box>
       ) : (
-        <Stack spacing={1.5}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs:  '1fr',
+              sm: 'repeat(2, 1fr)',
+            },
+            gap: 3,
+            width: '100%',
+            maxWidth: '800px',
+            overflow: 'hidden',
+          }}
+        >
           {groups.map((group) => (
-            <GroupItem
+            <Box
               key={group.id}
-              group={group}
-              onClick={() => handleGroupClick(group)}
-            />
+              sx={{
+                minWidth: 0,
+                width: '100%',
+                maxWidth: '100%',
+              }}
+            >
+              <GroupItem
+                group={group}
+                onClick={() => handleGroupClick(group)}
+              />
+            </Box>
           ))}
-        </Stack>
+        </Box>
       )}
     </Box>
   );

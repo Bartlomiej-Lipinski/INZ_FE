@@ -17,12 +17,15 @@ export default function GroupItem({ group, onClick }: GroupItemProps) {
       sx={(theme) => ({
         display: 'flex',
         alignItems: 'center',
-        gap: 2,
+        gap: 3.5,
         p: 2,
         bgcolor: alpha(theme.palette.grey[700], 0.6),
         borderRadius: 2,
         cursor: onClick ? 'pointer' : 'default',
         transition: 'all 0.2s ease-in-out',
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
         '&:hover':  {
           bgcolor: alpha(theme.palette.grey[600], 0.7),
           transform: 'translateY(-1px)',
@@ -52,6 +55,9 @@ export default function GroupItem({ group, onClick }: GroupItemProps) {
           fontSize: '16px',
           fontWeight: 500,
           textAlign: 'center',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
         }}
       >
         {group.name}
