@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { useState, useMemo } from 'react';
+import { Box, Typography, TextField, InputAdornment, IconButton } from '@mui/material';
+import { Search, X } from 'lucide-react';
 import { Group } from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 
@@ -59,6 +60,25 @@ export default function GroupsList() {
       }, 
   ]);
 
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return groups;
+    }
+    return groups.filter((group) =>
+      group.name.toLowerCase().startsWith(searchQuery.toLowerCase())
+    );
+  }, [groups, searchQuery]);
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+  };
+
   const handleGroupClick = (group: Group) => {
     // TODO: implement a navigation to the group details
     console.log('Grupa:', group.name);
@@ -73,6 +93,49 @@ export default function GroupsList() {
         mt: 3,
       }}
     >
+      {/* search box */}
+      <Box
+        sx={{
+          width: '100%',
+          maxWidth: '500px',
+          mx: 'auto',
+          mb: 3,
+        }}
+      >
+        <TextField
+          fullWidth
+          placeholder="Wyszukaj grupę"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={20} style={{ color: 'inherit', opacity: 0.7 }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={handleClearSearch}
+                    edge="end"
+                    size="small"
+                    sx={{
+                      color: 'text.secondary',
+                      '&:hover': {
+                        color: 'text.primary',
+                      },
+                    }}
+                  >
+                    <X size={18} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            },
+          }}
+        />
+      </Box>
+
       {groups.length === 0 ? (
         <Box
           sx={{
@@ -122,7 +185,7 @@ export default function GroupsList() {
             },
           }}
         >
-          {groups.map((group) => (
+          {filteredGroups.map((group) => (
             <Box
               key={group.id}
               sx={{
