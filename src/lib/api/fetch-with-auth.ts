@@ -3,7 +3,7 @@ import { API_ROUTES } from "./api-routes-endpoints";
 let isRefreshing = false;
 let refreshPromise: Promise<{ success: boolean; noRefreshToken?: boolean }> | null = null;
 let failedQueue: Array<{
-  resolve: (token: string | null) => void;
+  resolve: () => void;
   reject: (error: unknown) => void;
 }> = [];
 let logoutCallback: (() => void) | null = null;
@@ -51,7 +51,7 @@ function processQueue(error: unknown) {
     if (error) {
       reject(error);
     } else {
-      resolve(null);
+      resolve();
     }
   });
   
@@ -85,7 +85,7 @@ export async function fetchWithAuth(
     if (isRefreshing) {
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({ 
-          resolve: (_token: string | null) => {
+          resolve: () => {
             fetch(url, requestOptions).then(resolve).catch(reject);
           }, 
           reject 
