@@ -56,7 +56,6 @@ const customColors = {
   },
 };
 
-// Utworzenie motywu
 const theme = createTheme({
   palette: customColors,
   typography: {
@@ -211,23 +210,6 @@ const theme = createTheme({
           minHeight: '100vh',
           overflowY: 'auto',
           height: '100%',
-        },
-        '*': {
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#454545 transparent',
-        },
-        '*::-webkit-scrollbar': {
-          width: '10px',
-          height: '10px',
-        },
-        '*::-webkit-scrollbar-track': {
-          background: 'transparent',
-        },
-        '*::-webkit-scrollbar-thumb': {
-          backgroundColor: '#454545',
-          borderRadius: '8px',
-          border: '2px solid transparent',
-          backgroundClip: 'content-box',
         },
         // do wyłączenia efektów autofill
         'input:-webkit-autofill': {

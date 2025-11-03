@@ -176,7 +176,7 @@ export default function GroupsList() {
         </Box>
       ) : (
         <Box
-          sx={{
+          sx={(theme) => ({
             display: 'grid',
             gridTemplateColumns: filteredGroups.length === 1 
               ? '1fr' 
@@ -193,19 +193,17 @@ export default function GroupsList() {
             pr: 1,
             pt: 0.5,
             '&::-webkit-scrollbar': {
-              width: '8px',
-            },
-            '&::-webkit-scrollbar-track': {
-              bgcolor: 'transparent',
-            },
-            '&::-webkit-scrollbar-thumb': {
-              bgcolor: 'grey.700',
-              borderRadius: '4px',
-              '&:hover': {
-                bgcolor: 'grey.600',
+                width: '8px',
               },
-            },
-          }}
+              '&::-webkit-scrollbar-track': {
+                bgcolor: 'grey.700',
+                borderRadius: '4px',
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor:  `${theme.palette.primary.main} !important`,
+                borderRadius: '4px',     
+              },
+          })}
         >
           {filteredGroups.map((group) => (
             <Box
