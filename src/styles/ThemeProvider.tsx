@@ -154,9 +154,6 @@ const theme = createTheme({
             fontWeight: 600,
             fontSize: '17px',
             transform: 'translate(14px, -9px) scale(0.75)',
-            '&.Mui-focused': {
-              color: customColors.primary.main,
-            },
             '&.MuiInputLabel-shrink': {
               transform: 'translate(14px, -9px) scale(0.75)',
             },
@@ -256,7 +253,10 @@ interface ThemeProviderProps {
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   const [{ cache, flush }] = useState(() => {
-    const cache = createCache({ key: 'mui' });
+    const cache = createCache({ 
+      key: 'mui',
+      prepend: true,
+    });
     cache.compat = true;
     const prevInsert = cache.insert;
     let inserted: string[] = [];
