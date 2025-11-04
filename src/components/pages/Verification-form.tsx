@@ -8,11 +8,9 @@ import {
   TextField,
   Link
 } from '@mui/material';
-import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/common/Loading-spinner';
 
 export default function VerificationForm() {
-  const router = useRouter();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -68,7 +66,7 @@ export default function VerificationForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const codeString = code.join('');
+    // const codeString = code.join('');
     
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
