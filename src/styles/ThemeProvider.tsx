@@ -8,23 +8,23 @@ import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { useState } from 'react';
 
-// Niestandardowe kolory dla aplikacji
+
 const customColors = {
   primary: {
-    main: '#9042fb', // Główny kolor lilac z projektu
+    main: '#9042fb', 
     light: '#b366ff',
     dark: '#6b2fc7',
     contrastText: '#ffffff',
   },
   secondary: {
-    main: '#8D8C8C', // Kolor szary używany w projekcie
+    main: '#8D8C8C', 
     light: '#b3b3b3',
     dark: '#666666',
     contrastText: '#ffffff',
   },
   background: {
     default: '#000000',
-    paper: 'rgba(125, 125, 125, 0.5)', // Kolor tła inputów
+    paper: 'rgba(125, 125, 125, 0.5)', 
   },
   text: {
     primary: '#ffffff',
@@ -56,7 +56,6 @@ const customColors = {
   },
 };
 
-// Utworzenie motywu
 const theme = createTheme({
   palette: customColors,
   typography: {
@@ -211,23 +210,6 @@ const theme = createTheme({
           minHeight: '100vh',
           overflowY: 'auto',
           height: '100%',
-        },
-        '*': {
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#454545 transparent',
-        },
-        '*::-webkit-scrollbar': {
-          width: '10px',
-          height: '10px',
-        },
-        '*::-webkit-scrollbar-track': {
-          background: 'transparent',
-        },
-        '*::-webkit-scrollbar-thumb': {
-          backgroundColor: '#454545',
-          borderRadius: '8px',
-          border: '2px solid transparent',
-          backgroundClip: 'content-box',
         },
         // do wyłączenia efektów autofill
         'input:-webkit-autofill': {

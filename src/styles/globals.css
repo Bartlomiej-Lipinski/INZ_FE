@@ -1,4 +1,4 @@
-/* Podstawowe style - reszta jest teraz obsługiwana przez MUI Theme */
+
 html, body {
   overflow-y: auto !important;
   height: 100% !important;
@@ -6,7 +6,7 @@ html, body {
   padding: 0;
 }
 
-/* Styl scrolla - zachowany z oryginalnego pliku */
+
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -25,7 +25,7 @@ html, body {
 
 html {
   scrollbar-width: thin;
-  scrollbar-color: #454545 transparent;
+  scrollbar-color: #454545 ;
 }
 
 

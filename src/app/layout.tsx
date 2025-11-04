@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import ThemeProvider from '@/styles/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
+import '@/styles/globals.css';
 
 const nunito = Nunito({
   variable: "--font-nunito",
