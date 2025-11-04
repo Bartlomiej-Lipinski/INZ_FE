@@ -21,7 +21,6 @@ export default function VerificationForm() {
  
 
   const handleCodeChange = (index: number, value: string) => {
-
     if (!/^\d*$/.test(value)) return;
     
     const newCode = [...code];
@@ -60,64 +59,37 @@ export default function VerificationForm() {
       const newCode = pastedData.split('');
       setCode(newCode);
       setError('');
-      // Przenieś focus na ostatnie pole
       inputRefs.current[5]?.focus();
     }
   };
 
 
-  // Obsługa wysłania formularza
+   // TO-DO: Replace with actual API call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-  
+    const codeString = code.join('');
+    
     setIsLoading(true);
-    setError('');
-
-    try {
-      
-      const codeString = code.join('');
-      
-      // Symulacja wysyłania (zastąp prawdziwym API call)
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Zastapic prawdziwą walidacją
-      if (codeString === '123456') {
-        router.push('/'); 
-      } else {
-        setError('Nieprawidłowy kod weryfikacyjny');
-      }
-    } catch (error) {
-      console.error('Błąd podczas weryfikacji:', error);
-      setError('Wystąpił błąd podczas weryfikacji');
-    } finally {
-      setIsLoading(false);
-    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsLoading(false);
   };
 
-  // Obsługa ponownego wysłania kodu
+
+  // TO-DO: Replace with actual API call
   const handleResendCode = async () => {
     setIsLoading(true);
-    setError('');
-
-    try {
-      // Tutaj logika ponownego wysłania kodu
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setCode(['', '', '', '', '', '']);
-      inputRefs.current[0]?.focus();
-      
-    } catch (error) {
-      console.error('Błąd podczas ponownego wysłania kodu:', error);
-      setError('Wystąpił błąd podczas ponownego wysłania kodu');
-    } finally {
-      setIsLoading(false);
-    }
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setCode(['', '', '', '', '', '']);
+    inputRefs.current[0]?.focus();
+    setIsLoading(false);
   };
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
+
+
 
   return (
     <Box
@@ -132,7 +104,7 @@ export default function VerificationForm() {
         maxWidth: 400,
       }}
     >
-      {/* Pola kodu weryfikacyjnego */}
+      {/* Verification code fields */}
       <Box
         sx={{
           display: 'flex',
@@ -140,6 +112,7 @@ export default function VerificationForm() {
           justifyContent: 'center',
           alignItems: 'center',
           width: '100%',
+          mb: 1,
         }}
       >
         {code.map((digit, index) => (
@@ -186,7 +159,7 @@ export default function VerificationForm() {
         ))}
       </Box>
 
-      {/* Link do ponownego wysłania kodu */}
+      {/* Link to resend code */}
       <Link
         component="button"
         type="button"
@@ -196,7 +169,7 @@ export default function VerificationForm() {
         Wyślij ponownie kod
       </Link>
 
-      {/* Komunikat o błędzie */}
+      {/* Error message */}
       {error && (
         <Typography
           sx={{
@@ -209,7 +182,7 @@ export default function VerificationForm() {
         </Typography>
       )}
 
-      {/* Przycisk weryfikacji */}
+      {/* Verification button */}
       <Button
         type="submit"
         variant="contained"

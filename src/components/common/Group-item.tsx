@@ -37,8 +37,8 @@ export default function GroupItem({ group, onClick }: GroupItemProps) {
       {/* Avatar */}
       <Avatar
         sx={{
-          width: 48,
-          height: 48,
+          width: {xs: 40, sm: 48},
+          height: {xs: 40, sm: 48},
           bgcolor: 'grey.600',
           flexShrink: 0,
           fontSize: '18px',

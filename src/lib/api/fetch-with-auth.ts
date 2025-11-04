@@ -13,8 +13,6 @@ export function setLogoutCallback(callback: () => void) {
   logoutCallback = callback;
 }
 
-
-//do odświeżania tokena dostępu
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
     const response = await fetch(API_ROUTES.REFRESH, {
@@ -45,7 +43,6 @@ async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?
   }
 }
 
-//do przetwarzania kolejki nieudanych żądań
 function processQueue(error: unknown) {
   failedQueue.forEach(({ resolve, reject }) => {
     if (error) {

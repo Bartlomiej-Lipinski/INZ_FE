@@ -14,6 +14,7 @@ export default function VerificationPage() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '100vh',
+        marginTop: -4,
         width: '100%',
       }}
     >
@@ -31,11 +32,11 @@ export default function VerificationPage() {
 
       <Typography
         sx={{
-          color: 'text.secondary',
+          color: 'grey.500',
           textAlign: 'center',
-          fontSize: '14px',
-          pb: 3,
-         
+          fontSize: '16px',
+          pb: 5,
+          paddingInline: 3,
           wordBreak: 'break-word',
         }}
       >

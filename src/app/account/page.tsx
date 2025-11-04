@@ -4,7 +4,6 @@ export default function AccountPage() {
   return (
     <div>
       <AccountGroupsNav />
-      {/* Pusta strona konta */}
     </div>
   );
 }

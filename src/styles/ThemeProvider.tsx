@@ -211,7 +211,7 @@ const theme = createTheme({
           overflowY: 'auto',
           height: '100%',
         },
-        // do wyłączenia efektów autofill
+        // to disable autofill effects
         'input:-webkit-autofill': {
           WebkitBoxShadow: 'none !important',
           WebkitTextFillColor: '#ffffff !important',

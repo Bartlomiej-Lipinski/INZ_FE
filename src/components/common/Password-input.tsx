@@ -47,19 +47,21 @@ const PasswordInput: React.FC<PasswordInputProps> = ({
         helperText={error}
         fullWidth
         variant="outlined"
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={handleClickShowPassword}
-                disabled={disabled}
-                edge="end"
-                sx={{ color: 'text.secondary' }}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleClickShowPassword}
+                  disabled={disabled}
+                  edge="end"
+                  sx={{ color: 'text.secondary' }}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
     </Box>

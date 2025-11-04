@@ -7,6 +7,7 @@ import { Group } from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 
 export default function GroupsList() {
+  {/* TO-DO: Replace with groups from database */}
   const [groups] = useState<Group[]>([
     {
         id: '1',
@@ -79,8 +80,9 @@ export default function GroupsList() {
     setSearchQuery('');
   };
 
+
+   // TO-DO: implement a navigation to the group details
   const handleGroupClick = (group: Group) => {
-    // TODO: implement a navigation to the group details
     console.log('Grupa:', group.name);
   };
 
@@ -91,6 +93,11 @@ export default function GroupsList() {
         maxWidth: '80%',
         mx: 'auto',
         mt: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: 'calc(70vh - 300px)',
       }}
     >
       {/* search box */}
@@ -187,7 +194,7 @@ export default function GroupsList() {
             gap: 3,
             width: '100%',
             maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
-            maxHeight: 'calc(100vh - 360px)',
+            maxHeight: 'calc(70vh - 150px)',
             overflowY: 'auto',
             overflowX: 'hidden',
             pr: 1,
