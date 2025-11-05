@@ -30,6 +30,7 @@ export default function SignUpForm() {
     const [surnameError, setSurnameError] = useState("");
 
 
+    //TO-DO: Change validation to use zod
     // PASSWORD VALIDATION
     const validatePassword = (value: string) => {
         if (value.length < 8) {
@@ -207,6 +208,7 @@ export default function SignUpForm() {
                     alt="Logo" 
                     width={150} 
                     height={130} 
+                    priority 
                     style={{ marginTop: 30, marginBottom: 40 }} 
                 />
                 
@@ -224,7 +226,7 @@ export default function SignUpForm() {
                 }}
             >
                
-
+                {/* Email */}
                 <TextField
                     type="email"
                     value={email}
@@ -236,6 +238,7 @@ export default function SignUpForm() {
                     fullWidth
                 />
 
+                {/* Name */}
                 <TextField
                     type="text"
                     value={name}
@@ -247,6 +250,7 @@ export default function SignUpForm() {
                     fullWidth
                 />
 
+                {/* Surname */}
                 <TextField
                     type="text"
                     value={surname}
@@ -258,6 +262,7 @@ export default function SignUpForm() {
                     fullWidth
                 />
 
+                {/* Birth date */}
                 <TextField
                     type="date"
                     value={birthDate}
@@ -278,24 +283,25 @@ export default function SignUpForm() {
                     }}
                 />
 
+                {/* Password */}
                 <PasswordInput
                     value={password}
                     onChange={e => handlePasswordChange(e.target.value)}
                     error={passwordError}
                     required
                     label="Hasło"
-        
                 />
 
+                {/* Repeat password */}
                 <PasswordInput
                     value={repeatPassword}
                     onChange={e => handleRepeatPasswordChange(e.target.value)}
                     error={repeatPasswordError}
                     required
                     label="Powtórz hasło"
-             
                 />
 
+                {/* Error message */}
                 {error && (
                     <Typography
                         sx={{

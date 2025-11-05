@@ -81,8 +81,15 @@ export default function SignInForm() {
           gap:0.5
         }}
       >
-        <Image src={IMAGES.MATES_LOGO} alt="Logo" width={220} height={200} style={{ marginTop: 10, marginBottom: 20 }} />
+        <Image 
+        src={IMAGES.MATES_LOGO} 
+        alt="Logo" 
+        width={220} 
+        height={200} 
+        priority 
+        style={{ marginTop: 10, marginBottom: 20 }} />
         
+      {/* Email */}
         <TextField
           type="email"
           value={email}
@@ -95,6 +102,8 @@ export default function SignInForm() {
           sx={{ mt: 3, mb: 3 }}
         />
 
+
+        {/* Password */}
         <PasswordInput
           value={password}
           onChange={handlePasswordChange}
@@ -104,6 +113,8 @@ export default function SignInForm() {
           sx={{ width: '100%' }}
         />
 
+
+        {/* Forgot password and register */}
         <Stack
           direction="row"
           sx={{ mt: 2, mb: 1 }}
@@ -113,7 +124,7 @@ export default function SignInForm() {
           <Link
             component="button"
             type="button"
-            onClick={() => alert('Funkcja resetowania hasła jeszcze nie jest dostępna. (SignInForm.tsx)')}
+            onClick={() => router.push('/reset')}
             disabled={hookIsLoading}
           >
             Zapomniałeś hasła?
@@ -134,6 +145,8 @@ export default function SignInForm() {
           </Stack>
         </Stack>
 
+
+        {/* Error message */}
         {error && (
           <Typography
             sx={{
