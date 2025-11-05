@@ -6,7 +6,7 @@ import { createTheme } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 
 const customColors = {
@@ -157,6 +157,9 @@ const theme = createTheme({
             '&.MuiInputLabel-shrink': {
               transform: 'translate(14px, -9px) scale(0.75)',
             },
+            '&.Mui-focused': {
+              color: customColors.text.primary, 
+            },
           },
         },
       },
@@ -173,6 +176,15 @@ const theme = createTheme({
         },
       },
     },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          '&.Mui-focused': {
+            color: customColors.text.primary, 
+          },
+        },
+      },
+    },
     MuiDivider: {
       styleOverrides: {
         root: {
@@ -185,7 +197,7 @@ const theme = createTheme({
         root: {
           color: customColors.text.secondary,
           fontFamily: '"Nunito", sans-serif',
-          fontSize: '15px',
+          fontSize: '16px',
           textDecoration: 'underline',
           cursor: 'pointer',
           
@@ -235,10 +247,12 @@ const theme = createTheme({
           boxShadow: 'none !important',
         },
         'input[data-autocompleted]': {
+          WebkitTextFillColor: '#ffffff !important',
           WebkitBoxShadow: 'none !important',
           boxShadow: 'none !important',
         },
         'input[autocomplete]': {
+          WebkitTextFillColor: '#ffffff !important',
           WebkitBoxShadow: 'none !important',
           boxShadow: 'none !important',
         },
@@ -247,50 +261,28 @@ const theme = createTheme({
   },
 });
 
-interface ThemeProviderProps {
-  children: React.ReactNode;
-}
-
-export default function ThemeProvider({ children }: ThemeProviderProps) {
-  const [{ cache, flush }] = useState(() => {
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const cache = useMemo(() => {
     const cache = createCache({ 
       key: 'mui',
       prepend: true,
     });
     cache.compat = true;
-    const prevInsert = cache.insert;
-    let inserted: string[] = [];
-    cache.insert = (...args) => {
-      const serialized = args[1];
-      if (cache.inserted[serialized.name] === undefined) {
-        inserted.push(serialized.name);
-      }
-      return prevInsert(...args);
-    };
-    const flush = () => {
-      const prevInserted = inserted;
-      inserted = [];
-      return prevInserted;
-    };
-    return { cache, flush };
-  });
+    return cache;
+  }, []);
 
   useServerInsertedHTML(() => {
-    const names = flush();
+    const names = Object.keys(cache.inserted);
     if (names.length === 0) {
       return null;
     }
-    let styles = '';
-    for (const name of names) {
-      styles += cache.inserted[name];
-    }
+    const styles = Object.values(cache.inserted).join(' ');
+    const ids = names.join(' ');
     return (
       <style
         key={cache.key}
-        data-emotion={`${cache.key} ${names.join(' ')}`}
-        dangerouslySetInnerHTML={{
-          __html: styles,
-        }}
+        data-emotion={`${cache.key} ${ids}`}
+        dangerouslySetInnerHTML={{ __html: styles }}
       />
     );
   });
@@ -299,7 +291,9 @@ export default function ThemeProvider({ children }: ThemeProviderProps) {
     <CacheProvider value={cache}>
       <MuiThemeProvider theme={theme}>
         <CssBaseline />
-        {children}
+        <div suppressHydrationWarning>
+          {children}
+        </div>
       </MuiThemeProvider>
     </CacheProvider>
   );

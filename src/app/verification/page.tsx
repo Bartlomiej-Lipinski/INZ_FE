@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import { IMAGES } from "@/lib/constants";
 import VerificationForm from "../../components/pages/Verification-form";
@@ -18,7 +16,15 @@ export default function VerificationPage() {
         width: '100%',
       }}
     >
-      <Image src={IMAGES.MATES_LOGO} alt="Logo" width={200} height={180} style={{ marginTop: 30, marginBottom: 20 }} />
+
+        <Image 
+        src={IMAGES.MATES_LOGO} 
+        alt="Logo" 
+        width={220} 
+        height={200} 
+        priority 
+        style={{ marginTop: 10, marginBottom: 20 }} />
+
       
       <Typography
         variant="h4"

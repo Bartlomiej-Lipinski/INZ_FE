@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
-import ThemeProvider from '@/styles/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/styles/theme';
 import '@/styles/globals.css';
 
 const nunito = Nunito({
