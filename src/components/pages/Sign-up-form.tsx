@@ -23,7 +23,7 @@ import {
 
 export default function SignUpForm() {
     const router = useRouter();
-    const { register, isLoading: hookIsLoading, setErrorMessage, error } = useAuth();
+    const { register, isLoading, setErrorMessage, error } = useAuth();
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [surname, setSurname] = useState("");
@@ -189,6 +189,7 @@ export default function SignUpForm() {
                     required
                     error={!!errors.email}
                     helperText={errors.email}
+                    disabled={isLoading}
                     fullWidth
                 />
 
@@ -201,6 +202,7 @@ export default function SignUpForm() {
                     required
                     error={!!errors.name}
                     helperText={errors.name}
+                    disabled={isLoading}
                     fullWidth
                 />
 
@@ -213,6 +215,7 @@ export default function SignUpForm() {
                     required
                     error={!!errors.surname}
                     helperText={errors.surname}
+                    disabled={isLoading}
                     fullWidth
                 />
 
@@ -225,6 +228,7 @@ export default function SignUpForm() {
                     required
                     error={!!errors.birthDate}
                     helperText={errors.birthDate}
+                    disabled={isLoading}
                     fullWidth
                     sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
@@ -244,6 +248,7 @@ export default function SignUpForm() {
                     error={errors.password}
                     required
                     label="Hasło"
+                    disabled={isLoading}
                 />
 
                 {/* Repeat password */}
@@ -253,6 +258,7 @@ export default function SignUpForm() {
                     error={errors.repeatPassword}
                     required
                     label="Powtórz hasło"
+                    disabled={isLoading}
                 />
 
                 {/* Error message */}
@@ -274,9 +280,9 @@ export default function SignUpForm() {
                     type="submit"
                     variant="contained"
                     sx={{  mb: 5 }}
-                    disabled={hookIsLoading}
+                    disabled={isLoading}
                 >
-                    {hookIsLoading ? <LoadingSpinner /> : "Potwierdź"}
+                    {isLoading ? <LoadingSpinner /> : "Potwierdź"}
                 </MuiButton>
             </Box>
         </Box>

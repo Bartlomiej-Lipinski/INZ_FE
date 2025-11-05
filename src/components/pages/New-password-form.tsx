@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import PasswordInput from '@/components/common/Password-input';
 import LoadingSpinner from '@/components/common/Loading-spinner';
+import { validatePassword } from '@/lib/zod-schemas';
 
 export default function NewPasswordForm() {
   const [newPassword, setNewPassword] = useState('');
@@ -16,12 +17,11 @@ export default function NewPasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
 
 
-//TO-DO: Add password validation using zod
-
   const handleNewPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setNewPassword(value);
     
+    setNewPasswordError(validatePassword(value));
     if (repeatPassword && value !== repeatPassword) {
       setRepeatPasswordError("Hasła muszą być takie same");
     } else if (repeatPassword && value === repeatPassword) {
@@ -44,6 +44,10 @@ export default function NewPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (newPasswordError || repeatPasswordError) {
+         return;
+    }
+
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
      setIsLoading(false);
