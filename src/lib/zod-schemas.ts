@@ -1,10 +1,29 @@
 import { z } from "zod";
 
 export const passwordSchema = z.string()
-    .min(8, "Hasło musi mieć co najmniej 8 znaków")
-    .refine((v: string) => /[A-Z]/.test(v), "Hasło musi zawierać wielką literę")
-    .refine((v: string) => /[a-z]/.test(v), "Hasło musi zawierać małą literę")
-    .refine((v: string) => /[^A-Za-z0-9]/.test(v), "Hasło musi zawierać znak specjalny");
+    .superRefine((v, ctx) => {
+        const errors: string[] = [];
+        
+        if (v.length < 8) {
+            errors.push("co najmniej 8 znaków");
+        }
+        if (!/[A-Z]/.test(v)) {
+            errors.push("wielką literę");
+        }
+        if (!/[a-z]/.test(v)) {
+            errors.push("małą literę");
+        }
+        if (!/[^A-Za-z0-9]/.test(v)) {
+            errors.push("znak specjalny");
+        }
+        
+        if (errors.length > 0) {
+            ctx.addIssue({
+                code: "custom",
+                message: errors.join(", ")
+            });
+        }
+    });
 
 export const emailSchema = z.string()
     .trim()
@@ -36,7 +55,7 @@ export const birthDateSchema = z.string()
 
 export const validatePassword = (value: string): string => {
     const result = passwordSchema.safeParse(value);
-    return result.success ? "" : result.error.issues[0]?.message ;
+    return result.success ? "" : "Hasło musi zawierać: " + result.error.issues[0]?.message ;
 };
 
 export const validateEmail = (value: string): string => {
