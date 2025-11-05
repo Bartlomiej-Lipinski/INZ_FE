@@ -1,3 +1,5 @@
+"use client";
+
 import { IMAGES } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import { Button as MuiButton } from '@mui/material';

@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import { IMAGES } from "@/lib/constants";
 import ResetPasswordForm from "../../components/pages/Reset-password-form";
