@@ -29,78 +29,87 @@ export default function SignUpForm() {
     const [surname, setSurname] = useState("");
     const [birthDate, setBirthDate] = useState("");
     const [password, setPassword] = useState("");
-    const [passwordError, setPasswordError] = useState("");
-    const [birthDateError, setBirthDateError] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
-    const [repeatPasswordError, setRepeatPasswordError] = useState("");
-    const [emailError, setEmailError] = useState("");
-    const [nameError, setNameError] = useState("");
-    const [surnameError, setSurnameError] = useState("");
+    const [errors, setErrors] = useState<{
+        email: string;
+        name: string;
+        surname: string;
+        birthDate: string;
+        password: string;
+        repeatPassword: string;
+    }>({
+        email: "",
+        name: "",
+        surname: "",
+        birthDate: "",
+        password: "",
+        repeatPassword: ""
+    });
 
     
 
     //HANDLERS
-    const handlePasswordChange = (value: string) => {
-        setPassword(value);
-        setPasswordError(validatePassword(value));
-    };
-
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value; 
         setEmail(value);
-        setEmailError(validateEmail(value));
+        setErrors(prev => ({ ...prev, email: validateEmail(value) }));
     };
+
 
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setName(value);
-        setNameError(validateRequiredInput(value, "Podaj imię"));
+        setErrors(prev => ({ ...prev, name: validateRequiredInput(value, "Podaj imię") }));
     };
+
 
     const handleSurnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSurname(value);
-        setSurnameError(validateRequiredInput(value, "Podaj nazwisko"));
+        setErrors(prev => ({ ...prev, surname: validateRequiredInput(value, "Podaj nazwisko") }));
     };
     
+
     const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setBirthDate(value);
-        setBirthDateError(validateBirthDate(value));
+        setErrors(prev => ({ ...prev, birthDate: validateBirthDate(value) }));
     };
 
+
+    const handlePasswordChange = (value: string) => {
+        setPassword(value);
+        setErrors(prev => ({ ...prev, password: validatePassword(value) }));
+        
+        if (repeatPassword && value !== repeatPassword) {
+            setErrors(prev => ({ ...prev, repeatPassword: "Hasła muszą być takie same" }));
+        } else if (repeatPassword && value === repeatPassword) {
+            setErrors(prev => ({ ...prev, repeatPassword: "" }));
+        }
+    };
+
+    
     const handleRepeatPasswordChange = (value: string) => {
         setRepeatPassword(value);
         if (value !== password) {
-            setRepeatPasswordError("Hasła muszą być takie same");
+            setErrors(prev => ({ ...prev, repeatPassword: "Hasła muszą być takie same" }));
         } else {
-            setRepeatPasswordError("");
+            setErrors(prev => ({ ...prev, repeatPassword: "" }));
         }
     };
 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        // const emailErr = validateEmail(email);
-        // const nameErr = validateRequiredInput(name, "Podaj imię");
-        // const surnameErr = validateRequiredInput(surname, "Podaj nazwisko");
-        // const pwdErr = validatePassword(password);
-        // const birthErr = validateBirthDate(birthDate);
-        // const repeatPwdErr = repeatPassword !== password ? "Hasła muszą być takie same" : "";
-        
-        // setEmailError(emailErr);
-        // setPasswordError(pwdErr);
-        // setBirthDateError(birthErr);
-        // setRepeatPasswordError(repeatPwdErr);
-        // setNameError(nameErr);
-        // setSurnameError(surnameErr);
 
-        // if (emailErr || nameErr || surnameErr || pwdErr || birthErr || repeatPwdErr) {
-        //     setErrorMessage("Popraw błędy!");
-        //     return;
-        // }
-        // setErrorMessage("");
-        
+        const hasErrors = Object.values(errors).some(err => err !== "");
+        if (hasErrors) {
+            setErrorMessage("Popraw błędy!");
+            return;
+        }
+
+        setErrorMessage("");
+
         try {
             const response = await register({
                 email,
@@ -117,7 +126,7 @@ export default function SignUpForm() {
                 router.push('/');
             } else {
                 if (response?.message === "Email already exists.") {
-                    setEmailError("Ten adres e-mail jest już zajęty");
+                    setErrors(prev => ({ ...prev, email: "Ten adres e-mail jest już zajęty" }));
             }
          }
         } catch (error: unknown) {
@@ -127,10 +136,11 @@ export default function SignUpForm() {
 
 
     useEffect(() => {
-        if (!passwordError && !birthDateError && !repeatPasswordError && !emailError && !nameError && !surnameError && error) {
-                setErrorMessage("");
+        const hasErrors = Object.values(errors).some(err => err !== "");
+        if (!hasErrors && error) {
+            setErrorMessage("");
         }
-    }, [passwordError, birthDateError, repeatPasswordError, emailError, nameError, surnameError, error, setErrorMessage]);
+    }, [errors, error, setErrorMessage]);
 
 
 
@@ -177,8 +187,8 @@ export default function SignUpForm() {
                     onChange={handleEmailChange}
                     label="E-mail"
                     required
-                    error={!!emailError}
-                    helperText={emailError}
+                    error={!!errors.email}
+                    helperText={errors.email}
                     fullWidth
                 />
 
@@ -189,8 +199,8 @@ export default function SignUpForm() {
                     onChange={handleNameChange}
                     label="Imię"
                     required
-                    error={!!nameError}
-                    helperText={nameError}
+                    error={!!errors.name}
+                    helperText={errors.name}
                     fullWidth
                 />
 
@@ -201,8 +211,8 @@ export default function SignUpForm() {
                     onChange={handleSurnameChange}
                     label="Nazwisko"
                     required
-                    error={!!surnameError}
-                    helperText={surnameError}
+                    error={!!errors.surname}
+                    helperText={errors.surname}
                     fullWidth
                 />
 
@@ -213,8 +223,8 @@ export default function SignUpForm() {
                     onChange={handleBirthDateChange}
                     label="Data urodzenia"
                     required
-                    error={!!birthDateError}
-                    helperText={birthDateError}
+                    error={!!errors.birthDate}
+                    helperText={errors.birthDate}
                     fullWidth
                     sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
@@ -231,7 +241,7 @@ export default function SignUpForm() {
                 <PasswordInput
                     value={password}
                     onChange={e => handlePasswordChange(e.target.value)}
-                    error={passwordError}
+                    error={errors.password}
                     required
                     label="Hasło"
                 />
@@ -240,7 +250,7 @@ export default function SignUpForm() {
                 <PasswordInput
                     value={repeatPassword}
                     onChange={e => handleRepeatPasswordChange(e.target.value)}
-                    error={repeatPasswordError}
+                    error={errors.repeatPassword}
                     required
                     label="Powtórz hasło"
                 />
