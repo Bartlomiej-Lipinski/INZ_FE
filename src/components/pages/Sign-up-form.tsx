@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { IMAGES } from "@/lib/constants";
 import { useState, useEffect } from "react";
@@ -13,6 +13,12 @@ import {
   TextField, 
   Typography 
 } from '@mui/material';
+import { 
+    validatePassword,
+    validateEmail,
+    validateRequiredInput,
+    validateBirthDate
+} from "@/lib/zod-schemas";
 
 
 export default function SignUpForm() {
@@ -31,70 +37,6 @@ export default function SignUpForm() {
     const [nameError, setNameError] = useState("");
     const [surnameError, setSurnameError] = useState("");
 
-
-    //TO-DO: Change validation to use zod
-    // PASSWORD VALIDATION
-    const validatePassword = (value: string) => {
-        if (value.length < 8) {
-            return "Hasło musi mieć co najmniej 8 znaków";
-        }
-        if (!/[A-Z]/.test(value)) {
-            return "Hasło musi zawierać wielką literę";
-        }
-        if (!/[a-z]/.test(value)) {
-            return "Hasło musi zawierać małą literę";
-        }
-        if (!/[^A-Za-z0-9]/.test(value)) {
-            return "Hasło musi zawierać znak specjalny";
-        }
-        return "";
-    };
-
-    // EMAIL VALIDATION
-    const validateEmail = (value: string) => {
-        const trimmedValue = value.trim();
-        if (!trimmedValue) {
-            return "Podaj adres e-mail";
-        }
-
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        if (!emailRegex.test(trimmedValue)) {
-            return "Podaj poprawny adres e-mail";
-        }
-        return "";
-    };
-
-    // NAME VALIDATION
-    const validateName = (value: string) => {
-        const trimmedValue = value.trim();
-        if (!trimmedValue) {
-            return "Podaj imię";
-        }
-        return "";
-    };
-
-    // SURNAME VALIDATION
-    const validateSurname = (value: string) => {
-        const trimmedValue = value.trim();
-        if (!trimmedValue) {
-            return "Podaj nazwisko";
-        }
-        return "";
-    };
-
-    // BIRTH DATE VALIDATION
-    const validateBirthDate = (value: string) => {
-        if (!value) return "Podaj datę urodzenia";
-        const today = new Date();
-        const birth = new Date(value);
-        const age = today.getFullYear() - birth.getFullYear();
-        const m = today.getMonth() - birth.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-            return age - 1 >= 13 ? "" : "Musisz mieć co najmniej 13 lat";
-        }
-        return age >= 13 ? "" : "Musisz mieć co najmniej 13 lat";
-    };
-
     
 
     //HANDLERS
@@ -112,13 +54,13 @@ export default function SignUpForm() {
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setName(value);
-        setNameError(validateName(value));
+        setNameError(validateRequiredInput(value, "Podaj imię"));
     };
 
     const handleSurnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSurname(value);
-        setSurnameError(validateSurname(value));
+        setSurnameError(validateRequiredInput(value, "Podaj nazwisko"));
     };
     
     const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,25 +81,25 @@ export default function SignUpForm() {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const emailErr = validateEmail(email);
-        const nameErr = validateName(name);
-        const surnameErr = validateSurname(surname);
-        const pwdErr = validatePassword(password);
-        const birthErr = validateBirthDate(birthDate);
-        const repeatPwdErr = repeatPassword !== password ? "Hasła muszą być takie same" : "";
+        // const emailErr = validateEmail(email);
+        // const nameErr = validateRequiredInput(name, "Podaj imię");
+        // const surnameErr = validateRequiredInput(surname, "Podaj nazwisko");
+        // const pwdErr = validatePassword(password);
+        // const birthErr = validateBirthDate(birthDate);
+        // const repeatPwdErr = repeatPassword !== password ? "Hasła muszą być takie same" : "";
         
-        setEmailError(emailErr);
-        setPasswordError(pwdErr);
-        setBirthDateError(birthErr);
-        setRepeatPasswordError(repeatPwdErr);
-        setNameError(nameErr);
-        setSurnameError(surnameErr);
+        // setEmailError(emailErr);
+        // setPasswordError(pwdErr);
+        // setBirthDateError(birthErr);
+        // setRepeatPasswordError(repeatPwdErr);
+        // setNameError(nameErr);
+        // setSurnameError(surnameErr);
 
-        if (emailErr || nameErr || surnameErr || pwdErr || birthErr || repeatPwdErr) {
-            setErrorMessage("Popraw błędy!");
-            return;
-        }
-        setErrorMessage("");
+        // if (emailErr || nameErr || surnameErr || pwdErr || birthErr || repeatPwdErr) {
+        //     setErrorMessage("Popraw błędy!");
+        //     return;
+        // }
+        // setErrorMessage("");
         
         try {
             const response = await register({
