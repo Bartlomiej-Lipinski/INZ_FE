@@ -55,7 +55,7 @@ export default function AccountPage() {
       <Box
         sx={(theme) => ({
           width: "80%",
-          maxWidth: 560,
+          maxWidth: 530,
           px: { xs: 5, sm: 6 },
           py: 4,
           bgcolor: "rgba(125, 125, 125, 0.25)",
@@ -90,7 +90,7 @@ export default function AccountPage() {
             </Avatar>
 
   
-              <Typography variant="h5" component="h1" fontWeight={700} textAlign="center">
+              <Typography variant="h5" fontWeight={700} textAlign="center">
                 {`${user.name} ${user.surname}`}
               </Typography>
               
@@ -108,20 +108,24 @@ export default function AccountPage() {
               width="100%"
               display="flex"
               flexDirection={{ xs: "column", md: "row" }}
+              alignItems={{ xs: "center", md: "stretch" }}
             >
 
               <Box
                 flex={1}
                 display="flex"
                 flexDirection="column"
-                gap={2}
+                gap={3}
                 pr={{ md: 3 }}
+                alignItems={{ xs: "center", md: "flex-start" }}
+                textAlign={{ xs: "center", md: "left" }}
+                width="100%"
               >
 
 
                 {/* status */}
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography color="text.secondary" gutterBottom>
                     Status
                   </Typography>
                   <Typography variant="body1">
@@ -132,18 +136,18 @@ export default function AccountPage() {
 
                 {/* user name */}
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography color="text.secondary" gutterBottom>
                     Pseudonim
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography >
                     {user.userName?.trim() || "Brak pseudonimu"}
                   </Typography>
                 </Box>
 
 
                 {/* birth date */}
-                <Box mb={1.5}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                <Box mb={3}>
+                  <Typography  color="text.secondary" gutterBottom>
                     Data urodzenia
                   </Typography>
                   <Typography variant="body1">
@@ -166,12 +170,14 @@ export default function AccountPage() {
                 display="flex"
                 flexDirection="column"
                 pl={{ md: 3 }}
-                
+                alignItems={{ xs: "center", md: "flex-start" }}
+                textAlign={{ xs: "center", md: "left" }}
+                width={{ xs: "100%", md: "auto" }}
               >
 
                 {/* description */}
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <Typography color="text.secondary" gutterBottom>
                     Opis
                   </Typography>
                   <Typography variant="body1">
