@@ -77,7 +77,8 @@ export default function SignUpForm() {
     };
 
 
-    const handlePasswordChange = (value: string) => {
+    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setPassword(value);
         setErrors(prev => ({ ...prev, password: validatePassword(value) }));
         
@@ -89,7 +90,8 @@ export default function SignUpForm() {
     };
 
     
-    const handleRepeatPasswordChange = (value: string) => {
+    const handleRepeatPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
         setRepeatPassword(value);
         if (value !== password) {
             setErrors(prev => ({ ...prev, repeatPassword: "Hasła muszą być takie same" }));
@@ -244,7 +246,7 @@ export default function SignUpForm() {
                 {/* Password */}
                 <PasswordInput
                     value={password}
-                    onChange={e => handlePasswordChange(e.target.value)}
+                    onChange={handlePasswordChange}
                     error={errors.password}
                     required
                     label="Hasło"
@@ -254,7 +256,7 @@ export default function SignUpForm() {
                 {/* Repeat password */}
                 <PasswordInput
                     value={repeatPassword}
-                    onChange={e => handleRepeatPasswordChange(e.target.value)}
+                    onChange={handleRepeatPasswordChange}
                     error={errors.repeatPassword}
                     required
                     label="Powtórz hasło"
