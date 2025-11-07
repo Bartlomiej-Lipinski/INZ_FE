@@ -117,7 +117,7 @@ export function useAuth(): AuthHookResult {
         } else {
           setError("Wystąpił błąd podczas rejestracji");
         }
-       return { success: false };
+       return { success: false, message: data.message };
       } else {
         setError("Wystąpił błąd podczas rejestracji");
         return { success: false };
