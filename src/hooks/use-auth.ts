@@ -58,9 +58,11 @@ export function useAuth(): AuthHookResult {
               method: 'GET',
             });
             const userData = await userResponse.json();
-            if (userResponse.ok && userData.success && userData.data) {
-              console.log('User data:', userData.data);
+            
+            if (userData.success && userData.data) {
+              console.log('User data:', userData);
               setUser(userData.data as User);
+         
             }
           } catch (userError) {
             console.error('Error fetching user data:', userError);

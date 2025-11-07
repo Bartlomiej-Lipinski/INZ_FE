@@ -10,7 +10,7 @@ export interface User {
   status: string | null;
   description: string | null;
   photo: string | null;
-  role: UserRole;
+  role?: 'Member';
 }
 
 
