@@ -243,10 +243,9 @@ export default function AccountPage() {
                     border: `2px solid ${theme.palette.grey[700]}`,
                     color: theme.palette.text.primary,
                     textAlign: "left",
-                    transition: "background-color 0.2s ease, transform 0.2s ease",
+                    transition: "background-color 0.2s ease",
                     "&:hover": {
-                      bgcolor: "rgba(125, 125, 125, 0.5)",
-                      transform: "translateY(-1px)",
+                      bgcolor: "rgba(125, 125, 125, 0.6)",
                     },
                   }}
                   onClick={() => router.push("/account/settings")}
