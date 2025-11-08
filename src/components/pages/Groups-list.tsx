@@ -199,17 +199,9 @@ export default function GroupsList() {
             overflowX: 'hidden',
             pr: 1,
             pt: 0.5,
-            '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                bgcolor: 'grey.700',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor:  `${theme.palette.primary.main} !important`,
-                borderRadius: '4px',     
-              },
+            scrollbarWidth: 'thin',
+            scrollbarColor: `${theme.palette.primary.main} transparent`,
+           
           })}
         >
           {filteredGroups.map((group) => (

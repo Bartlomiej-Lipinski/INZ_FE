@@ -112,14 +112,11 @@ const theme = createTheme({
           fontWeight: 600,
           textTransform: 'none',
           transition: 'all 0.2s ease-in-out',
+          color: customColors.text.primary,
+          boxShadow: 'none',
           '&:hover': {
             transform: 'translateY(-1px)',
             opacity: 0.8,
-          },
-        },
-        contained: {
-          boxShadow: 'none',
-          '&:hover': {
             boxShadow: 'none',
           },
         },
@@ -173,6 +170,14 @@ const theme = createTheme({
               borderColor: customColors.primary.main,
             },
           },
+        },
+      },
+    },
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          borderRadius: 40,
+          backgroundColor: customColors.primary.main,
         },
       },
     },

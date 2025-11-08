@@ -6,11 +6,15 @@ import {
   Avatar,
   Box,
   Button,
+  ButtonBase,
   CircularProgress,
   Divider,
   Typography,
 } from "@mui/material";
 import { useMemo } from "react";
+import { useTheme } from "@mui/material/styles";
+import { ChevronRight, Settings } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function formatBirthDate(birthDate: Date) {
   if (!birthDate) return "Brak danych";
@@ -27,7 +31,8 @@ function formatBirthDate(birthDate: Date) {
 
 export default function AccountPage() {
   const { user, isLoading } = useAuthContext();
-
+  const theme = useTheme();
+  const router = useRouter();
   const initials = useMemo(() => {
     if (!user) return "?";
 
@@ -53,7 +58,7 @@ export default function AccountPage() {
       <AccountGroupsNav />
 
       <Box
-        sx={(theme) => ({
+        sx={ {
           width: "80%",
           maxWidth: 530,
           px: { xs: 5, sm: 6 },
@@ -67,7 +72,7 @@ export default function AccountPage() {
           flexDirection: "column",
           alignItems: "center",
           gap: 3,
-        })}
+        }}
       >
         {isLoading ? (
           <CircularProgress size={36} />
@@ -75,8 +80,8 @@ export default function AccountPage() {
           <>
             <Avatar
               alt={`${user.name} ${user.surname}`.trim() || undefined}
-              src={user.photo || undefined}
-              sx={(theme) => ({
+              src={user.photo?.toString() || undefined}
+              sx={ {
                 width: { xs: 80, sm: 90 },
                 height: { xs: 80, sm: 90 },
                 bgcolor: theme.palette.grey[700],
@@ -84,7 +89,7 @@ export default function AccountPage() {
                 color: theme.palette.primary.contrastText,
                 fontSize: { xs: 24, sm: 28 },
                 fontWeight: 600,
-              })}
+              }}
             >
               {initials}
             </Avatar>
@@ -96,9 +101,7 @@ export default function AccountPage() {
               
 
               {/* TODO: Add logic for logout button */}
-              <Button
-                  variant="contained"
-                >
+              <Button>
                   Wyloguj się
                   </Button>
 
@@ -117,26 +120,14 @@ export default function AccountPage() {
                 flexDirection="column"
                 gap={3}
                 pr={{ md: 3 }}
-                alignItems={{ xs: "center", md: "flex-start" }}
-                textAlign={{ xs: "center", md: "left" }}
+                alignItems={ "center"}
+                textAlign={ "center"}
                 width="100%"
               >
-
-
-                {/* status */}
-                <Box>
-                  <Typography color="text.secondary" gutterBottom>
-                    Status
-                  </Typography>
-                  <Typography variant="body1">
-                    {user.status?.trim() || "Brak statusu"}
-                  </Typography>
-                </Box>
-
-
+                
                 {/* user name */}
-                <Box>
-                  <Typography color="text.secondary" gutterBottom>
+                <Box width="100%">
+                  <Typography color="text.secondary" >
                     Pseudonim
                   </Typography>
                   <Typography >
@@ -146,14 +137,44 @@ export default function AccountPage() {
 
 
                 {/* birth date */}
-                <Box mb={3}>
-                  <Typography  color="text.secondary" gutterBottom>
+                <Box >
+                  <Typography  color="text.secondary" >
                     Data urodzenia
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography>
                     {formatBirthDate(user.birthDate)}
                   </Typography>
                 </Box>
+
+
+                {/* status */}
+                <Box
+                mb={3}
+                justifyItems={"center"}
+                >
+                  <Typography color="text.secondary" >
+                    Status
+                  </Typography>
+                  <Typography
+                  sx={ {
+                    width: "90%",
+                      overflowWrap: "break-word",
+                      wordBreak: "break-word",
+                      whiteSpace: "pre-line",
+                      maxHeight: "50px",
+                      overflowY: "auto",
+                      marginLeft: "10px",
+                      paddingRight: "10px",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: `${theme.palette.primary.main} transparent`,     
+                  }}
+                  >
+                    {user.status?.trim() || "Brak statusu"}
+                  </Typography>
+                </Box>
+
+
+               
               </Box>
 
               <Divider
@@ -170,17 +191,32 @@ export default function AccountPage() {
                 display="flex"
                 flexDirection="column"
                 pl={{ md: 3 }}
-                alignItems={{ xs: "center", md: "flex-start" }}
-                textAlign={{ xs: "center", md: "left" }}
-                width={{ xs: "100%", md: "auto" }}
+                alignItems={ "center"}
+                textAlign={ "center"}
               >
 
                 {/* description */}
-                <Box>
-                  <Typography color="text.secondary" gutterBottom>
+                <Box
+                justifyItems="center"
+                >
+                  <Typography color="text.secondary" >
                     Opis
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography
+                    sx={ {
+                      width: "90%",
+                      overflowWrap: "break-word",
+                      wordBreak: "break-word",
+                      whiteSpace: "pre-line",
+                      textAlign: "left",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      marginLeft: "10px",
+                      paddingRight: "10px",
+                      scrollbarWidth: "thin",
+                      scrollbarColor: `${theme.palette.primary.main} transparent`
+                    }}
+                  >
                     {user.description?.trim() || "Brak opisu"}
                   </Typography>
                   </Box>
@@ -189,15 +225,47 @@ export default function AccountPage() {
               </Box>
               
             {/* TODO: Add logic for edit profile button */}
-              <Button
-                  variant="contained"
-                  sx={{ mt: 1 }}
+              <Button sx={{ mt: 1 }}>
+                Edytuj profil
+              </Button>
+
+                <ButtonBase
+                  sx={ {
+                    width: "100%",
+                    mt: 2,
+                    px: 3,
+                    py: 2,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                    bgcolor: "rgba(125, 125, 125, 0.9)",
+                    border: `2px solid ${theme.palette.grey[700]}`,
+                    color: theme.palette.text.primary,
+                    textAlign: "left",
+                    transition: "background-color 0.2s ease, transform 0.2s ease",
+                    "&:hover": {
+                      bgcolor: "rgba(125, 125, 125, 0.5)",
+                      transform: "translateY(-1px)",
+                    },
+                  }}
+                  onClick={() => router.push("/account/settings")}
                 >
-                  Edytuj profil
-                  </Button>
+                  <Settings
+                    size={28}
+                    color={theme.palette.text.primary}
+                  />
+                  <Typography flex={1} fontWeight={500}>
+                    Zarządzanie kontem
+                  </Typography>
+                  <ChevronRight
+                    size={28}
+                    color={theme.palette.text.primary}
+                  />
+                </ButtonBase>      
           </>
         ) : (
-          <Typography variant="body1" color="text.secondary" textAlign="center">
+          <Typography color="text.secondary" textAlign="center">
             Nie udało się załadować danych użytkownika.
           </Typography>
         )}
