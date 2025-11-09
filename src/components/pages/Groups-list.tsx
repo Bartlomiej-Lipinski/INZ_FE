@@ -58,7 +58,7 @@ export default function GroupsList() {
         id: '10',
         name: 'QA Department',
         color: '#9c27b0',
-      }, 
+      },
   ]);
 
   const [searchQuery, setSearchQuery] = useState<string>('');

@@ -6,9 +6,23 @@ import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 
 interface ApiResponse {
   success: boolean;
-  data?: unknown;
+  data?: UserData;
   message?: string;
 }
+
+interface UserData {
+    id: string;
+    email: string;
+    username: string;
+    name: string;
+    surname: string;
+    Birthday: string;
+    status: string;
+    description: string;
+    photoUrl: string;
+    isTwoFactorEnabled: boolean;
+}
+
 
 interface UseUserResult {
   getUser: (userId: string) => Promise<ApiResponse>;
@@ -30,7 +44,7 @@ export function useUser(): UseUserResult {
         method: 'GET',
       });
 
-      const data = await response.json() as { success: boolean; data?: unknown; message?: string };
+      const data = await response.json() as { success: boolean; data?: UserData; message?: string };
 
       if (response.ok && data.success) {
         return data;
