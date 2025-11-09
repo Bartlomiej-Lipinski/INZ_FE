@@ -31,7 +31,7 @@ export function useAuth(): AuthHookResult {
   const [error, setError] = useState<string | null>(null);
   const { setUser } = useAuthContext();
 
-  const login = async (request: LoginRequest): Promise<ApiResponse> => {
+  const login =async (request: LoginRequest): Promise<ApiResponse> => {
     setIsLoading(true);
     setError(null);
 
@@ -63,6 +63,7 @@ export function useAuth(): AuthHookResult {
               setUser(userData.data as User);
             }
           } catch (userError) {
+
             console.error('Error fetching user data:', userError);
           }
         }
