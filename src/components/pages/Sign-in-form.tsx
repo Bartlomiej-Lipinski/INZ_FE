@@ -46,10 +46,12 @@ export default function SignInForm() {
         password
       });
 
-      if (response && (response.success !== false)) {
-        console.log('Login successful, response:', response);
-
-      } 
+        if (response.success && response.data === 'Verification code sent to your email') {
+            localStorage.setItem("pendingVerificationEmail", email);
+            router.push('/verification');
+        }else if(response.success) {
+            router.push('/groups');
+        }
       
     } catch (error: unknown) {
       console.log('Login error:', error);

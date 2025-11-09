@@ -9,12 +9,16 @@ import {
   Link
 } from '@mui/material';
 import LoadingSpinner from '@/components/common/Loading-spinner';
+import {Verify2FA} from "@/hooks/use-Verify2FA";
+import {useRouter} from "next/navigation";
 
 export default function VerificationForm() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLElement | null)[]>([]);
+  const { verify2FA } = Verify2FA();
+  const router = useRouter();
 
  
 
@@ -62,16 +66,43 @@ export default function VerificationForm() {
   };
 
 
-   // TO-DO: Replace with actual API call
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // const codeString = code.join('');
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsLoading(false);
-  };
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
+        setError('');
+        try {
+            const email = localStorage.getItem('pendingVerificationEmail');
+
+            if (!email) {
+                setError('Nie znaleziono adresu email. Zaloguj się ponownie.');
+                setIsLoading(false);
+                return;
+            }
+
+            const verificationCode = code.join('');
+
+            const response = await verify2FA({
+                email,
+                code: verificationCode,
+            });
+
+            if (response.success) {
+                localStorage.removeItem('pendingVerificationEmail');
+                router.push('/groups');
+            } else {
+                setError(response.message || 'Nieprawidłowy kod weryfikacyjny');
+                setCode(['', '', '', '', '', '']);
+                inputRefs.current[0]?.focus();
+            }
+        } catch (err) {
+            console.error('Verification error:', err);
+            setError('Wystąpił błąd podczas weryfikacji. Spróbuj ponownie.');
+            setCode(['', '', '', '', '', '']);
+            inputRefs.current[0]?.focus();
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
 
   // TO-DO: Replace with actual API call
