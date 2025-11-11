@@ -5,13 +5,13 @@ import { useState, useEffect } from "react";
 import { Button as MuiButton } from '@mui/material';
 import Image from "next/image";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingSpinner from "@/components/common/Loading-spinner";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { 
   Box, 
   TextField, 
-  Typography 
+  Typography, 
+  CircularProgress 
 } from '@mui/material';
 import { 
     validatePassword,
@@ -284,7 +284,11 @@ export default function SignUpForm() {
                     sx={{  mb: 5 }}
                     disabled={isLoading}
                 >
-                    {isLoading ? <LoadingSpinner /> : "Potwierdź"}
+                    {isLoading ? (
+                        <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />
+                    ) : (
+                        "Potwierdź"
+                    )}
                 </MuiButton>
             </Box>
         </Box>

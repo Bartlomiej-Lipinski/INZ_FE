@@ -1,12 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { 
-  Box, 
-  Button, 
-} from '@mui/material';
+import { Box, Button, CircularProgress } from '@mui/material';
 import PasswordInput from '@/components/common/Password-input';
-import LoadingSpinner from '@/components/common/Loading-spinner';
 import { validatePassword } from '@/lib/zod-schemas';
 
 export default function NewPasswordForm() {
@@ -96,7 +92,11 @@ export default function NewPasswordForm() {
               mb: 5,
             }}
           >
-            {isLoading ? <LoadingSpinner /> : 'Zmień hasło'}
+            {isLoading ? (
+              <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />
+            ) : (
+              'Zmień hasło'
+            )}
           </Button>
         </>
     </Box>

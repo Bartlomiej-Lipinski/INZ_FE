@@ -2,14 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { ChangeEvent, ClipboardEvent, FormEvent, KeyboardEvent } from 'react';
-import { 
-  Box, 
-  Button, 
-  Typography,
-  TextField,
-  Link
-} from '@mui/material';
-import LoadingSpinner from '@/components/common/Loading-spinner';
+import { Box, Button, Typography, TextField, Link, CircularProgress } from '@mui/material';
 import {Verify2FA} from "@/hooks/use-Verify2FA";
 import {useRouter} from "next/navigation";
 
@@ -221,7 +214,11 @@ export default function VerificationForm() {
           mb: 5,
         }}
       >
-        {isLoading ? <LoadingSpinner /> : 'Zweryfikuj kod'}
+        {isLoading ? (
+          <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />
+        ) : (
+          'Zweryfikuj kod'
+        )}
       </Button>
     </Box>
   );

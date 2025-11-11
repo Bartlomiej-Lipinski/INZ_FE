@@ -5,9 +5,9 @@ import {
   Box, 
   Button, 
   TextField,
-  Typography
+  Typography,
+  CircularProgress
 } from '@mui/material';
-import LoadingSpinner from '@/components/common/Loading-spinner';
 
 export default function ResetPasswordForm() {
   const [email, setEmail] = useState('');
@@ -74,7 +74,11 @@ export default function ResetPasswordForm() {
               mb: 5,
             }}
           >
-            {isLoading ? <LoadingSpinner /> : 'Wyślij link do resetu hasła'}
+            {isLoading ? (
+              <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />
+            ) : (
+              'Wyślij link do resetu hasła'
+            )}
           </Button>
         </>
       ) : (
