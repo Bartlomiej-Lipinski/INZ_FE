@@ -1,67 +1,44 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import { Box, Typography, TextField, InputAdornment, IconButton } from '@mui/material';
-import { Search, X } from 'lucide-react';
-import { Group } from '@/lib/types/group';
+import {useState, useMemo, useEffect} from 'react';
+import {Box, Typography, TextField, InputAdornment, IconButton} from '@mui/material';
+import {Search, X} from 'lucide-react';
+import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+
+interface ApiResponse {
+    success: boolean;
+    data?: Group[];
+    message?: string;
+}
 
 export default function GroupsList() {
-  {/* TO-DO: Replace with groups from database */}
-  const [groups] = useState<Group[]>([
-    {
-        id: '1',
-        name: 'Grupa Roboczaaaaaaaaaaaaaaaaaaaaaa',
-        color: '#9042fb',
-      },
-      {
-        id: '2',
-        name: 'Projekt Alpha',
-        color: '#2196f3',
-      },
-      {
-        id: '3',
-        name: 'Zespół Marketing',
-        color: '#4caf50',
-      },
-      {
-        id: '4',
-        name: 'Development Team',
-        color: '#ff9800',
-      },
-      {
-        id: '5',
-        name: 'Design Studio',
-        color: '#e91e63',
-      },
-      {
-        id: '6',
-        name: 'QA Department',
-        color: '#9c27b0',
-      },
-      {
-        id: '7',
-        name: 'Design Studio',
-        color: '#e91e63',
-      },
-      {
-        id: '8',
-        name: 'QA Department',
-        color: '#9c27b0',
-      },
-      {
-        id: '9',
-        name: 'Design Studio',
-        color: '#e91e63',
-      },
-      {
-        id: '10',
-        name: 'QA Department',
-        color: '#9c27b0',
-      },
-  ]);
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
+    const [groups, setGroups] = useState<Group[]>([]);
 
-  const [searchQuery, setSearchQuery] = useState<string>('');
+    useEffect(() => {
+        async function load() {
+            try {
+                setLoading(true);
+                const response = await fetchWithAuth(`${API_ROUTES.USER_GROUPS}`, {method: 'GET'});
+                if (response.ok) {
+                    const json = await response.json() as ApiResponse;
+                    const data: Group[] = json?.data || [];
+                    setGroups(data);
+                } else {
+                    console.error('Failed to fetch groups:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching groups:', error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        load();
+    }, []);
 
   const filteredGroups = useMemo(() => {
     if (!searchQuery.trim()) {
