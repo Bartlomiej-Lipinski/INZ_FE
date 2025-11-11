@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
+import type { ChangeEvent, ClipboardEvent, FormEvent, KeyboardEvent } from 'react';
 import { 
   Box, 
   Button, 
@@ -16,7 +17,7 @@ export default function VerificationForm() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const inputRefs = useRef<(HTMLElement | null)[]>([]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const { verify2FA } = Verify2FA();
   const router = useRouter();
 
@@ -38,7 +39,7 @@ export default function VerificationForm() {
   };
 
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace') {
       if (code[index]) {
         const newCode = [...code];
@@ -54,7 +55,7 @@ export default function VerificationForm() {
   };
 
  
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
     if (pastedData.length === 6) {
@@ -66,7 +67,7 @@ export default function VerificationForm() {
   };
 
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
@@ -147,11 +148,11 @@ export default function VerificationForm() {
         {code.map((digit, index) => (
           <TextField
             key={index}
-            inputRef={(el) => { inputRefs.current[index] = el; }}
+            inputRef={(el: HTMLInputElement | null) => { inputRefs.current[index] = el; }}
             value={digit}
-            onChange={(e) => handleCodeChange(index, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(index, e)}
-            onPaste={handlePaste}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleCodeChange(index, e.target.value)}
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => handleKeyDown(index, e)}
+            onPaste={(e: ClipboardEvent<HTMLInputElement>) => handlePaste(e)}
             slotProps={{
               input: {
                 style: {
