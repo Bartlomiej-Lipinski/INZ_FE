@@ -232,7 +232,7 @@ export default function AccountPage() {
                 <ButtonBase
                   sx={ {
                     width: "100%",
-                    mt: 2,
+                    mt: 0.5,
                     px: 3,
                     py: 2,
                     display: "flex",

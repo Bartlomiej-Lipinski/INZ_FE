@@ -177,7 +177,6 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 40,
-          backgroundColor: customColors.primary.main,
         },
       },
     },
