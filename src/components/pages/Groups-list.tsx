@@ -20,6 +20,7 @@ export default function GroupsList() {
     const [loading, setLoading] = useState<boolean>(true);
     const [groups, setGroups] = useState<Group[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedGroupColor, setSelectedGroupColor] = useState<string | null>(null);
 
     useEffect(() => {
         async function load() {
@@ -69,11 +70,11 @@ export default function GroupsList() {
 
             if (response.ok) {
                 const contentType = response.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
+                if (contentType?.includes('application/json')) {
                     const json = await response.json() as ApiResponse;
                     if (json.data) {
                         const newGroup = Array.isArray(json.data) ? json.data[0] : json.data;
-                        setGroups([...groups, newGroup as Group]);
+                        setGroups([...groups, newGroup]);
                     }
                 } else {
                     console.error('Expected JSON response, got:', contentType);
@@ -86,10 +87,6 @@ export default function GroupsList() {
         }
     };
 
-
-    const handleGroupClick = (group: Group) => {
-        console.log('Grupa:', group.name);
-    };
 
     if (loading) {
         return (
@@ -106,9 +103,22 @@ export default function GroupsList() {
         );
     }
 
+    const handleGroupClick = (group: Group) => {
+        console.log('Grupa:', group.name);
+    };
+
+    const handleGroupMouseEnter = (group: Group) => {
+        setSelectedGroupColor(group.color);
+    };
+
+    const handleGroupMouseLeave = () => {
+        setSelectedGroupColor(null);
+    };
+
     return (
         <Box
             sx={{
+                position: 'relative',
                 justifyItems: 'center',
                 maxWidth: '80%',
                 mx: 'auto',
@@ -118,6 +128,24 @@ export default function GroupsList() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 minHeight: 'calc(70vh - 300px)',
+                '&::before': {
+                    content: '""',
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '90vh',
+                    background: selectedGroupColor
+                        ? `radial-gradient(ellipse 150% 100% at bottom center, ${selectedGroupColor}80 0%, ${selectedGroupColor}30 40%, transparent 70%)`
+                        : 'transparent',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                },
+                '& > *': {
+                    position: 'relative',
+                    zIndex: 1,
+                },
             }}
         >
             <Box
@@ -239,6 +267,8 @@ export default function GroupsList() {
                                 width: '100%',
                                 maxWidth: '100%',
                             }}
+                            onMouseEnter={() => handleGroupMouseEnter(group)}
+                            onMouseLeave={handleGroupMouseLeave}
                         >
                             <GroupItem
                                 group={group}
@@ -271,4 +301,5 @@ export default function GroupsList() {
             />
         </Box>
     );
+
 }
