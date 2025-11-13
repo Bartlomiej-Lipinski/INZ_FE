@@ -61,22 +61,31 @@ export default function GroupsList() {
 
     const handleAddGroup = async (name: string, color: string) => {
         try {
-            const response = await fetchWithAuth(API_ROUTES.USER_GROUPS, {
+            const response = await fetchWithAuth(API_ROUTES.ADD_GROUP, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, color }),
             });
 
             if (response.ok) {
-                const json = await response.json() as ApiResponse;
-                if (json.data) {
-                    setGroups([...groups, ...json.data]);
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const json = await response.json() as ApiResponse;
+                    if (json.data) {
+                        const newGroup = Array.isArray(json.data) ? json.data[0] : json.data;
+                        setGroups([...groups, newGroup as Group]);
+                    }
+                } else {
+                    console.error('Expected JSON response, got:', contentType);
                 }
+            } else {
+                console.error('Failed to add group:', response.status, response.statusText);
             }
         } catch (error) {
             console.error('Error adding group:', error);
         }
     };
+
 
     const handleGroupClick = (group: Group) => {
         console.log('Grupa:', group.name);
