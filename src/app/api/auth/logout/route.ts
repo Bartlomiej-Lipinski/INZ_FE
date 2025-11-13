@@ -12,9 +12,21 @@ export async function POST() {
             credentials: 'include',
         });
 
-        return  NextResponse.json({ status: response.status });
-    } catch (error) {
-        console.error('Login API error:', error);
+        // Forward Set-Cookie headers from backend to client
+        const res = NextResponse.json({ status: response.status });
+        const setCookie = response.headers.getSetCookie?.() || response.headers.get('set-cookie');
+        if (setCookie) {
+            // getSetCookie() returns an array, get('set-cookie') returns a string
+            if (Array.isArray(setCookie)) {
+                for (const cookie of setCookie) {
+                    res.headers.append('set-cookie', cookie);
+                }
+            } else {
+                res.headers.set('set-cookie', setCookie);
+            }
+        }
+        return res;
+        console.error('Logout API error:', error);
         return NextResponse.json(
             { success: false, message: 'Wystąpił błąd połączenia' },
             { status: 500 }

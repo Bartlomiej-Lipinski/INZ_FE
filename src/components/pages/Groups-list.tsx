@@ -91,11 +91,14 @@ export default function GroupsList() {
 
     const handleLogout = async () => {
         try {
-            await fetchWithAuth(`${API_ROUTES.LOGOUT}`, { method: 'POST' });
+            const response = await fetchWithAuth(`${API_ROUTES.LOGOUT}`, { method: 'POST' });
+            if (response.ok) {
+                router.push('/');
+            } else {
+                console.error('Logout failed:', response.status, response.statusText);
+            }
         } catch (e) {
             console.error('Logout error:', e);
-        } finally {
-            router.push('/');
         }
     };
 
