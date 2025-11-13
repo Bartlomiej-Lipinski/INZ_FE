@@ -6,4 +6,5 @@ export const API_ROUTES = {
     VERIFY_2FA: '/api/auth/2FA',
     USER_GROUPS: '/api/user/groups',
     ADD_GROUP: '/api/group',
+    LOGOUT: '/api/auth/logout',
 } as const; 
