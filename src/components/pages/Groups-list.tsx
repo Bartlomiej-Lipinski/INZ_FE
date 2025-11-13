@@ -1,12 +1,13 @@
 "use client";
 
 import {useState, useMemo, useEffect} from 'react';
-import {Box, Typography, TextField, InputAdornment, IconButton} from '@mui/material';
+import {Box, Typography, TextField, InputAdornment, IconButton, Button, CircularProgress} from '@mui/material';
 import {Search, X} from 'lucide-react';
 import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {AddGroupModal} from '@/components/modals/add-group-modal';
 
 interface ApiResponse {
     success: boolean;
@@ -16,8 +17,10 @@ interface ApiResponse {
 
 export default function GroupsList() {
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true);
     const [groups, setGroups] = useState<Group[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedGroupColor, setSelectedGroupColor] = useState<string | null>(null);
 
     useEffect(() => {
         async function load() {
@@ -40,172 +43,263 @@ export default function GroupsList() {
         load();
     }, []);
 
-  const filteredGroups = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return groups;
-    }
-    return groups.filter((group) =>
-      group.name.toLowerCase().startsWith(searchQuery.toLowerCase())
-    );
-  }, [groups, searchQuery]);
+    const filteredGroups = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return groups;
+        }
+        return groups.filter((group) =>
+            group.name.toLowerCase().startsWith(searchQuery.toLowerCase())
+        );
+    }, [groups, searchQuery]);
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(event.target.value);
-  };
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(event.target.value);
+    };
 
-  const handleClearSearch = () => {
-    setSearchQuery('');
-  };
+    const handleClearSearch = () => {
+        setSearchQuery('');
+    };
+
+    const handleAddGroup = async (name: string, color: string) => {
+        try {
+            const response = await fetchWithAuth(API_ROUTES.ADD_GROUP, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, color }),
+            });
+
+            if (response.ok) {
+                const contentType = response.headers.get('content-type');
+                if (contentType?.includes('application/json')) {
+                    const json = await response.json() as ApiResponse;
+                    if (json.data) {
+                        const newGroup = Array.isArray(json.data) ? json.data[0] : json.data;
+                        setGroups([...groups, newGroup]);
+                    }
+                } else {
+                    console.error('Expected JSON response, got:', contentType);
+                }
+            } else {
+                console.error('Failed to add group:', response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error('Error adding group:', error);
+        }
+    };
 
 
-   // TO-DO: implement a navigation to the group details
-  const handleGroupClick = (group: Group) => {
-    console.log('Grupa:', group.name);
-  };
-
-  return (
-    <Box
-      sx={{
-        justifyItems: 'center',
-        maxWidth: '80%',
-        mx: 'auto',
-        mt: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 'calc(70vh - 300px)',
-      }}
-    >
-      {/* search box */}
-      <Box
-        sx={{
-          width: '80%',
-          maxWidth: '300px',
-          mx: 'auto',
-          mb: 3,
-        }}
-      >
-        <TextField
-          fullWidth
-          placeholder="Wyszukaj swoją grupę"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={20} style={{ color: 'inherit', opacity: 0.7 }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchQuery ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={handleClearSearch}
-                    edge="end"
-                    size="small"
-                    sx={{
-                      color: 'text.secondary',
-                      '&:hover': {
-                        color: 'text.primary',
-                      },
-                    }}
-                  >
-                    <X size={18} />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            },
-          }}
-        />
-      </Box>
-
-      {groups.length === 0 ? (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '30vh',
-          }}
-        >
-          <Typography
-            sx={{
-              color: 'text.secondary',
-              fontSize: '20px',
-              textAlign: 'center',
-            }}
-          >
-            Brak grup. Dodaj pierwszą grupę, aby rozpocząć.
-          </Typography>
-        </Box>
-      ) : filteredGroups.length === 0 && searchQuery.trim() ? (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '30vh',
-          }}
-        >
-          <Typography
-            sx={{
-              color: 'text.secondary',
-              fontSize: '20px',
-              textAlign: 'center',
-            }}
-          >
-            Nie znaleziono grupy
-          </Typography>
-        </Box>
-      ) : (
-        <Box
-          sx={(theme) => ({
-            display: 'grid',
-            gridTemplateColumns: filteredGroups.length === 1 
-              ? '1fr' 
-              : {
-                  xs:  '1fr',
-                  sm: 'repeat(2, 1fr)',
-                },
-            gap: 3,
-            width: '100%',
-            maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
-            maxHeight: 'calc(70vh - 150px)',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            pr: 1,
-            pt: 0.5,
-            '&::-webkit-scrollbar': {
-                width: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                bgcolor: 'grey.700',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor:  `${theme.palette.primary.main} !important`,
-                borderRadius: '4px',     
-              },
-          })}
-        >
-          {filteredGroups.map((group) => (
+    if (loading) {
+        return (
             <Box
-              key={group.id}
-              sx={{
-                minWidth: 0,
-                width: '100%',
-                maxWidth: '100%',
-              }}
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 'calc(70vh - 300px)',
+                }}
             >
-              <GroupItem
-                group={group}
-                onClick={() => handleGroupClick(group)}
-              />
+                <CircularProgress size={48} />
             </Box>
-          ))}
+        );
+    }
+
+    const handleGroupClick = (group: Group) => {
+        console.log('Grupa:', group.name);
+    };
+
+    const handleGroupMouseEnter = (group: Group) => {
+        setSelectedGroupColor(group.color);
+    };
+
+    const handleGroupMouseLeave = () => {
+        setSelectedGroupColor(null);
+    };
+
+    return (
+        <Box
+            sx={{
+                position: 'relative',
+                justifyItems: 'center',
+                maxWidth: '80%',
+                mx: 'auto',
+                mt: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: 'calc(70vh - 300px)',
+                '&::before': {
+                    content: '""',
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: '90vh',
+                    background: selectedGroupColor
+                        ? `radial-gradient(ellipse 150% 100% at bottom center, ${selectedGroupColor}80 0%, ${selectedGroupColor}30 40%, transparent 70%)`
+                        : 'transparent',
+                    pointerEvents: 'none',
+                    zIndex: 0,
+                    transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                },
+                '& > *': {
+                    position: 'relative',
+                    zIndex: 1,
+                },
+            }}
+        >
+            <Box
+                sx={{
+                    width: '80%',
+                    maxWidth: '300px',
+                    mx: 'auto',
+                    mb: 3,
+                }}
+            >
+                <TextField
+                    fullWidth
+                    placeholder="Wyszukaj swoją grupę"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    slotProps={{
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <Search size={20} style={{ color: 'inherit', opacity: 0.7 }} />
+                                </InputAdornment>
+                            ),
+                            endAdornment: searchQuery ? (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        onClick={handleClearSearch}
+                                        edge="end"
+                                        size="small"
+                                        sx={{
+                                            color: 'text.secondary',
+                                            '&:hover': {
+                                                color: 'text.primary',
+                                            },
+                                        }}
+                                    >
+                                        <X size={18} />
+                                    </IconButton>
+                                </InputAdornment>
+                            ) : null,
+                        },
+                    }}
+                />
+            </Box>
+
+            {groups.length === 0 ? (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '30vh',
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            color: 'text.secondary',
+                            fontSize: '20px',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Brak grup. Dodaj pierwszą grupę, aby rozpocząć.
+                    </Typography>
+                </Box>
+            ) : filteredGroups.length === 0 && searchQuery.trim() ? (
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        minHeight: '30vh',
+                    }}
+                >
+                    <Typography
+                        sx={{
+                            color: 'text.secondary',
+                            fontSize: '20px',
+                            textAlign: 'center',
+                        }}
+                    >
+                        Nie znaleziono grupy
+                    </Typography>
+                </Box>
+            ) : (
+                <Box
+                    sx={(theme) => ({
+                        display: 'grid',
+                        gridTemplateColumns: filteredGroups.length === 1
+                            ? '1fr'
+                            : {
+                                xs:  '1fr',
+                                sm: 'repeat(2, 1fr)',
+                            },
+                        gap: 3,
+                        width: '100%',
+                        maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
+                        maxHeight: 'calc(70vh - 150px)',
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
+                        pr: 1,
+                        pt: 0.5,
+                        '&::-webkit-scrollbar': {
+                            width: '8px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            bgcolor: 'grey.700',
+                            borderRadius: '4px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            backgroundColor:  `${theme.palette.primary.main} !important`,
+                            borderRadius: '4px',
+                        },
+                    })}
+                >
+                    {filteredGroups.map((group) => (
+                        <Box
+                            key={group.id}
+                            sx={{
+                                minWidth: 0,
+                                width: '100%',
+                                maxWidth: '100%',
+                            }}
+                            onMouseEnter={() => handleGroupMouseEnter(group)}
+                            onMouseLeave={handleGroupMouseLeave}
+                        >
+                            <GroupItem
+                                group={group}
+                                onClick={() => handleGroupClick(group)}
+                            />
+                        </Box>
+                    ))}
+                </Box>
+            )}
+
+            <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setIsModalOpen(true)}
+                sx={{
+                    mt: 3,
+                    maxWidth: '400px',
+                    borderStyle: 'dashed',
+                    color: 'text.primary',
+                    borderWidth: 2,
+                }}
+            >
+                + Dodaj grupę
+            </Button>
+
+            <AddGroupModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onAdd={handleAddGroup}
+            />
         </Box>
-      )}
-    </Box>
-  );
+    );
+
 }
