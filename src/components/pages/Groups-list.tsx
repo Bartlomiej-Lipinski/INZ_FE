@@ -7,6 +7,8 @@ import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import { useRouter } from 'next/navigation';
+import {useGroupContext} from '@/contexts/GroupContext';
 
 interface ApiResponse {
     success: boolean;
@@ -18,6 +20,8 @@ export default function GroupsList() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [groups, setGroups] = useState<Group[]>([]);
+    const { currentGroup, setCurrentGroup } = useGroupContext();
+
 
     useEffect(() => {
         async function load() {
@@ -57,10 +61,13 @@ export default function GroupsList() {
     setSearchQuery('');
   };
 
-
-   // TO-DO: implement a navigation to the group details
+  const router = useRouter();
   const handleGroupClick = (group: Group) => {
-    console.log('Grupa:', group.name);
+    const params = new URLSearchParams({
+      groupId: group.id,
+    });
+    setCurrentGroup(group);
+    router.push(`/group-menu?${params.toString()}`);
   };
 
   return (
@@ -201,6 +208,7 @@ export default function GroupsList() {
               <GroupItem
                 group={group}
                 onClick={() => handleGroupClick(group)}
+                disabled={currentGroup !== null}
               />
             </Box>
           ))}

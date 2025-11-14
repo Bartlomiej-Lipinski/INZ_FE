@@ -6,7 +6,8 @@ import { createTheme } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useEffect, type ReactNode } from 'react';
+import { useGroupContext } from '@/contexts/GroupContext';
 
 
 const customColors = {
@@ -261,7 +262,11 @@ const theme = createTheme({
   },
 });
 
+const DEFAULT_BACKGROUND = 'linear-gradient(to bottom, #000000, #303030, #737373)';
+
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { currentGroup } = useGroupContext();
   const cache = useMemo(() => {
     const cache = createCache({ 
       key: 'mui',
@@ -270,6 +275,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     cache.compat = true;
     return cache;
   }, []);
+
+
+  useEffect(() => {
+    const body = document.body;
+    if (currentGroup?.color) {
+      body.style.background = currentGroup.color;
+    } else {
+      body.style.background = DEFAULT_BACKGROUND;
+    }
+    
+    return () => {
+      body.style.background = DEFAULT_BACKGROUND;
+    };
+  }, [currentGroup?.color]);
 
   useServerInsertedHTML(() => {
     const names = Object.keys(cache.inserted);

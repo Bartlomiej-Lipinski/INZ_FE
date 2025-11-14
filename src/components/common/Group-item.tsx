@@ -8,12 +8,13 @@ import { Group } from '@/lib/types/group';
 interface GroupItemProps {
   group: Group;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
-export default function GroupItem({ group, onClick }: GroupItemProps) {
+export default function GroupItem({ group, onClick, disabled = false }: GroupItemProps) {
   return (
     <Box
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
       sx={(theme) => ({
         display: 'flex',
         alignItems: 'center',
@@ -21,13 +22,14 @@ export default function GroupItem({ group, onClick }: GroupItemProps) {
         p: 2,
         bgcolor: alpha(theme.palette.grey[700], 0.6),
         borderRadius: 2,
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: disabled ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
         transition: 'all 0.2s ease-in-out',
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
         border: '2px solid transparent',
-        '&:hover':  {
+        opacity: disabled ? 0.5 : 1,
+        '&:hover': disabled ? {} : {
           bgcolor: alpha(theme.palette.grey[600], 0.7),
           transform: 'translateY(-1px)',
           borderColor: group.color,
