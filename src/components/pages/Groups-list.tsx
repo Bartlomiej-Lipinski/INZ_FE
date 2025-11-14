@@ -16,7 +16,7 @@ import GroupItem from '@/components/common/Group-item';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {AddGroupModal} from '@/components/modals/add-group-modal';
-import JoinGroupModal from '@/components/modals/join-group-modal';
+import {JoinGroupModal} from '@/components/modals/join-group-modal';
 import { useRouter } from 'next/navigation';
 
 interface ApiResponse {
@@ -113,7 +113,6 @@ export default function GroupsList() {
         }
     };
 
-    // handler przekazywany do modalu — wykonuje request i zwraca true/false
     const handleJoin = async (code: string) => {
         try {
             const response = await fetchWithAuth(API_ROUTES.JOIN_GROUP, {
