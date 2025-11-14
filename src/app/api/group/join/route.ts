@@ -7,6 +7,17 @@ export async function POST(request: NextRequest) {
     try {
         const body: { groupCode: string } = await request.json();
 
+        // Validate groupCode: must be a 5-digit string
+        if (
+            !body.groupCode ||
+            typeof body.groupCode !== 'string' ||
+            !/^\d{5}$/.test(body.groupCode)
+        ) {
+            return NextResponse.json(
+                { success: false, message: 'Nieprawidłowy kod grupy. Kod musi składać się z 5 cyfr.' },
+                { status: 400 }
+            );
+        }
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetch(`${BASE_URL}${JOIN_GROUP}`, {
             method: 'POST',
@@ -25,7 +36,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(data, { status: response.status });
     } catch (error) {
-        console.error('Group creation API error:', error);
+        console.error('Group join API error:', error);
         return NextResponse.json(
             { success: false, message: 'Wystąpił błąd połączenia' },
             { status: 500 }

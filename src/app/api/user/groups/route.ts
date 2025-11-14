@@ -3,7 +3,7 @@ const BASE_URL = process.env.BASE_URL;
 const GET_USER_GROUPS = process.env.GET_USER_GROUPS;
 
 
-export async function GET(request: NextRequest,  ) {
+export async function GET(request: NextRequest) {
     try {
 
         const backendUrl = `${BASE_URL}${GET_USER_GROUPS}`;

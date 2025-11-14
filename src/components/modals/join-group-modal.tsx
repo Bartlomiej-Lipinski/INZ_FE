@@ -15,7 +15,7 @@ interface JoinGroupModalProps {
     onJoin: (code: string) => Promise<boolean>;
 }
 
-export default function JoinGroupModal({isOpen, onClose, onJoin}: Readonly<JoinGroupModalProps>) {
+export function JoinGroupModal({isOpen, onClose, onJoin}: Readonly<JoinGroupModalProps>) {
     const [joinCode, setJoinCode] = useState('');
     const [joinError, setJoinError] = useState<string | null>(null);
     const [joining, setJoining] = useState(false);
