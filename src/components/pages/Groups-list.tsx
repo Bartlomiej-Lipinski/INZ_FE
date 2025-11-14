@@ -20,7 +20,7 @@ export default function GroupsList() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [groups, setGroups] = useState<Group[]>([]);
-    const { currentGroup, setCurrentGroup } = useGroupContext();
+
 
 
     useEffect(() => {
@@ -66,7 +66,6 @@ export default function GroupsList() {
     const params = new URLSearchParams({
       groupId: group.id,
     });
-    setCurrentGroup(group);
     router.push(`/group-menu?${params.toString()}`);
   };
 
@@ -208,7 +207,6 @@ export default function GroupsList() {
               <GroupItem
                 group={group}
                 onClick={() => handleGroupClick(group)}
-                disabled={currentGroup !== null}
               />
             </Box>
           ))}

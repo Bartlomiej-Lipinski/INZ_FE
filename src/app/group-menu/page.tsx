@@ -1,8 +1,8 @@
 "use client";
 
-import {useMemo} from 'react';
+import {useMemo, useEffect} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
-import {Box, Typography, IconButton} from '@mui/material';
+import {Box, Typography, CircularProgress} from '@mui/material';
 import {alpha} from '@mui/material/styles';
 import {
   Bell,
@@ -22,6 +22,7 @@ import {
 
 import {Group} from '@/lib/types/group';
 import {useGroupContext} from '@/contexts/GroupContext';
+import {useGroup} from '@/hooks/use-group';
 
 
 const MENU_ITEMS = [
@@ -41,17 +42,24 @@ const MENU_ITEMS = [
 
 export default function GroupMenuPage() {
   const router = useRouter();
-  const { currentGroup } = useGroupContext();
+  const { currentGroup, setCurrentGroup } = useGroupContext();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId') || '';
- 
-  const group = useMemo<Group | null>(() => {
-    if (currentGroup) {
-      return currentGroup;
-    }
-    return null;
-  }, [currentGroup, groupId]);
+  const { getGroupById, loading, error } = useGroup();
 
+  useEffect(() => {
+    const fetchGroup = async () => {
+      if (groupId) {
+        const fetchedGroup = await getGroupById(groupId);
+        if (fetchedGroup) {
+          setCurrentGroup(fetchedGroup);
+        }
+      }
+    };
+
+    fetchGroup();
+  }, [groupId]);
+ 
   return (
     <Box
       sx={{
@@ -82,7 +90,7 @@ export default function GroupMenuPage() {
               color: 'text.primary',
             }}
           >
-            {group?.name || 'Twoja grupa'}
+            {currentGroup?.name || 'Twoja grupa'}
           </Typography>
         </Box>
 
@@ -94,7 +102,29 @@ export default function GroupMenuPage() {
             gap: 2,
           }}
         >
-          {group ? (
+          {loading ? (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                mt: 6,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          ) : error ? (
+            <Typography
+              sx={{
+                color: 'error.main',
+                fontSize: '20px',
+                textAlign: 'center',
+                mt: 6,
+              }}
+            >
+              {error}
+            </Typography>
+          ) : currentGroup ? (
             MENU_ITEMS.map((item) => {
               const ItemIcon = item.icon;
               return (
