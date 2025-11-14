@@ -26,6 +26,7 @@ export async function POST() {
             }
         }
         return res;
+    }catch (error) {
         console.error('Logout API error:', error);
         return NextResponse.json(
             { success: false, message: 'Wystąpił błąd połączenia' },

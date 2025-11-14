@@ -1,18 +1,27 @@
 "use client";
 
-import {useState, useMemo, useEffect} from 'react';
-import {Box, Typography, TextField, InputAdornment, IconButton, Button, CircularProgress} from '@mui/material';
+import {useState, useMemo, useEffect, useCallback} from 'react';
+import {
+    Box,
+    Typography,
+    TextField,
+    InputAdornment,
+    IconButton,
+    Button,
+    CircularProgress,
+} from '@mui/material';
 import {Search, X, LogOut} from 'lucide-react';
 import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {AddGroupModal} from '@/components/modals/add-group-modal';
+import JoinGroupModal from '@/components/modals/join-group-modal';
 import { useRouter } from 'next/navigation';
 
 interface ApiResponse {
     success: boolean;
-    data?: Group[];
+    data?: Group[] | Group;
     message?: string;
 }
 
@@ -22,28 +31,30 @@ export default function GroupsList() {
     const [groups, setGroups] = useState<Group[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedGroupColor, setSelectedGroupColor] = useState<string | null>(null);
+    const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
     const router = useRouter();
 
-    useEffect(() => {
-        async function load() {
-            try {
-                setLoading(true);
-                const response = await fetchWithAuth(`${API_ROUTES.USER_GROUPS}`, {method: 'GET'});
-                if (response.ok) {
-                    const json = await response.json() as ApiResponse;
-                    const data: Group[] = json?.data || [];
-                    setGroups(data);
-                } else {
-                    console.error('Failed to fetch groups:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error fetching groups:', error);
-            } finally {
-                setLoading(false);
+    const loadGroups = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await fetchWithAuth(`${API_ROUTES.USER_GROUPS}`, {method: 'GET'});
+            if (response.ok) {
+                const json = await response.json() as ApiResponse;
+                const data: Group[] = Array.isArray(json?.data) ? (json.data) : (json.data ? [json.data] : []);
+                setGroups(data);
+            } else {
+                console.error('Failed to fetch groups:', response.statusText);
             }
+        } catch (error) {
+            console.error('Error fetching groups:', error);
+        } finally {
+            setLoading(false);
         }
-        load();
     }, []);
+
+    useEffect(() => {
+        loadGroups();
+    }, [loadGroups]);
 
     const filteredGroups = useMemo(() => {
         if (!searchQuery.trim()) {
@@ -76,7 +87,7 @@ export default function GroupsList() {
                     const json = await response.json() as ApiResponse;
                     if (json.data) {
                         const newGroup = Array.isArray(json.data) ? json.data[0] : json.data;
-                        setGroups([...groups, newGroup]);
+                        setGroups(prev => [...prev, newGroup]);
                     }
                 } else {
                     console.error('Expected JSON response, got:', contentType);
@@ -102,6 +113,27 @@ export default function GroupsList() {
         }
     };
 
+    // handler przekazywany do modalu — wykonuje request i zwraca true/false
+    const handleJoin = async (code: string) => {
+        try {
+            const response = await fetchWithAuth(API_ROUTES.JOIN_GROUP, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ groupCode: code }),
+            });
+            if (response.ok) {
+                await loadGroups();
+                return true;
+            } else {
+                const text = await response.text();
+                console.error('Join failed:', response.status, response.statusText, text);
+                return false;
+            }
+        } catch (err) {
+            console.error('Join error:', err);
+            return false;
+        }
+    };
 
     if (loading) {
         return (
@@ -323,14 +355,31 @@ export default function GroupsList() {
                     + Dodaj grupę
                 </Button>
 
+                <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => setIsJoinModalOpen(true)}
+                    sx={{
+                        mt: 1,
+                        maxWidth: '400px',
+                        textTransform: 'none',
+                    }}
+                >
+                    Dołącz do grupy
+                </Button>
+
                 <AddGroupModal
                     isOpen={isModalOpen}
                     onClose={() => setIsModalOpen(false)}
                     onAdd={handleAddGroup}
                 />
+
+                <JoinGroupModal
+                    isOpen={isJoinModalOpen}
+                    onClose={() => setIsJoinModalOpen(false)}
+                    onJoin={handleJoin}
+                />
             </Box>
         </>
     );
-
-
 }

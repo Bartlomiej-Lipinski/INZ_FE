@@ -7,4 +7,5 @@ export const API_ROUTES = {
     USER_GROUPS: '/api/user/groups',
     ADD_GROUP: '/api/group',
     LOGOUT: '/api/auth/logout',
+    JOIN_GROUP: '/api/group/join'
 } as const; 
