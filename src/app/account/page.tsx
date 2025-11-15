@@ -16,9 +16,11 @@ import { useTheme } from "@mui/material/styles";
 import { ChevronRight, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/utils/date";
+import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
+import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
 
 export default function AccountPage() {
-  const { user, isLoading } = useAuthContext();
+  const { user, isLoading, setUser } = useAuthContext();
   const theme = useTheme();
   const router = useRouter();
   const initials = useMemo(() => {
@@ -30,6 +32,21 @@ export default function AccountPage() {
     const combined = `${nameInitial}${surnameInitial}`.trim();
     return combined.toUpperCase();
   }, [user]);
+
+
+  const handleLogout = async () => {
+    try {
+        const response = await fetchWithAuth(`${API_ROUTES.LOGOUT}`, { method: 'POST' });
+        if (response.ok) {
+            setUser(null);
+            router.push('/');
+        } else {
+            console.error('Logout failed:', response.status, response.statusText);
+        }
+    } catch (e) {
+        console.error('Logout error:', e);
+    }
+};
 
   return (
     <Box
@@ -89,7 +106,7 @@ export default function AccountPage() {
               
 
               {/* TODO: Add logic for logout button */}
-              <Button>
+              <Button onClick={handleLogout}>
                   Wyloguj się
                   </Button>
 
