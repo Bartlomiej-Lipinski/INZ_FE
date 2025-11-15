@@ -156,7 +156,7 @@ export default function AccountPage() {
                     Status
                   </Typography>
                   <Typography
-                  sx={ {
+                  sx={{
                     width: "90%",
                       overflowWrap: "break-word",
                       wordBreak: "break-word",
