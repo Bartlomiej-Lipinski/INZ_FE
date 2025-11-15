@@ -203,7 +203,7 @@ export default function AccountPage() {
                     Opis
                   </Typography>
                   <Typography
-                    sx={ {
+                    sx={{
                       width: "90%",
                       overflowWrap: "break-word",
                       wordBreak: "break-word",
