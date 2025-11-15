@@ -13,7 +13,7 @@ export default function GroupContextCleaner() {
     if (!pathname?.startsWith('/group-menu') && currentGroup !== null) {
       setCurrentGroup(null);
     }
-  }, [pathname, currentGroup, setCurrentGroup]);
+  }, [pathname, setCurrentGroup]);
 
   return null;
 }

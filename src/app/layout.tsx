@@ -31,14 +31,14 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} antialiased`}
       >
-        <GroupProvider>
-          <ThemeProvider>
-            <AuthProvider>
+        <AuthProvider>
+          <GroupProvider>
+            <ThemeProvider>
               <GroupContextCleaner />
               {children}
-            </AuthProvider>
-          </ThemeProvider>
-        </GroupProvider>
+            </ThemeProvider>
+          </GroupProvider>
+        </AuthProvider>
       </body>
     </html>
   );

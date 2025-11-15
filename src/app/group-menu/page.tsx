@@ -88,6 +88,7 @@ export default function GroupMenuPage() {
               flex: 1,
               textAlign: 'center',
               color: 'text.primary',
+              mb: 2,
             }}
           >
             {currentGroup?.name || 'Twoja grupa'}
@@ -140,12 +141,12 @@ export default function GroupMenuPage() {
                     px: 2.5,
                     py: 2,
                     borderRadius: 2,
-                    bgcolor: alpha(theme.palette.grey[800], 0.6),
+                    bgcolor: alpha(theme.palette.grey[500], 0.2),
                     cursor: 'pointer',
                     transition: 'transform 0.2s ease, background 0.2s ease',
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      bgcolor: alpha(theme.palette.grey[800], 0.75),
+                      bgcolor: alpha(theme.palette.grey[500], 0.4),
                     }
                   })}
                   onClick={() => {
