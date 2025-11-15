@@ -15,19 +15,7 @@ import { useMemo } from "react";
 import { useTheme } from "@mui/material/styles";
 import { ChevronRight, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-
-function formatBirthDate(birthDate: Date) {
-  if (!birthDate) return "Brak danych";
-
-  const date = birthDate instanceof Date ? birthDate : new Date(birthDate);
-  if (Number.isNaN(date.getTime())) return "Brak danych";
-
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = String(date.getFullYear());
-
-  return `${day}.${month}.${year}`;
-}
+import { formatDate } from "@/lib/utils/date";
 
 export default function AccountPage() {
   const { user, isLoading } = useAuthContext();
@@ -58,7 +46,7 @@ export default function AccountPage() {
       <AccountGroupsNav />
 
       <Box
-        sx={ {
+        sx={{
           width: "80%",
           maxWidth: 530,
           px: { xs: 5, sm: 6 },
@@ -120,8 +108,8 @@ export default function AccountPage() {
                 flexDirection="column"
                 gap={3}
                 pr={{ md: 3 }}
-                alignItems={ "center"}
-                textAlign={ "center"}
+                alignItems="center"
+                textAlign="center"
                 width="100%"
               >
                 
@@ -142,7 +130,7 @@ export default function AccountPage() {
                     Data urodzenia
                   </Typography>
                   <Typography>
-                    {formatBirthDate(user.birthDate)}
+                    {formatDate(user.birthDate)}
                   </Typography>
                 </Box>
 
@@ -156,8 +144,8 @@ export default function AccountPage() {
                     Status
                   </Typography>
                   <Typography
-                  sx={ {
-                    width: "90%",
+                  sx={{
+                    width: "95%",
                       overflowWrap: "break-word",
                       wordBreak: "break-word",
                       whiteSpace: "pre-line",
@@ -203,7 +191,7 @@ export default function AccountPage() {
                     Opis
                   </Typography>
                   <Typography
-                    sx={ {
+                    sx={{
                       width: "90%",
                       overflowWrap: "break-word",
                       wordBreak: "break-word",
