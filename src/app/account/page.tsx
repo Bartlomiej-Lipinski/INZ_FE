@@ -58,7 +58,7 @@ export default function AccountPage() {
       <AccountGroupsNav />
 
       <Box
-        sx={ {
+        sx={{
           width: "80%",
           maxWidth: 530,
           px: { xs: 5, sm: 6 },
