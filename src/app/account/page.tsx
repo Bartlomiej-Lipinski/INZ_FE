@@ -191,8 +191,8 @@ export default function AccountPage() {
                 display="flex"
                 flexDirection="column"
                 pl={{ md: 3 }}
-                alignItems={ "center"}
-                textAlign={ "center"}
+                alignItems={"center"}
+                textAlign={"center"}
               >
 
                 {/* description */}
