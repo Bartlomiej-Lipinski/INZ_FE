@@ -230,7 +230,7 @@ export default function AccountPage() {
               </Button>
 
                 <ButtonBase
-                  sx={ {
+                  sx={{
                     width: "100%",
                     mt: 0.5,
                     px: 3,
