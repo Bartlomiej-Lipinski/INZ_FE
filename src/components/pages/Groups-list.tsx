@@ -100,18 +100,6 @@ export default function GroupsList() {
         }
     };
 
-    const handleLogout = async () => {
-        try {
-            const response = await fetchWithAuth(`${API_ROUTES.LOGOUT}`, { method: 'POST' });
-            if (response.ok) {
-                router.push('/');
-            } else {
-                console.error('Logout failed:', response.status, response.statusText);
-            }
-        } catch (e) {
-            console.error('Logout error:', e);
-        }
-    };
 
     const handleJoin = async (code: string) => {
         try {
@@ -163,21 +151,6 @@ export default function GroupsList() {
 
     return (
         <>
-            <Button
-                onClick={handleLogout}
-                startIcon={<LogOut size={18} />}
-                variant="text"
-                color="inherit"
-                sx={{
-                    position: 'fixed',
-                    top: 16,
-                    left: 16,
-                    zIndex: 3,
-                    textTransform: 'none',
-                }}
-            >
-            </Button>
-
             <Box
                 sx={{
                     position: 'relative',

@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         Name: body.name,
-        UserName: body.userName,
+        UserName: body.username,
         Surname: body.surname,
         Email: body.email,
         BirthDate: body.birthDate,

@@ -1,8 +1,6 @@
-export type UserRole = 'Admin' | 'Member';
-
 export interface User {
   id: string;
-  userName: string;
+  username: string;
   email: string;
   name: string;
   surname: string;
@@ -10,14 +8,14 @@ export interface User {
   status: string | null;
   description: string | null;
   photo: string | null;
-  role: UserRole;
+  role?: 'Member';
 }
 
 
 export interface UserCreate{
   name: string;
   surname: string;
-  userName: string;
+  username: string;
   email: string;
   birthDate: string;
   password: string;

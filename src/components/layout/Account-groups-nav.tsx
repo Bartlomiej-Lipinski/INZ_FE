@@ -16,13 +16,16 @@ export default function AccountGroupsNav() {
   const pathname = usePathname();
 
   const items: NavItem[] = useMemo(() => [
-    { label: "Moje grupy", href: "/groups", IconComponent: Users },
+    { label: "Moje grupy", href: "/", IconComponent: Users },
     { label: "Moje konto", href: "/account", IconComponent: User },
   ], []);
 
   const currentValue = items.some(i => pathname?.startsWith(i.href))
-    ? items.find(i => pathname?.startsWith(i.href))!.href
-    : "/groups";
+    ? items
+        .slice()
+        .sort((a, b) => b.href.length - a.href.length)
+        .find(i => pathname?.startsWith(i.href))!.href
+    : "/";
 
   const go = (href: string) => {
     if (href && href !== pathname) router.push(href);
@@ -41,7 +44,7 @@ export default function AccountGroupsNav() {
     >
       {items.map((item) => {
         const isActive = currentValue === item.href;
-        const placement = item.href === "/groups" ? "left" : "right";
+        const placement = item.href === "/" ? "left" : "right";
         return (
           <Tooltip 
             key={item.href} 
@@ -69,7 +72,7 @@ export default function AccountGroupsNav() {
                 '&:hover': {
                   bgcolor: theme.palette.grey[700],
                 },
-                boxShadow: isActive ? `0 0 0 3px ${theme.palette.primary.main}` : "none",
+                border: `3px solid ${isActive ? theme.palette.primary.main : 'transparent'}`,
                 transition: 'all 0.2s ease-in-out',
                 '& svg': {
                   width: { xs: 25, md: 32.5,  xl: 35.5 },

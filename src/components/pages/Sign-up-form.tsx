@@ -4,15 +4,15 @@ import { IMAGES } from "@/lib/constants";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingSpinner from "@/components/common/Loading-spinner";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Box,
   TextField,
-  Typography,
-  Button,
-  IconButton
+  Typography, 
+  CircularProgress,
+  IconButton,
+  Button
 } from "@mui/material";
 import {
   validatePassword,
@@ -20,7 +20,7 @@ import {
   validateRequiredInput,
   validateBirthDate
 } from "@/lib/zod-schemas";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { ChevronLeft } from "lucide-react";
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -109,7 +109,7 @@ export default function SignUpForm() {
         email,
         name,
         surname,
-        userName: email.trim().toLowerCase(),
+        username: name.trim() + surname.trim(),
         birthDate,
         password
       });
@@ -160,7 +160,7 @@ export default function SignUpForm() {
             "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }
           }}
         >
-          <ArrowBackIcon />
+          <ChevronLeft size={20} />
         </IconButton>
 
 
@@ -274,10 +274,19 @@ export default function SignUpForm() {
           </Typography>
         )}
 
-        <Button type="submit" variant="contained" sx={{ mb: 5 }} disabled={isLoading}>
-          {isLoading ? <LoadingSpinner /> : "Potwierdź"}
-        </Button>
-      </Box>
-    </Box>
-  );
+                <Button
+                    type="submit"
+                    variant="contained"
+                    sx={{  mb: 5 }}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />
+                    ) : (
+                        "Potwierdź"
+                    )}
+                </Button>
+            </Box>
+        </Box>
+    );
 }

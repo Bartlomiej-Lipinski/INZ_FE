@@ -58,9 +58,11 @@ export function useAuth(): AuthHookResult {
               method: 'GET',
             });
             const userData = await userResponse.json();
-            if (userResponse.ok && userData.success && userData.data) {
-              console.log('User data:', userData.data);
+            
+            if (userData.success && userData.data) {
+              console.log('User data:', userData);
               setUser(userData.data as User);
+         
             }
           } catch (userError) {
 
@@ -102,7 +104,7 @@ export function useAuth(): AuthHookResult {
           email: request.email.trim().toLowerCase(),
           name: request.name.trim(),
           surname: request.surname.trim(),
-          userName: request.userName,
+          username: request.username,
           birthDate: request.birthDate,
           password: request.password
         }),
