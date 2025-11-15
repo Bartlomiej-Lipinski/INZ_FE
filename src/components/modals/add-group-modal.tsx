@@ -130,7 +130,7 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
                             fullWidth
                             label="Nazwa grupy"
                             value={groupName}
-                            onChange={(e) => setGroupName(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGroupName(e.target.value)}
                             placeholder="Wpisz nazwę grupy"
                             required
                             sx={{ mb: 3 }}
