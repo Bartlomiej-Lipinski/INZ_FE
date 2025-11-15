@@ -82,7 +82,7 @@ export default function VerificationForm() {
 
             if (response.success) {
                 localStorage.removeItem('pendingVerificationEmail');
-                router.push('/groups');
+                router.push('/');
             } else {
                 setError(response.message || 'Nieprawidłowy kod weryfikacyjny');
                 setCode(['', '', '', '', '', '']);

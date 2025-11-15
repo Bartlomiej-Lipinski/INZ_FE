@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  userName: string;
+  username: string;
   email: string;
   name: string;
   surname: string;
@@ -15,7 +15,7 @@ export interface User {
 export interface UserCreate{
   name: string;
   surname: string;
-  userName: string;
+  username: string;
   email: string;
   birthDate: string;
   password: string;

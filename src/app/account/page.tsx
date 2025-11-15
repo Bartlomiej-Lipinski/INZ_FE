@@ -136,7 +136,7 @@ export default function AccountPage() {
                     Pseudonim
                   </Typography>
                   <Typography >
-                    {user.userName?.trim() || "Brak pseudonimu"}
+                    {user.username?.trim() || "Brak pseudonimu"}
                   </Typography>
                 </Box>
 

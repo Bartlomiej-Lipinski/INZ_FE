@@ -50,7 +50,7 @@ export default function SignInForm() {
             localStorage.setItem("pendingVerificationEmail", email);
             router.push('/verification');
         }else if(response.success) {
-            router.push('/groups');
+            router.push('/');
         }
       
     } catch (error: unknown) {

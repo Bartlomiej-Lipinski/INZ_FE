@@ -109,7 +109,7 @@ export default function SignUpForm() {
         email,
         name,
         surname,
-        userName: email.trim().toLowerCase(),
+        username: name.trim() + surname.trim(),
         birthDate,
         password
       });

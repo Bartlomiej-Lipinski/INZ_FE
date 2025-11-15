@@ -104,7 +104,7 @@ export function useAuth(): AuthHookResult {
           email: request.email.trim().toLowerCase(),
           name: request.name.trim(),
           surname: request.surname.trim(),
-          userName: request.userName,
+          username: request.username,
           birthDate: request.birthDate,
           password: request.password
         }),
