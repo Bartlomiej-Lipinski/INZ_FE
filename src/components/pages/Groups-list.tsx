@@ -139,7 +139,9 @@ export default function GroupsList() {
     }
 
     const handleGroupClick = (group: Group) => {
-        console.log('Grupa:', group.name);
+        const params = new URLSearchParams();
+        params.set('groupId', group.id);
+        router.push(`/group-menu?${params.toString()}`);
     };
 
     const handleGroupMouseEnter = (group: Group) => {
