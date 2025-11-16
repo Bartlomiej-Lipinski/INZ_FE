@@ -22,13 +22,14 @@ export function useGroup() {
   const [error, setError] = useState<string | null>(null);
 
   const getGroupById = async (groupId: string): Promise<Group | null> => {
+    setError(null);
+    
     if (!groupId) {
       setError('ID grupy jest wymagane');
       return null;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const response = await fetchWithAuth(`${API_ROUTES.GROUP_BY_ID}/${groupId}`, {

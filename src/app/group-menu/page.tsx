@@ -1,6 +1,6 @@
 "use client";
 
-import {useMemo, useEffect} from 'react';
+import {useEffect} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {Box, Typography, CircularProgress} from '@mui/material';
 import {alpha} from '@mui/material/styles';
@@ -20,7 +20,6 @@ import {
   DollarSign,
 } from 'lucide-react';
 
-import {Group} from '@/lib/types/group';
 import {useGroupContext} from '@/contexts/GroupContext';
 import {useGroup} from '@/hooks/use-group';
 

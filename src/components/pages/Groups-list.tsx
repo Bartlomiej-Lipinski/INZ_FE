@@ -18,7 +18,7 @@ import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {AddGroupModal} from '@/components/modals/add-group-modal';
 import {JoinGroupModal} from '@/components/modals/join-group-modal';
 import { useRouter } from 'next/navigation';
-import {useGroupContext} from '@/contexts/GroupContext';
+
 
 interface ApiResponse {
     success: boolean;

@@ -62,7 +62,7 @@ export function GroupProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value: GroupContextType = {
-    currentGroup: currentGroup,
+    currentGroup,
     setCurrentGroup,
   };
 

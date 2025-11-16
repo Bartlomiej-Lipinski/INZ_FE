@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import { AuthProvider } from '@/contexts/AuthContext';
 import { GroupProvider } from '@/contexts/GroupContext';
-import { ThemeProvider } from '@/styles/theme';
+import { ThemeProvider, GroupThemeUpdater } from '@/styles/theme';
 import GroupContextCleaner from '@/components/layout/GroupContextCleaner';
 import '@/styles/globals.css';
 
@@ -31,14 +31,15 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} antialiased`}
       >
-        <AuthProvider>
-          <GroupProvider>
-            <ThemeProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <GroupProvider>
+              <GroupThemeUpdater />
               <GroupContextCleaner />
               {children}
-            </ThemeProvider>
-          </GroupProvider>
-        </AuthProvider>
+            </GroupProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

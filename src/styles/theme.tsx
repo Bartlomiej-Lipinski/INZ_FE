@@ -296,7 +296,6 @@ function createGroupGradient(groupColor: string): string {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { currentGroup } = useGroupContext();
   const cache = useMemo(() => {
     const cache = createCache({ 
       key: 'mui',
@@ -305,20 +304,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     cache.compat = true;
     return cache;
   }, []);
-
-
-  useEffect(() => {
-    const body = document.body;
-    if (currentGroup?.color) {
-      body.style.background = createGroupGradient(currentGroup.color);
-    } else {
-      body.style.background = DEFAULT_BACKGROUND;
-    }
-    
-    return () => {
-      body.style.background = DEFAULT_BACKGROUND;
-    };
-  }, [currentGroup?.color]);
 
   useServerInsertedHTML(() => {
     const names = Object.keys(cache.inserted);
@@ -346,4 +331,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       </MuiThemeProvider>
     </CacheProvider>
   );
+}
+
+// Komponent do aktualizacji kolorów tła na podstawie currentGroup
+export function GroupThemeUpdater() {
+  const { currentGroup } = useGroupContext();
+
+  useEffect(() => {
+    const body = document.body;
+    if (currentGroup?.color) {
+      body.style.background = createGroupGradient(currentGroup.color);
+    } else {
+      body.style.background = DEFAULT_BACKGROUND;
+    }
+    
+    return () => {
+      body.style.background = DEFAULT_BACKGROUND;
+    };
+  }, [currentGroup?.color]);
+
+  return null;
 }
