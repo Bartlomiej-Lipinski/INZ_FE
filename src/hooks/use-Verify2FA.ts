@@ -1,6 +1,8 @@
 "use client";
 
 import {useState} from "react";
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 
 interface Verify2FARequest {
     email: string;
@@ -21,16 +23,12 @@ export function Verify2FA() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(`https://localhost:7215/api/auth/verify-2fa`, {
+            const response = await fetchWithAuth(`${API_ROUTES.VERIFY_2FA}`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify({
                     email: request.email.trim(),
                     code: request.code,
                 }),
-                credentials: 'include'
             });
 
             const data = await response.json() as ApiResponse;

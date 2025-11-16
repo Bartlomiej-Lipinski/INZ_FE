@@ -9,12 +9,12 @@ import {
   TextField, 
   Box, 
   Typography, 
-  Link 
+  Link, 
+  CircularProgress, 
 } from '@mui/material';
 import Image from "next/image";
 import { IMAGES } from "@/lib/constants";
 import PasswordInput from "@/components/common/Password-input";
-import LoadingSpinner from "@/components/common/Loading-spinner";
 import { useAuth } from "@/hooks/use-auth";
 
 
@@ -50,7 +50,7 @@ export default function SignInForm() {
             localStorage.setItem("pendingVerificationEmail", email);
             router.push('/verification');
         }else if(response.success) {
-            router.push('/groups');
+            router.push('/');
         }
       
     } catch (error: unknown) {
@@ -168,7 +168,11 @@ export default function SignInForm() {
           sx={{ mt: 1, mb: 5 }}
           disabled={hookIsLoading}
         >
-          {hookIsLoading ? <LoadingSpinner /> : "Zaloguj się"}
+          {hookIsLoading ? (
+            <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />
+          ) : (
+            "Zaloguj się"
+          )}
         </MuiButton>
       </Box>
     </Box>
