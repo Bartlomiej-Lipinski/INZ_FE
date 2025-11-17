@@ -32,6 +32,8 @@ export default function AccountPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [formValues, setFormValues] = useState({
+    name: "",
+    surname: "",
     username: "",
     birthDate: "",
     status: "",
@@ -58,6 +60,8 @@ export default function AccountPage() {
     if (!user) return;
 
     setFormValues({
+      name: user.name ?? "",
+      surname: user.surname ?? "",
       username: user.username ?? "",
       birthDate: formatDateForInput(user.birthDate),
       status: user.status ?? "",
@@ -97,6 +101,8 @@ export default function AccountPage() {
     setSaveError(null);
 
     const payload = {
+      name: formValues.name.trim(),
+      surname: formValues.surname.trim(),
       username: formValues.username.trim(),
       status: formValues.status.trim() || null,
       description: formValues.description.trim() || null,
@@ -120,6 +126,8 @@ export default function AccountPage() {
       } catch {
         setUser({
           ...user,
+          name: payload.name,
+          surname: payload.surname,
           username: payload.username,
           status: payload.status,
           description: payload.description,
@@ -205,14 +213,49 @@ export default function AccountPage() {
             </Avatar>
 
   
-              <Typography variant="h5" fontWeight={700} textAlign="center">
-                {`${user.name} ${user.surname}`}
-              </Typography>
+              {isEditing ? (
+                <>
+                  <Typography variant="h5" fontWeight={700} textAlign="center" color="text.secondary">
+                    Tryb edycji
+                  </Typography>
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    mt: 1,
+                  }}
+                >
+                  <TextField
+                    label="Imię"
+                    value={formValues.name}
+                    onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      handleFieldChange("name", event.target.value)
+                    }
+                    fullWidth
+                  />
+                  <TextField
+                    label="Nazwisko"
+                    value={formValues.surname}
+                    onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      handleFieldChange("surname", event.target.value)
+                    }
+                    fullWidth
+                  />
+                </Box>
+                </>
+              ) : (
+                <Typography variant="h5" fontWeight={700} textAlign="center">
+                  {`${user.name} ${user.surname}`}
+                </Typography>
+              )}
               
-
-              <Button onClick={handleLogout}>
-                  Wyloguj się
-                  </Button>
+              {!isEditing && (
+                <Button onClick={handleLogout}>
+                    Wyloguj się
+                    </Button>
+              )}
 
             <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" }} />
 
@@ -273,6 +316,7 @@ export default function AccountPage() {
                       sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
                           filter: "invert(1)",
+                          marginRight: "-15px",
                         },
                       }}
                     />
@@ -425,16 +469,18 @@ export default function AccountPage() {
               <Box
                 sx={{
                   mt: 1,
-                  width: "100%",
+                  width: "80%",
                   display: "flex",
                   flexDirection: { xs: "column", sm: "row" },
-                  gap: 2,
+                  gap: 5,
                   justifyContent: "center",
                 }}
               >
                 <Button
-                  variant="outlined"
-                  color="inherit"
+                  sx={{
+                    backgroundColor: theme.palette.grey[800],
+                    color: theme.palette.text.primary,
+                  }}
                   fullWidth
                   onClick={handleCancelEditing}
                   disabled={isSaving}
@@ -442,8 +488,6 @@ export default function AccountPage() {
                   Anuluj
                 </Button>
                 <Button
-                  variant="contained"
-                  color="primary"
                   fullWidth
                   onClick={handleSave}
                   disabled={isSaving}
