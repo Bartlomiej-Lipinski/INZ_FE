@@ -10,7 +10,7 @@ import {
     Button,
     CircularProgress,
 } from '@mui/material';
-import {Search, X, LogOut} from 'lucide-react';
+import {Search, X} from 'lucide-react';
 import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";

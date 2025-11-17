@@ -1,7 +1,7 @@
 "use client";
 
 import {useMemo} from 'react';
-import {useRouter, useSearchParams} from 'next/navigation';
+import {useSearchParams} from 'next/navigation';
 import {Box, Typography} from '@mui/material';
 import {alpha} from '@mui/material/styles';
 import {
@@ -37,7 +37,6 @@ const MENU_ITEMS = [
 ] as const;
 
 export default function GroupMenuPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   
   const groupData = useMemo(() => {
