@@ -141,6 +141,8 @@ export default function GroupsList() {
     const handleGroupClick = (group: Group) => {
         const params = new URLSearchParams();
         params.set('groupId', group.id);
+        params.set('groupName', encodeURIComponent(group.name));
+        params.set('groupColor', encodeURIComponent(group.color));
         router.push(`/group-menu?${params.toString()}`);
     };
 

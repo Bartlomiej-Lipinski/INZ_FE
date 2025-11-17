@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import { AuthProvider } from '@/contexts/AuthContext';
-import { GroupProvider } from '@/contexts/GroupContext';
 import { ThemeProvider, GroupThemeUpdater } from '@/styles/theme';
-import GroupContextCleaner from '@/components/layout/GroupContextCleaner';
 import '@/styles/globals.css';
 
 const nunito = Nunito({
@@ -33,11 +31,8 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            <GroupProvider>
-              <GroupThemeUpdater />
-              <GroupContextCleaner />
-              {children}
-            </GroupProvider>
+            <GroupThemeUpdater />
+            {children}
           </AuthProvider>
         </ThemeProvider>
       </body>

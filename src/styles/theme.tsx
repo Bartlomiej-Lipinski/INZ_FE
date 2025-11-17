@@ -5,9 +5,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { useServerInsertedHTML } from 'next/navigation';
+import { useServerInsertedHTML, useSearchParams, usePathname } from 'next/navigation';
 import { useMemo, useEffect, type ReactNode } from 'react';
-import { useGroupContext } from '@/contexts/GroupContext';
 
 
 const customColors = {
@@ -333,22 +332,39 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Komponent do aktualizacji kolorów tła na podstawie currentGroup
+
+const GROUP_COLOR_STORAGE_KEY = 'currentGroupColor';
+
 export function GroupThemeUpdater() {
-  const { currentGroup } = useGroupContext();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const groupColor = searchParams?.get('groupColor');
 
   useEffect(() => {
     const body = document.body;
-    if (currentGroup?.color) {
-      body.style.background = createGroupGradient(currentGroup.color);
-    } else {
+    const isGroupMenuPath = pathname?.startsWith('/group-menu') ?? false;
+
+
+    if (groupColor) {
+      const decodedColor = decodeURIComponent(groupColor);
+      localStorage.setItem(GROUP_COLOR_STORAGE_KEY, decodedColor);
+      body.style.background = createGroupGradient(decodedColor);
+    } 
+
+    else if (isGroupMenuPath) {
+      const savedColor = localStorage.getItem(GROUP_COLOR_STORAGE_KEY);
+      if (savedColor) {
+        body.style.background = createGroupGradient(savedColor);
+      } else {
+        body.style.background = DEFAULT_BACKGROUND;
+      }
+    }
+
+    else {
+      localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
       body.style.background = DEFAULT_BACKGROUND;
     }
-    
-    return () => {
-      body.style.background = DEFAULT_BACKGROUND;
-    };
-  }, [currentGroup?.color]);
+  }, [groupColor, pathname]);
 
   return null;
 }
