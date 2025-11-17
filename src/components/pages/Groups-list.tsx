@@ -10,7 +10,7 @@ import {
     Button,
     CircularProgress,
 } from '@mui/material';
-import {Search, X, LogOut} from 'lucide-react';
+import {Search, X} from 'lucide-react';
 import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
@@ -18,6 +18,7 @@ import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {AddGroupModal} from '@/components/modals/add-group-modal';
 import {JoinGroupModal} from '@/components/modals/join-group-modal';
 import { useRouter } from 'next/navigation';
+
 
 interface ApiResponse {
     success: boolean;
@@ -138,7 +139,11 @@ export default function GroupsList() {
     }
 
     const handleGroupClick = (group: Group) => {
-        console.log('Grupa:', group.name);
+        const params = new URLSearchParams();
+        params.set('groupId', group.id);
+        params.set('groupName', encodeURIComponent(group.name));
+        params.set('groupColor', encodeURIComponent(group.color));
+        router.push(`/group-menu?${params.toString()}`);
     };
 
     const handleGroupMouseEnter = (group: Group) => {

@@ -5,8 +5,8 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { createTheme } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
-import { useServerInsertedHTML } from 'next/navigation';
-import { useMemo, type ReactNode } from 'react';
+import { useServerInsertedHTML, useSearchParams, usePathname } from 'next/navigation';
+import { useMemo, useEffect, type ReactNode } from 'react';
 
 
 const customColors = {
@@ -265,6 +265,35 @@ const theme = createTheme({
   },
 });
 
+const DEFAULT_BACKGROUND = 'linear-gradient(to bottom, #000000, #303030, #737373)';
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : null;
+}
+
+function darkenColor(hex: string, factor: number): string {
+  const rgb = hexToRgb(hex);
+  if (!rgb) return hex;
+  
+  const r = Math.max(0, Math.floor(rgb.r * (1 - factor)));
+  const g = Math.max(0, Math.floor(rgb.g * (1 - factor)));
+  const b = Math.max(0, Math.floor(rgb.b * (1 - factor)));
+  
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function createGroupGradient(groupColor: string): string {
+  const darkColor = darkenColor(groupColor, 0.6); 
+  return `linear-gradient(to bottom, #000000, ${darkColor}, ${groupColor})`;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const cache = useMemo(() => {
     const cache = createCache({ 
@@ -301,4 +330,41 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       </MuiThemeProvider>
     </CacheProvider>
   );
+}
+
+
+const GROUP_COLOR_STORAGE_KEY = 'currentGroupColor';
+
+export function GroupThemeUpdater() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const groupColor = searchParams?.get('groupColor');
+
+  useEffect(() => {
+    const body = document.body;
+    const isGroupMenuPath = pathname?.startsWith('/group-menu') ?? false;
+
+
+    if (groupColor) {
+      const decodedColor = decodeURIComponent(groupColor);
+      localStorage.setItem(GROUP_COLOR_STORAGE_KEY, decodedColor);
+      body.style.background = createGroupGradient(decodedColor);
+    } 
+
+    else if (isGroupMenuPath) {
+      const savedColor = localStorage.getItem(GROUP_COLOR_STORAGE_KEY);
+      if (savedColor) {
+        body.style.background = createGroupGradient(savedColor);
+      } else {
+        body.style.background = DEFAULT_BACKGROUND;
+      }
+    }
+
+    else {
+      localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
+      body.style.background = DEFAULT_BACKGROUND;
+    }
+  }, [groupColor, pathname]);
+
+  return null;
 }

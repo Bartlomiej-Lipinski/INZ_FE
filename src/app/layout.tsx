@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/styles/theme';
+import { ThemeProvider, GroupThemeUpdater } from '@/styles/theme';
 import '@/styles/globals.css';
 
 const nunito = Nunito({
@@ -31,6 +31,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
+            <GroupThemeUpdater />
             {children}
           </AuthProvider>
         </ThemeProvider>
