@@ -330,6 +330,18 @@ export default function AccountPage() {
                       fullWidth
                       SelectProps={{
                         displayEmpty: true,
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              backgroundColor: theme.palette.grey[800],
+                              border: `2px solid ${theme.palette.grey[700]}`,
+                              height: "196px",
+                              overflowY: "auto",
+                              scrollbarWidth: "thin",
+                              scrollbarColor: `${theme.palette.primary.main} transparent`,
+                            },
+                          },
+                        },
                       }}
                     >
                       <MenuItem value="">
