@@ -215,8 +215,8 @@ export default function AccountPage() {
   
               {isEditing ? (
                 <>
-                  <Typography variant="h5" fontWeight={700} textAlign="center" color="text.secondary">
-                    Tryb edycji
+                  <Typography variant="h6" fontWeight={700} textAlign="center" color="text.secondary">
+                    Tryb edycji profilu 
                   </Typography>
                 <Box
                   sx={{
@@ -316,7 +316,6 @@ export default function AccountPage() {
                       sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
                           filter: "invert(1)",
-                          marginRight: "-15px",
                         },
                       }}
                     />
@@ -435,6 +434,15 @@ export default function AccountPage() {
                       fullWidth
                       multiline
                       minRows={4}
+                      maxRows={8}
+                      sx={{
+                        scrollbarWidth: "thin",
+                        scrollbarColor: `${theme.palette.primary.main} transparent`,
+                        "& .MuiInputBase-input": {
+                          paddingTop: "5px",
+                          paddingInline: "15px",
+                        },
+                      }}
                     />
                   ) : (
                     <>
@@ -472,7 +480,7 @@ export default function AccountPage() {
                   width: "80%",
                   display: "flex",
                   flexDirection: { xs: "column", sm: "row" },
-                  gap: 5,
+                  gap: 3,
                   justifyContent: "center",
                 }}
               >
