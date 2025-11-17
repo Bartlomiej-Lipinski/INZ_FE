@@ -271,7 +271,7 @@ export default function AccountPage() {
                 display="flex"
                 flexDirection="column"
                 gap={3}
-                pr={{ md: 3 }}
+                pr={{ xs: 0, md: 3 }}
                 alignItems="center"
                 textAlign="center"
                 width="100%"
@@ -302,7 +302,7 @@ export default function AccountPage() {
 
 
                 {/* birth date */}
-                <Box >
+                <Box width="100%">
                   {isEditing ? (
                     <TextField
                       type="date"
@@ -315,7 +315,9 @@ export default function AccountPage() {
                       InputLabelProps={{ shrink: true }}
                       sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
-                          filter: "invert(1)",
+                          opacity: 0.6,
+
+                          marginRight: "-18px",
                         },
                       }}
                     />
@@ -335,7 +337,7 @@ export default function AccountPage() {
                 {/* status */}
                 <Box
                 mb={3}
-                justifyItems={"center"}
+                textAlign={"left"}
                 width="100%"
                 >
                   {isEditing ? (
@@ -414,9 +416,10 @@ export default function AccountPage() {
                 flex={1}
                 display="flex"
                 flexDirection="column"
-                pl={{ md: 3 }}
+                pl={{ xs: 0, md: 3 }}
                 alignItems={"center"}
                 textAlign={"center"}
+                width="100%"
               >
 
                 {/* description */}
@@ -439,7 +442,7 @@ export default function AccountPage() {
                         scrollbarWidth: "thin",
                         scrollbarColor: `${theme.palette.primary.main} transparent`,
                         "& .MuiInputBase-input": {
-                          paddingTop: "5px",
+                          paddingTop: "2.5px",
                           paddingInline: "15px",
                         },
                       }}
