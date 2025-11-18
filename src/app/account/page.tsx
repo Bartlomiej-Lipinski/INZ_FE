@@ -288,6 +288,10 @@ export default function AccountPage() {
                 alignItems="center"
                 textAlign="center"
                 width="100%"
+                sx={{
+                  minWidth: 0,
+                  maxWidth: "100%",
+                }}
               >
                 
                 {/* user name */}
@@ -362,6 +366,14 @@ export default function AccountPage() {
                         handleFieldChange("status", event.target.value)
                       }
                       fullWidth
+                      sx={{
+                        "& .MuiSelect-select": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          paddingLeft: "12px",
+                        },
+                      }}
                       SelectProps={{
                         displayEmpty: true,
                         MenuProps: {
