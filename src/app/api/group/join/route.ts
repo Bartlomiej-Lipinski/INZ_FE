@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const JOIN_GROUP = process.env.JOIN_GROUP;
+const JOIN_GROUP = process.env.R;
 
 export async function POST(request: NextRequest) {
     try {
         const body: { groupCode: string } = await request.json();
 
-        // Validate groupCode: must be a 5-digit string
         if (
             !body.groupCode ||
             typeof body.groupCode !== 'string' ||
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
             );
         }
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetch(`${BASE_URL}${JOIN_GROUP}`, {
+        const response = await fetchWithAuth(`${BASE_URL}${JOIN_GROUP}`, {
             method: 'POST',
             headers: {
                 'Cookie': cookieHeader,

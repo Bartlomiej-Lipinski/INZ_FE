@@ -8,5 +8,9 @@ export const API_ROUTES = {
     GROUP_BY_ID: '/api/group',
     ADD_GROUP: '/api/group',
     LOGOUT: '/api/auth/logout',
-    JOIN_GROUP: '/api/group/join'
+    JOIN_GROUP: '/api/group/join',
+    IS_ADMIN: '/api/group/isAdmin',
+    GET_GROUP_MEMBERS: '/api/group/members',
+    GET_JOIN_REQUESTS: '/api/user/joinRequest',
+    GENERATE_JOIN_GROUP_CODE: '/api/group/generateJoinCode',
 } as const; 
