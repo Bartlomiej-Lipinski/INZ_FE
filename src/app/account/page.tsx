@@ -28,7 +28,20 @@ export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
   const theme = useTheme();
   const router = useRouter();
+  const [isMediumScreen, setIsMediumScreen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMediumScreen(window.innerWidth >= theme.breakpoints.values.sm);
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, [theme.breakpoints.values.sm]);
+  
+  const descriptionMinRows = useMemo(() => (isMediumScreen ? 8 : 6), [isMediumScreen]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [formValues, setFormValues] = useState({
@@ -262,8 +275,8 @@ export default function AccountPage() {
             <Box
               width="100%"
               display="flex"
-              flexDirection={{ xs: "column", md: "row" }}
-              alignItems={{ xs: "center", md: "stretch" }}
+              flexDirection={{ xs: "column", sm: "row" }}
+              alignItems={{ xs: "center", sm: "stretch" }}
             >
 
               <Box
@@ -271,7 +284,7 @@ export default function AccountPage() {
                 display="flex"
                 flexDirection="column"
                 gap={3}
-                pr={{ xs: 0, md: 3 }}
+                pr={{ xs: 0, sm: 3 }}
                 alignItems="center"
                 textAlign="center"
                 width="100%"
@@ -407,7 +420,7 @@ export default function AccountPage() {
                 orientation="vertical"
                 flexItem
                 sx={{
-                  display: { xs: "block", md: "block" },
+                  display: { xs: "block", sm: "block" },
                   borderColor: "rgba(255,255,255,0.2)",
                 }}
               />
@@ -416,7 +429,7 @@ export default function AccountPage() {
                 flex={1}
                 display="flex"
                 flexDirection="column"
-                pl={{ xs: 0, md: 3 }}
+                pl={{ xs: 0, sm: 3 }}
                 alignItems={"center"}
                 textAlign={"center"}
                 width="100%"
@@ -428,25 +441,40 @@ export default function AccountPage() {
                 width="100%"
                 >
                   {isEditing ? (
-                    <TextField
-                      label="Opis"
-                      value={formValues.description}
-                      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-                        handleFieldChange("description", event.target.value)
-                      }
-                      fullWidth
-                      multiline
-                      minRows={4}
-                      maxRows={8}
-                      sx={{
-                        scrollbarWidth: "thin",
-                        scrollbarColor: `${theme.palette.primary.main} transparent`,
-                        "& .MuiInputBase-input": {
-                          paddingTop: "2.5px",
-                          paddingInline: "15px",
-                        },
-                      }}
-                    />
+                    <Box width="100%">
+                      <TextField
+                        label="Opis"
+                        value={formValues.description}
+                        onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                          handleFieldChange("description", event.target.value)
+                        }
+                        fullWidth
+                        multiline
+                        minRows={descriptionMinRows}
+                        maxRows={8}
+                        inputProps={{ maxLength: 250 }}
+                        sx={{
+                          scrollbarWidth: "thin",
+                          scrollbarColor: `${theme.palette.primary.main} transparent`,
+                          "& .MuiInputBase-input": {
+                            paddingTop: "2.5px",
+                            paddingInline: "15px",
+                          },
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: "block",
+                          textAlign: "right",
+                          marginRight: "5px",
+                          color: theme.palette.grey[400],
+                          mt: 0.5,
+                        }}
+                      >
+                        {formValues.description.length}/250
+                      </Typography>
+                    </Box>
                   ) : (
                     <>
                       <Typography color="text.secondary" >
