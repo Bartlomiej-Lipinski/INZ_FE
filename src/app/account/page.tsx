@@ -350,7 +350,7 @@ export default function AccountPage() {
                 {/* status */}
                 <Box
                 mb={3}
-                textAlign={"left"}
+                textAlign={isEditing ? "left" : "center"}
                 width="100%"
                 >
                   {isEditing ? (
@@ -507,11 +507,11 @@ export default function AccountPage() {
             {isEditing ? (
               <Box
                 sx={{
-                  mt: 1,
+                  mt: 0.5,
                   width: "80%",
                   display: "flex",
                   flexDirection: { xs: "column", sm: "row" },
-                  gap: 3,
+                  gap: 2.5,
                   justifyContent: "center",
                 }}
               >
@@ -519,6 +519,7 @@ export default function AccountPage() {
                   sx={{
                     backgroundColor: theme.palette.grey[800],
                     color: theme.palette.text.primary,
+                    border: `1px solid ${theme.palette.grey[700]}`,
                   }}
                   fullWidth
                   onClick={handleCancelEditing}
