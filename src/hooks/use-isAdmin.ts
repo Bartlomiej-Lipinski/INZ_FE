@@ -31,7 +31,7 @@ export function useIsAdmin() {
                 return {success: false, message: data.message || "Błąd weryfikacji uprawnień admina"};
             }
         } catch (err) {
-            console.error('Verify 2FA error:', err);
+            console.error('Verify admin error:', err);
             setError("Wystąpił błąd podczas weryfikacji uprawnień admina");
             return {success: false, message: "Wystąpił błąd podczas weryfikacji uprawnień admina"};
         } finally {

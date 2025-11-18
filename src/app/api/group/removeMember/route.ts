@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group join API error:', error);
+        console.error('Remove member API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

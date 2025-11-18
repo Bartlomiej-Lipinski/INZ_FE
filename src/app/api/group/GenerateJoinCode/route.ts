@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group members proxy error:', error);
+        console.error('Generate join code error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const JOIN_GROUP = process.env.R;
+const JOIN_GROUP = process.env.JOIN_GROUP;
 
 export async function POST(request: NextRequest) {
     try {
