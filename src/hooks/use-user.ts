@@ -54,7 +54,7 @@ export function useUser(): UserHookResult {
             name: request.name ?? user.name,
             surname: request.surname ?? user.surname,
             birthDate: request.birthDate ?? user.birthDate,
-            username: request.username ?? user.username,
+            username: request.username !== undefined ? request.username as string : user.username,
             status: request.status !== undefined ? request.status : user.status,
             description: request.description !== undefined ? request.description : user.description,
           };

@@ -22,6 +22,7 @@ import { STATUS_OPTIONS } from "@/lib/constants";
 import { useUser } from "@/hooks/use-user";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
+import { validateBirthDate, validateRequiredInput, validatePseudonym } from "@/lib/zod-schemas";
 
 
 
@@ -32,6 +33,17 @@ export default function AccountPage() {
   const router = useRouter();
   const [isMediumScreen, setIsMediumScreen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState<{
+    name: string;
+    surname: string;
+    username: string;
+    birthDate: string;
+  }>({
+    name: "",
+    surname: "",
+    username: "",
+    birthDate: "",
+  });
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -96,6 +108,12 @@ export default function AccountPage() {
 
   const handleStartEditing = () => {
     setErrorMessage("");
+    setErrors({
+      name: "",
+      surname: "",
+      username: "",
+      birthDate: "",
+    });
     populateFormFromUser();
     setIsEditing(true);
   };
@@ -107,8 +125,36 @@ export default function AccountPage() {
   };
 
   const handleFieldChange = (field: keyof typeof formValues, value: string) => {
-    if (field === "status") {
-      console.log("Status changed - value:", value, "type:", typeof value);
+    if (field === "name") {
+      const error = validateRequiredInput(value, "Podaj imię");
+      setErrors((prev) => ({
+        ...prev,
+        name: error,
+      }));
+    }
+
+    if (field === "surname") {
+      const error = validateRequiredInput(value, "Podaj nazwisko");
+      setErrors((prev) => ({
+        ...prev,
+        surname: error,
+      }));
+    }
+
+    if (field === "username") {
+      const error = validatePseudonym(value);
+      setErrors((prev) => ({
+        ...prev,
+        username: error,
+      }));
+    }
+
+    if (field === "birthDate") {
+      const error = validateBirthDate(value);
+      setErrors((prev) => ({
+        ...prev,
+        birthDate: error,
+      }));
     }
     setFormValues((prev) => ({
       ...prev,
@@ -117,14 +163,15 @@ export default function AccountPage() {
   };
 
   const handleSave = async () => {
-    console.log('=== handleSave CALLED ===');
     if (!user) {
-      console.log('No user, returning early');
       return;
     }
 
-    console.log('Calling setErrorMessage');
-    setErrorMessage("");
+    const hasErrors = Object.values(errors).some(err => err !== "");
+    if (hasErrors) {
+      setErrorMessage("Popraw błędy w polach!");
+      return;
+    }
 
     const payload = {
       name: formValues.name.trim() || null,
@@ -135,11 +182,7 @@ export default function AccountPage() {
       birthDate: formValues.birthDate ? new Date(formValues.birthDate) : null,
     };
 
-    console.log('Payload:', payload);
-    console.log('Payload status value:', payload.status, 'type:', typeof payload.status);
-    console.log('About to call updateProfile');
     const result = await updateProfile(payload);
-    console.log('updateProfile result:', result);
 
     if (result.success) {
       setIsEditing(false);
@@ -227,6 +270,8 @@ export default function AccountPage() {
                     mt: 1,
                   }}
                 >
+
+                  {/* name */}
                   <TextField
                     label="Imię"
                     value={formValues.name}
@@ -234,7 +279,11 @@ export default function AccountPage() {
                       handleFieldChange("name", event.target.value)
                     }
                     fullWidth
+                    error={!!errors.name}
+                    helperText={errors.name}
                   />
+
+                  {/* surname */}
                   <TextField
                     label="Nazwisko"
                     value={formValues.surname}
@@ -242,6 +291,8 @@ export default function AccountPage() {
                       handleFieldChange("surname", event.target.value)
                     }
                     fullWidth
+                    error={!!errors.surname}
+                    helperText={errors.surname}
                   />
                 </Box>
                 </>
@@ -290,6 +341,8 @@ export default function AccountPage() {
                       onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                         handleFieldChange("username", event.target.value)
                       }
+                      error={!!errors.username}
+                      helperText={errors.username}
                       fullWidth
                     />
                   ) : (
@@ -315,6 +368,8 @@ export default function AccountPage() {
                       onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
                         handleFieldChange("birthDate", event.target.value)
                       }
+                      error={!!errors.birthDate}
+                      helperText={errors.birthDate}
                       fullWidth
                       InputLabelProps={{ shrink: true }}
                       sx={{
@@ -503,6 +558,12 @@ export default function AccountPage() {
                 </Box>
               </Box>
               
+              {updateError && (
+              <Typography color="error" textAlign="center">
+                {updateError}
+              </Typography>
+            )}
+
             {isEditing ? (
               <Box
                 sx={{
@@ -514,6 +575,8 @@ export default function AccountPage() {
                   justifyContent: "center",
                 }}
               >
+
+
                 <Button
                   sx={{
                     backgroundColor: theme.palette.grey[800],
@@ -540,11 +603,7 @@ export default function AccountPage() {
               </Button>
             )}
 
-            {updateError && (
-              <Typography color="error" textAlign="center">
-                {updateError}
-              </Typography>
-            )}
+          
 
                 <ButtonBase
                   sx={{
