@@ -2,22 +2,22 @@ import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const GET_USER_GROUPS = process.env.GET_USER_GROUPS;
+const ACCEPT_JOIN_REQUEST = process.env.ACCEPT_JOIN_REQUEST;
 
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
-
-        const backendUrl = `${BASE_URL}${GET_USER_GROUPS}`;
-
+        const {groupId, userId} = await request.json();
         const cookieHeader = request.headers.get('cookie') ?? '';
-
-        const response = await fetchWithAuth(backendUrl, {
-            method: 'GET',
+        const response = await fetchWithAuth(`${BASE_URL}${ACCEPT_JOIN_REQUEST}`, {
+            method: 'POST',
             headers: {
                 'Cookie': cookieHeader,
                 'Accept': 'application/json'
-            },
+            }, body: JSON.stringify({
+                groupId: groupId,
+                userId: userId
+            }),
             credentials: 'include'
         });
 
@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('User Groups GET API error:', error);
         return NextResponse.json(
-            { success: false, message: 'Wystąpił błąd połączenia' },
-            { status: 500 }
+            {success: false, message: 'Wystąpił błąd połączenia'},
+            {status: 500}
         );
     }
 }
