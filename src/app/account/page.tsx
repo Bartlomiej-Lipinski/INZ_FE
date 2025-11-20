@@ -18,14 +18,16 @@ import { useTheme } from "@mui/material/styles";
 import { ChevronRight, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { formatDate } from "@/lib/utils/date";
+import { STATUS_OPTIONS } from "@/lib/constants";
+import { useUser } from "@/hooks/use-user";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { STATUS_OPTIONS } from "@/lib/constants";
 
 
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
+  const { updateProfile, isLoading: isUpdatingProfile, error: updateError, setErrorMessage } = useUser();
   const theme = useTheme();
   const router = useRouter();
   const [isMediumScreen, setIsMediumScreen] = useState(false);
@@ -42,8 +44,6 @@ export default function AccountPage() {
   }, [theme.breakpoints.values.sm]);
   
   const descriptionMinRows = useMemo(() => (isMediumScreen ? 8 : 6), [isMediumScreen]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
   const [formValues, setFormValues] = useState({
     name: "",
     surname: "",
@@ -61,6 +61,12 @@ export default function AccountPage() {
     const combined = `${nameInitial}${surnameInitial}`.trim();
     return combined.toUpperCase();
   }, [user]);
+
+  const getStatusLabel = useCallback((statusValue: string | null | undefined): string => {
+    if (!statusValue || statusValue.trim() === "") return "Brak statusu";
+    const option = STATUS_OPTIONS.find(opt => opt.value === statusValue);
+    return option ? option.label : statusValue;
+  }, []);
 
   const formatDateForInput = useCallback((date: Date | string | null | undefined) => {
     if (!date) return "";
@@ -89,18 +95,21 @@ export default function AccountPage() {
   }, [populateFormFromUser, isEditing]);
 
   const handleStartEditing = () => {
-    setSaveError(null);
+    setErrorMessage("");
     populateFormFromUser();
     setIsEditing(true);
   };
 
   const handleCancelEditing = () => {
     setIsEditing(false);
-    setSaveError(null);
+    setErrorMessage("");
     populateFormFromUser();
   };
 
   const handleFieldChange = (field: keyof typeof formValues, value: string) => {
+    if (field === "status") {
+      console.log("Status changed - value:", value, "type:", typeof value);
+    }
     setFormValues((prev) => ({
       ...prev,
       [field]: value,
@@ -108,54 +117,32 @@ export default function AccountPage() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    console.log('=== handleSave CALLED ===');
+    if (!user) {
+      console.log('No user, returning early');
+      return;
+    }
 
-    setIsSaving(true);
-    setSaveError(null);
+    console.log('Calling setErrorMessage');
+    setErrorMessage("");
 
     const payload = {
-      name: formValues.name.trim(),
-      surname: formValues.surname.trim(),
-      username: formValues.username.trim(),
-      status: formValues.status.trim() || null,
+      name: formValues.name.trim() || null,
+      surname: formValues.surname.trim() || null,
+      username: formValues.username.trim() || null,
+      status: formValues.status.trim() === "" ? null : formValues.status.trim(),
       description: formValues.description.trim() || null,
-      birthDate: formValues.birthDate || null,
+      birthDate: formValues.birthDate ? new Date(formValues.birthDate) : null,
     };
 
-    try {
-      const response = await fetchWithAuth(API_ROUTES.USER_BY_ID, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
+    console.log('Payload:', payload);
+    console.log('Payload status value:', payload.status, 'type:', typeof payload.status);
+    console.log('About to call updateProfile');
+    const result = await updateProfile(payload);
+    console.log('updateProfile result:', result);
 
-      if (!response.ok) {
-        setSaveError("Nie udało się zapisać zmian. Spróbuj ponownie.");
-        return;
-      }
-
-      try {
-        const updatedUser = await response.json();
-        setUser(updatedUser);
-      } catch {
-        setUser({
-          ...user,
-          name: payload.name,
-          surname: payload.surname,
-          username: payload.username,
-          status: payload.status,
-          description: payload.description,
-          birthDate: payload.birthDate
-            ? new Date(payload.birthDate)
-            : (user.birthDate as Date),
-        });
-      }
-
+    if (result.success) {
       setIsEditing(false);
-    } catch (error) {
-      console.error("Błąd podczas zapisywania danych profilu:", error);
-      setSaveError("Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.");
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -418,7 +405,7 @@ export default function AccountPage() {
                           scrollbarColor: `${theme.palette.primary.main} transparent`,     
                       }}
                       >
-                        {user.status?.trim() || "Brak statusu"}
+                        {getStatusLabel(user.status)}
                       </Typography>
                     </>
                   )}
@@ -535,16 +522,16 @@ export default function AccountPage() {
                   }}
                   fullWidth
                   onClick={handleCancelEditing}
-                  disabled={isSaving}
+                  disabled={isUpdatingProfile}
                 >
                   Anuluj
                 </Button>
                 <Button
                   fullWidth
                   onClick={handleSave}
-                  disabled={isSaving}
+                  disabled={isUpdatingProfile}
                 >
-                  {isSaving ? "Zapisywanie..." : "Zapisz"}
+                  {isUpdatingProfile ? "Zapisywanie..." : "Zapisz"}
                 </Button>
               </Box>
             ) : (
@@ -553,9 +540,9 @@ export default function AccountPage() {
               </Button>
             )}
 
-            {saveError && (
+            {updateError && (
               <Typography color="error" textAlign="center">
-                {saveError}
+                {updateError}
               </Typography>
             )}
 
