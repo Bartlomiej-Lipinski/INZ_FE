@@ -52,6 +52,15 @@ export const birthDateSchema = z.string()
         message: "Musisz mieć co najmniej 13 lat"
     });
 
+export const usernameSchema = z.string()
+    .nullable()
+    .refine((value) => {
+        if (value === null || value === undefined) return true;
+        return /^[A-Za-z0-9]+$/.test(value);
+    }, {
+        message: "Pseudonim może zawierać tylko litery i cyfry"
+    });
+
 
 export const validatePassword = (value: string): string => {
     const result = passwordSchema.safeParse(value);
@@ -70,6 +79,11 @@ export const validateRequiredInput = (value: string, message: string): string =>
 
 export const validateBirthDate = (value: string): string => {
     const result = birthDateSchema.safeParse(value);
+    return result.success ? "" : result.error.issues[0]?.message;
+};
+
+export const validatePseudonym = (value: string | null): string => {
+    const result = usernameSchema.safeParse(value);
     return result.success ? "" : result.error.issues[0]?.message;
 };
 
