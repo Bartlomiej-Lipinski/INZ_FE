@@ -13,7 +13,8 @@ export async function POST(request: NextRequest) {
             method: 'POST',
             headers: {
                 'Cookie': cookieHeader,
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }, body: JSON.stringify({
                 groupId: groupId,
                 userId: userId
@@ -24,7 +25,7 @@ export async function POST(request: NextRequest) {
         const data = textBody ? JSON.parse(textBody) : {};
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('User Groups GET API error:', error);
+        console.error('Grant admin privileges API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

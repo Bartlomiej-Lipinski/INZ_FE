@@ -38,8 +38,8 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
     try {
-        const {name, color}: GroupCreate = await request.json();
-        const {id} = await request.json();
+        const {id, name, color}: GroupCreate & { id: string } = await request.json();
+        
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${GROUP}/${id}`, {
             method: 'PUT',
@@ -95,7 +95,7 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        const {id} = await request.json();
+        const id = request.nextUrl.searchParams.get('id');
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${GROUP}/${id}`, {
             method: 'GET',
@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group getting API error:', error);
+        console.error('Group retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

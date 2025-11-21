@@ -29,13 +29,13 @@ export async function PUT(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({eventData}),
+            body: JSON.stringify(eventData),
             credentials: 'include',
         });
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group update API error:', error);
+        console.error('Event update API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -60,7 +60,7 @@ export async function DELETE(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group deletion API error:', error);
+        console.error('Event deletion API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -70,7 +70,8 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId, eventId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId') ?? '';
+        const eventId = request.nextUrl.searchParams.get('eventId') ?? '';
         const endpoint = EVENTS_PUT_GET_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group getting API error:', error);
+        console.error('Event retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
