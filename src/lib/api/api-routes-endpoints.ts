@@ -3,6 +3,7 @@ export const API_ROUTES = {
     REGISTER: '/api/auth/register',
     REFRESH: '/api/auth/refresh',
     USER_BY_ID: '/api/user',
+    USER_PROFILE: '/api/user/profile',
     VERIFY_2FA: '/api/auth/2FA',
     USER_GROUPS: '/api/user/groups',
     GROUP_BY_ID: '/api/group',

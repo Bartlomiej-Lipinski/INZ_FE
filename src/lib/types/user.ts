@@ -20,3 +20,15 @@ export interface UserCreate{
   birthDate: string;
   password: string;
 }
+
+
+
+export interface UserUpdate{
+  name: string | null;
+  surname: string | null;
+  username: string | null;
+  status: string | null;
+  description: string | null;
+  birthDate: Date | null;
+}
+
