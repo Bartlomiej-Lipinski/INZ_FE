@@ -7,7 +7,6 @@ const CALCULATE_BEST_DATE_FOR_EVENT = process.env.CALCULATE_BEST_DATE_FOR_EVENT;
 export async function POST(request: NextRequest) {
     try {
         const {groupId, eventId} = await request.json();
-
         const cookieHeader = request.headers.get('cookie') ?? '';
         const endpoint = CALCULATE_BEST_DATE_FOR_EVENT?.replace('{groupId}', groupId).replace('{eventId}', eventId);
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
