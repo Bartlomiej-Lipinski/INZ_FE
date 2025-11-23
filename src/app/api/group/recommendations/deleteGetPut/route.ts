@@ -6,7 +6,8 @@ const DELETE_GET_PUT_RECOMMENDATIONS = process.env.DELETE_GET_PUT_RECOMMENDATION
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId, recommendationId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const recommendationId = request.nextUrl.searchParams.get('recommendationId');
         const endpoint = DELETE_GET_PUT_RECOMMENDATIONS?.replace('{groupId}', groupId)
             .replace('{recommendationId}', recommendationId);
         const cookieHeader = request.headers.get('cookie') ?? '';
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Recommendation retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -43,18 +44,18 @@ export async function PUT(request: NextRequest) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                title: title,
-                content: content,
-                category: category,
+                title,
+                content,
+                category,
                 imageUrl: imageURL,
-                linkURL: linkURL
+                linkURL
             }),
             credentials: 'include',
         });
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group creation API error:', error);
+        console.error('Recommendation update API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -79,7 +80,7 @@ export async function DELETE(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Recommendation deletion API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

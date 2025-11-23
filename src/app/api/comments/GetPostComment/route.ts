@@ -6,7 +6,8 @@ const GET_POST_COMMENTS = process.env.GET_POST_COMMENTS;
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId, targetId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const targetId = request.nextUrl.searchParams.get('targetId');
         const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
             .replace('{targetId}', targetId);
         const cookieHeader = request.headers.get('cookie') ?? '';
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Comments retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -44,10 +45,7 @@ export async function POST(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                entityType: entityType,
-                content: content,
-            }),
+            body: JSON.stringify({ entityType, content }),
             credentials: 'include',
         });
 
@@ -56,7 +54,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group creation API error:', error);
+        console.error('Comment creation API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

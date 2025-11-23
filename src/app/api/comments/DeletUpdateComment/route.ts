@@ -17,16 +17,13 @@ export async function PUT(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                entityType: entityType,
-                content: content,
-            }),
+            body: JSON.stringify({ entityType, content }),
             credentials: 'include',
         });
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group update API error:', error);
+        console.error('Comment update API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -52,7 +49,7 @@ export async function DELETE(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group deletion API error:', error);
+        console.error('Comment deletion API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

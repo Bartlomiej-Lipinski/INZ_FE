@@ -6,7 +6,7 @@ const GET_POST_TIMELINE = process.env.GET_POST_TIMELINE;
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
         const endpoint = GET_POST_TIMELINE?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Timeline retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -39,17 +39,13 @@ export async function POST(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                title: title,
-                date: date,
-                description: description,
-            }),
+            body: JSON.stringify({ title, date, description }),
             credentials: 'include',
         });
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group creation API error:', error);
+        console.error('Timeline creation API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

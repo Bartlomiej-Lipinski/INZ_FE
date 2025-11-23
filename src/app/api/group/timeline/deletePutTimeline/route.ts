@@ -16,17 +16,13 @@ export async function PUT(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                title: title,
-                date: date,
-                description: description,
-            }),
+            body: JSON.stringify({ title, date, description }),
             credentials: 'include',
         });
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group creation API error:', error);
+        console.error('Timeline update API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -51,7 +47,7 @@ export async function DELETE(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Timeline deletion API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

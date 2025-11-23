@@ -6,7 +6,7 @@ const GET_POST_RECOMMENDATIONS = process.env.GET_POST_RECOMMENDATIONS;
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
         const endpoint = GET_POST_RECOMMENDATIONS?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Recommendations retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -43,11 +43,11 @@ export async function POST(request: NextRequest) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                title: title,
-                content: content,
-                category: category,
+                title,
+                content,
+                category,
                 imageUrl: imageURL,
-                linkURL: linkURL
+                linkURL
             }),
             credentials: 'include',
         });
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group creation API error:', error);
+        console.error('Recommendation creation API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
