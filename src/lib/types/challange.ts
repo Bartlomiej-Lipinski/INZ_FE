@@ -1,4 +1,4 @@
-export interface ChallangeCreate {
+export interface ChallengeCreate {
     name: string;
     description: string;
     startDate: string;

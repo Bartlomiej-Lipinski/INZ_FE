@@ -6,8 +6,8 @@ const CHALLENGES_GET_POST = process.env.CHALLENGES_GET_POST;
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId} = await request.json();
-        const endpoint = CHALLENGES_GET_POST?.replace('{groupId}', groupId);
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const endpoint = CHALLENGES_GET_POST?.replace('{groupId}', groupId ?? '');
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'GET',

@@ -28,7 +28,7 @@ export async function DELETE(request: NextRequest) {
         const data = await response.json();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Recommendation deletion API error:', error);
+        console.error('Settlement deletion API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
