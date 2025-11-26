@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
                 message: 'Brak wymaganych parametrów: groupId lub targetId'
             }, {status: 400});
         }
-        const endpoint = REACTIONS_GET?.replace('{groupId}', groupId)
+        const endpoint = REACTIONS_GET.replace('{groupId}', groupId)
             .replace('{targetId}', targetId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {

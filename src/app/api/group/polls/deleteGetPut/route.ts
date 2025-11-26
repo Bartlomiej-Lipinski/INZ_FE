@@ -62,7 +62,8 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId, pollId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const pollId = request.nextUrl.searchParams.get('pollId');
         const endpoint = POLLS_GET_DELETE_PUT?.replace('{groupId}', groupId)
             .replace('{pollId}', pollId);
         const cookieHeader = request.headers.get('cookie') ?? '';

@@ -1,13 +1,13 @@
 import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {ChallangeCreate} from "@/lib/types/challange";
+import {ChallengeCreate} from "@/lib/types/challenge";
 
 const BASE_URL = process.env.BASE_URL;
 const CHALLENGES_GET_POST = process.env.CHALLENGES_GET_POST;
 
 export async function PUT(request: NextRequest) {
     try {
-        const {groupId, challengeId, ...createChallenge}: ChallangeCreate & { groupId: string } & {
+        const {groupId, challengeId, ...createChallenge}: ChallengeCreate & { groupId: string } & {
             challengeId: string
         } = await request.json();
         const endpoint = CHALLENGES_GET_POST?.replace('{groupId}', groupId)

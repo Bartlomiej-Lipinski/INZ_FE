@@ -7,6 +7,12 @@ const REACTIONS_POST = process.env.REACTIONS_POST;
 export async function POST(request: NextRequest) {
     try {
         const {entityType, groupId, targetId} = await request.json();
+        if (!entityType || !groupId || !targetId) {
+            return NextResponse.json(
+                { success: false, message: 'Missing required parameters: entityType, groupId, and targetId are all required.' },
+                { status: 400 }
+            );
+        }
         const endpoint = REACTIONS_POST?.replace('{groupId}', groupId)
             .replace('{targetId}', targetId)
             .replace('{entityType}', entityType);
@@ -25,7 +31,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comment creation API error:', error);
+        console.error('Reaction creation API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

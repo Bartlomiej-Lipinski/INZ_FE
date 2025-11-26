@@ -7,7 +7,7 @@ const POLLS_GET_POST = process.env.POLLS_GET_POST;
 
 export async function GET(request: NextRequest) {
     try {
-        const {groupId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
         const endpoint = POLLS_GET_POST?.replace('{groupId}', groupId)
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
