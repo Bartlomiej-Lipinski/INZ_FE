@@ -1,24 +1,24 @@
 import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {QuizzesAnswer} from "@/lib/types/quizzes";
 
 const BASE_URL = process.env.BASE_URL;
-const GET_POST_COMMENTS = process.env.GET_POST_COMMENTS;
+const QUIZZES_GET_ATTEMPTS = process.env.QUIZZES_GET_ATTEMPTS;
+const QUIZZES_POST_ATTEMPT = process.env.QUIZZES_POST_ATTEMPT;
+
 
 export async function GET(request: NextRequest) {
     try {
         const groupId = request.nextUrl.searchParams.get('groupId');
-        const targetId = request.nextUrl.searchParams.get('targetId');
-        if (!GET_POST_COMMENTS) {
-            return NextResponse.json({success: false, message: 'Konfiguracja serwera niepełna'}, {status: 500});
+        const quizId = request.nextUrl.searchParams.get('quizId');
+        if (!groupId || !quizId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
         }
-        if (!groupId || !targetId) {
-            return NextResponse.json({
-                success: false,
-                message: 'Brak wymaganych parametrów: groupId lub targetId'
-            }, {status: 400});
-        }
-        const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
-            .replace('{targetId}', targetId);
+        const endpoint = QUIZZES_GET_ATTEMPTS?.replace('{groupId}', groupId)
+            .replace('{quizId}', quizId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'GET',
@@ -28,13 +28,10 @@ export async function GET(request: NextRequest) {
             },
             credentials: 'include',
         });
-
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comments retrieval API error:', error);
+        console.error('Quiz attempts retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -44,9 +41,17 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const {entityType, content, groupId, targetId} = await request.json();
-        const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
-            .replace('{targetId}', targetId);
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const quizId = request.nextUrl.searchParams.get('quizId');
+        const quizPayLoad = await request.json() as QuizzesAnswer;
+        if (!groupId || !quizId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
+        }
+        const endpoint = QUIZZES_POST_ATTEMPT?.replace('{groupId}', groupId)
+            .replace('{quizId}', quizId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'POST',
@@ -54,16 +59,13 @@ export async function POST(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ entityType, content }),
+            body: JSON.stringify({quizPayLoad}),
             credentials: 'include',
         });
-
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comment creation API error:', error);
+        console.error('Quiz attempt submission API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

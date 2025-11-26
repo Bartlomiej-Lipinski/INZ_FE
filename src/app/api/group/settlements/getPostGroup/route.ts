@@ -1,24 +1,20 @@
 import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {ExpenseCreate} from "@/lib/types/expense";
 
 const BASE_URL = process.env.BASE_URL;
-const GET_POST_COMMENTS = process.env.GET_POST_COMMENTS;
+const GET_POST_SETTLEMENTS = process.env.GET_POST_SETTLEMENTS;
 
 export async function GET(request: NextRequest) {
     try {
         const groupId = request.nextUrl.searchParams.get('groupId');
-        const targetId = request.nextUrl.searchParams.get('targetId');
-        if (!GET_POST_COMMENTS) {
-            return NextResponse.json({success: false, message: 'Konfiguracja serwera niepełna'}, {status: 500});
+        if (!groupId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
         }
-        if (!groupId || !targetId) {
-            return NextResponse.json({
-                success: false,
-                message: 'Brak wymaganych parametrów: groupId lub targetId'
-            }, {status: 400});
-        }
-        const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
-            .replace('{targetId}', targetId);
+        const endpoint = GET_POST_SETTLEMENTS?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'GET',
@@ -30,11 +26,9 @@ export async function GET(request: NextRequest) {
         });
 
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comments retrieval API error:', error);
+        console.error('Settlements retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -44,9 +38,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const {entityType, content, groupId, targetId} = await request.json();
-        const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
-            .replace('{targetId}', targetId);
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        if (!groupId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
+        }
+        const expensePayLoad = await request.json() as ExpenseCreate;
+        const endpoint = GET_POST_SETTLEMENTS?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'POST',
@@ -54,16 +54,15 @@ export async function POST(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ entityType, content }),
+            body: JSON.stringify({
+                expensePayLoad
+            }),
             credentials: 'include',
         });
-
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comment creation API error:', error);
+        console.error('Expense creation API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}

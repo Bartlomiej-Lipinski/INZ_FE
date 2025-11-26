@@ -1,40 +1,33 @@
-import {NextRequest, NextResponse} from "next/server";
+import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const GET_POST_COMMENTS = process.env.GET_POST_COMMENTS;
+const CHALLENGE_DELETE_PUT = process.env.CHALLENGE_DELETE_PUT;
 
-export async function GET(request: NextRequest) {
+
+export async function PUT(request: NextRequest) {
     try {
-        const groupId = request.nextUrl.searchParams.get('groupId');
-        const targetId = request.nextUrl.searchParams.get('targetId');
-        if (!GET_POST_COMMENTS) {
-            return NextResponse.json({success: false, message: 'Konfiguracja serwera niepełna'}, {status: 500});
-        }
-        if (!groupId || !targetId) {
-            return NextResponse.json({
-                success: false,
-                message: 'Brak wymaganych parametrów: groupId lub targetId'
-            }, {status: 400});
-        }
-        const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
-            .replace('{targetId}', targetId);
+        const {groupId, challengeId, progressId, description, value} = await request.json();
+        const endpoint = CHALLENGE_DELETE_PUT?.replace('{groupId}', groupId)
+            .replace('{challengeId}', challengeId)
+            .replace('{progressId}', progressId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
-            method: 'GET',
+            method: 'PUT',
             headers: {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                description,
+                value
+            }),
             credentials: 'include',
         });
-
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comments retrieval API error:', error);
+        console.error('Group update API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -42,28 +35,25 @@ export async function GET(request: NextRequest) {
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
     try {
-        const {entityType, content, groupId, targetId} = await request.json();
-        const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
-            .replace('{targetId}', targetId);
+        const {groupId, challengeId, progressId} = await request.json();
+        const endpoint = CHALLENGE_DELETE_PUT?.replace('{groupId}', groupId)
+            .replace('{challengeId}', challengeId)
+            .replace('{progressId}', progressId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ entityType, content }),
             credentials: 'include',
         });
-
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Comment creation API error:', error);
+        console.error('Group deletion API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
