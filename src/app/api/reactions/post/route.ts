@@ -6,7 +6,9 @@ const REACTIONS_POST = process.env.REACTIONS_POST;
 
 export async function POST(request: NextRequest) {
     try {
-        const {entityType, groupId, targetId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const targetId = request.nextUrl.searchParams.get('targetId');
+        const entityType = request.nextUrl.searchParams.get('entityType');
         if (!entityType || !groupId || !targetId) {
             return NextResponse.json(
                 { success: false, message: 'Missing required parameters: entityType, groupId, and targetId are all required.' },
@@ -25,10 +27,7 @@ export async function POST(request: NextRequest) {
             },
             credentials: 'include',
         });
-
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
         console.error('Reaction creation API error:', error);

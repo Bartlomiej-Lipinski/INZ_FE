@@ -1,13 +1,13 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {PoolCreate} from "@/lib/types/pool";
+import {PollCreate} from "@/lib/types/poll";
 
 const BASE_URL = process.env.BASE_URL;
 const POLLS_GET_DELETE_PUT = process.env.POLLS_GET_DELETE_PUT;
 
 export async function PUT(request: NextRequest) {
     try {
-        const {groupId, pollId, ...pollPayload} = await request.json() as PoolCreate & { groupId: string } & {
+        const {groupId, pollId, ...pollPayload} = await request.json() as PollCreate & { groupId: string } & {
             pollId: string
         };
         const endpoint = POLLS_GET_DELETE_PUT?.replace('{groupId}', groupId)

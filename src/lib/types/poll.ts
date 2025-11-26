@@ -1,4 +1,4 @@
-export interface PoolCreate {
+export interface PollCreate {
     question: string;
     options: [
         {

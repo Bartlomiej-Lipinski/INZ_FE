@@ -19,9 +19,9 @@ export async function PUT(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
+            body: JSON.stringify(
                 createChallenge
-            }),
+            ),
             credentials: 'include',
         });
         const data = await response.json();

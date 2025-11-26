@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {ChallangeCreate} from '@/lib/types/challange';
+import {ChallengeCreate} from '@/lib/types/challenge';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
@@ -8,7 +8,7 @@ const CHALLENGES_DELETE_PUT_GET = process.env.CHALLENGES_DELETE_PUT_GET;
 
 export async function PUT(request: NextRequest) {
     try {
-        const {groupId, challengeId, ...createChallenge}: ChallangeCreate & { groupId: string } & {
+        const {groupId, challengeId, ...createChallenge}: ChallengeCreate & { groupId: string } & {
             challengeId: string
         } = await request.json();
         const endpoint = CHALLENGES_DELETE_PUT_GET?.replace('{groupId}', groupId)
@@ -20,9 +20,9 @@ export async function PUT(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
+            body: JSON.stringify(
                 createChallenge
-            }),
+            ),
             credentials: 'include',
         });
         const data = await response.json();
