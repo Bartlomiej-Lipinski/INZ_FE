@@ -1,37 +1,45 @@
 "use client";
 
-import { useState } from 'react';
-import { 
-  Box, 
-  Button, 
-  TextField,
-  Typography,
-  CircularProgress
-} from '@mui/material';
+import React, {useState} from 'react';
+import {Box, Button, CircularProgress, TextField, Typography} from '@mui/material';
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {useRouter} from "next/navigation";
 
 export default function ResetPasswordForm() {
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+    const router = useRouter();
 
   //TO-DO: Add email validation
- 
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
     setEmailError('');
   };
 
-  //TO-DO: Replace with actual API call
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSubmitted(true);
-    setIsLoading(false);
+      try {
+          const response = await fetchWithAuth(API_ROUTES.RESET_PASSWORD_REQUEST, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({email}),
+          });
 
+          if (response.ok) {
+              setIsSubmitted(true);
+              setIsLoading(false);
+          } else {
+              console.error('Failed to Send Reset password:', response.status, response.statusText);
+          }
+      } catch (error) {
+          console.error('Error resting password:', error);
+      }
   };
 
   return (
@@ -82,18 +90,20 @@ export default function ResetPasswordForm() {
           </Button>
         </>
       ) : (
-        <Typography
-          sx={{
-            color: '#ecd17a',
-            fontSize: '18px',
-            textAlign: 'center',
-            mb: 5,
-            paddingInline: 3,
-            wordBreak: 'break-word',
-          }}
-        >
-          Link do resetowania hasła został wysłany na podany adres e-mail. Sprawdź swoją skrzynkę pocztową.
-        </Typography>
+          <><Typography
+              sx={{
+                  color: '#ecd17a',
+                  fontSize: '18px',
+                  textAlign: 'center',
+                  mb: 5,
+                  paddingInline: 3,
+                  wordBreak: 'break-word',
+              }}
+          >
+              Link do resetowania hasła został wysłany na podany adres e-mail. Sprawdź swoją skrzynkę pocztową.
+          </Typography><Button variant="contained" onClick={() => router.back()}>
+              OK
+          </Button></>
       )}
     </Box>
   );

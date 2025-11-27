@@ -1,23 +1,23 @@
 "use client";
 
 import {useMemo} from 'react';
-import {useSearchParams} from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {Box, Typography} from '@mui/material';
 import {alpha} from '@mui/material/styles';
 import {
-  Bell,
-  MessageCircle,
-  Coffee,
-  CalendarDays,
-  Star,
-  CheckSquare,
-  ChevronRight,
-  Settings,
-  Images,
-  Notebook,
-  Users,
-  Gamepad2,
-  DollarSign,
+    Bell,
+    CalendarDays,
+    CheckSquare,
+    ChevronRight,
+    Coffee,
+    DollarSign,
+    Gamepad2,
+    Images,
+    MessageCircle,
+    Notebook,
+    Settings,
+    Star,
+    Users,
 } from 'lucide-react';
 
 
@@ -38,10 +38,11 @@ const MENU_ITEMS = [
 
 export default function GroupMenuPage() {
   const searchParams = useSearchParams();
+    const router = useRouter();
   
   const groupData = useMemo(() => {
-    const groupId = searchParams.get('groupId') || '';
-    const groupName = searchParams.get('groupName') || '';
+      const groupId = localStorage.getItem('groupId');
+      const groupName = localStorage.getItem('groupName');
     
     if (!groupId) {
       return null;
@@ -49,7 +50,7 @@ export default function GroupMenuPage() {
     
     return {
       id: groupId,
-      name: decodeURIComponent(groupName),
+        name: groupName,
     };
   }, [searchParams]);
  
@@ -121,6 +122,10 @@ export default function GroupMenuPage() {
                     }
                   })}
                   onClick={() => {
+                      if (item.key === 'chat') {
+                          router.push(`/chat`);
+                          return;
+                      }
                     console.debug(`Moduł: ${item.label}`);
                   }}
                 >
