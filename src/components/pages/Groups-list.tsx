@@ -1,15 +1,7 @@
 "use client";
 
-import {useState, useMemo, useEffect, useCallback} from 'react';
-import {
-    Box,
-    Typography,
-    TextField,
-    InputAdornment,
-    IconButton,
-    Button,
-    CircularProgress,
-} from '@mui/material';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography,} from '@mui/material';
 import {Search, X} from 'lucide-react';
 import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
@@ -17,7 +9,7 @@ import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {AddGroupModal} from '@/components/modals/add-group-modal';
 import {JoinGroupModal} from '@/components/modals/join-group-modal';
-import { useRouter } from 'next/navigation';
+import {useRouter} from 'next/navigation';
 
 
 interface ApiResponse {
@@ -55,6 +47,12 @@ export default function GroupsList() {
 
     useEffect(() => {
         loadGroups();
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('currentGroupColor');
+            localStorage.removeItem('groupColor');
+            localStorage.removeItem('groupId');
+            localStorage.removeItem('groupName');
+        }
     }, [loadGroups]);
 
     const filteredGroups = useMemo(() => {
@@ -78,8 +76,8 @@ export default function GroupsList() {
         try {
             const response = await fetchWithAuth(API_ROUTES.ADD_GROUP, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, color }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, color}),
             });
 
             if (response.ok) {
@@ -106,8 +104,8 @@ export default function GroupsList() {
         try {
             const response = await fetchWithAuth(API_ROUTES.JOIN_GROUP, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ groupCode: code }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({groupCode: code}),
             });
             if (response.ok) {
                 await loadGroups();
@@ -133,17 +131,16 @@ export default function GroupsList() {
                     minHeight: 'calc(70vh - 300px)',
                 }}
             >
-                <CircularProgress size={48} />
+                <CircularProgress size={48}/>
             </Box>
         );
     }
 
     const handleGroupClick = (group: Group) => {
-        const params = new URLSearchParams();
-        params.set('groupId', group.id);
-        params.set('groupName', encodeURIComponent(group.name));
-        params.set('groupColor', encodeURIComponent(group.color));
-        router.push(`/group-menu?${params.toString()}`);
+        localStorage.setItem('groupId', group.id)
+        localStorage.setItem('groupName', group.name)
+        localStorage.setItem('groupColor', group.color)
+        router.push(`/group-menu`);
     };
 
     const handleGroupMouseEnter = (group: Group) => {
@@ -205,7 +202,7 @@ export default function GroupsList() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <Search size={20} style={{ color: 'inherit', opacity: 0.7 }} />
+                                        <Search size={20} style={{color: 'inherit', opacity: 0.7}}/>
                                     </InputAdornment>
                                 ),
                                 endAdornment: searchQuery ? (
@@ -221,7 +218,7 @@ export default function GroupsList() {
                                                 },
                                             }}
                                         >
-                                            <X size={18} />
+                                            <X size={18}/>
                                         </IconButton>
                                     </InputAdornment>
                                 ) : null,
@@ -311,7 +308,7 @@ export default function GroupsList() {
                                 onMouseEnter={() => handleGroupMouseEnter(group)}
                                 onMouseLeave={handleGroupMouseLeave}
                             >
-                                <GroupItem group={group} onClick={() => handleGroupClick(group)} />
+                                <GroupItem group={group} onClick={() => handleGroupClick(group)}/>
                             </Box>
                         ))}
                     </Box>

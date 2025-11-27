@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
+
 const BASE_URL = process.env.BASE_URL;
 const USER = process.env.USER;
 
@@ -6,11 +7,8 @@ const USER = process.env.USER;
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-
     const backendUrl = `${BASE_URL}${USER}/${id}`;
-
     const cookieHeader = request.headers.get('cookie') ?? '';
-
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
@@ -22,9 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const textBody = await response.text();
     const data = textBody ? JSON.parse(textBody) : {};
-
     const nextResponse = NextResponse.json(data, { status: response.status });
-
     const setCookieHeaders = response.headers.getSetCookie();
     setCookieHeaders.forEach((cookie) => {
       nextResponse.headers.append('Set-Cookie', cookie);
