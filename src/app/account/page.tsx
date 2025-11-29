@@ -104,7 +104,7 @@ export default function AccountPage() {
     if (!isEditing) {
       populateFormFromUser();
     }
-  }, [populateFormFromUser, isEditing]);
+  }, [user, isEditing]);
 
   const handleStartEditing = () => {
     setErrorMessage("");
@@ -367,7 +367,6 @@ export default function AccountPage() {
                       sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
                           opacity: 0.6,
-
                           marginRight: "-18px",
                         },
                       }}
