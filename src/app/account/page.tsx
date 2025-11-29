@@ -17,14 +17,12 @@ import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import { ChevronRight, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatDate } from "@/lib/utils/date";
-import { STATUS_OPTIONS } from "@/lib/constants";
+import { formatDate, formatDateForInput } from "@/lib/utils/date";
+import { STATUS_OPTIONS, getStatusLabel } from "@/lib/constants";
 import { useUser } from "@/hooks/use-user";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
 import { validateBirthDate, validateRequiredInput, validateUsername } from "@/lib/zod-schemas";
-
-
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
@@ -74,19 +72,6 @@ export default function AccountPage() {
     return combined.toUpperCase();
   }, [user]);
 
-  const getStatusLabel = useCallback((statusValue: string | null | undefined): string => {
-    if (!statusValue || statusValue.trim() === "") return "Brak statusu";
-    const option = STATUS_OPTIONS.find(opt => opt.value === statusValue);
-    return option ? option.label : statusValue;
-  }, []);
-
-  const formatDateForInput = useCallback((date: Date | string | null | undefined) => {
-    if (!date) return "";
-    const dateObj = date instanceof Date ? date : new Date(date);
-    if (Number.isNaN(dateObj.getTime())) return "";
-    return dateObj.toISOString().split("T")[0];
-  }, []);
-
   const populateFormFromUser = useCallback(() => {
     if (!user) return;
 
@@ -98,7 +83,7 @@ export default function AccountPage() {
       status: user.status ?? "",
       description: user.description ?? "",
     });
-  }, [formatDateForInput, user]);
+  }, [user]);
 
   useEffect(() => {
     if (!isEditing) {

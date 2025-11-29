@@ -29,3 +29,9 @@ export const STATUS_OPTIONS = [
   { value: "zen", label: "🧘 W trybie chill" },
 ];
 
+export const getStatusLabel = (statusValue: string | null | undefined): string => {
+  if (!statusValue || statusValue.trim() === "") return "Brak statusu";
+  const option = STATUS_OPTIONS.find(opt => opt.value === statusValue);
+  return option ? option.label : statusValue;
+};
+
