@@ -22,7 +22,7 @@ import { STATUS_OPTIONS } from "@/lib/constants";
 import { useUser } from "@/hooks/use-user";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { validateBirthDate, validateRequiredInput, validatePseudonym } from "@/lib/zod-schemas";
+import { validateBirthDate, validateRequiredInput, validateUsername } from "@/lib/zod-schemas";
 
 
 
@@ -142,7 +142,7 @@ export default function AccountPage() {
     }
 
     if (field === "username") {
-      const error = validatePseudonym(value);
+      const error = validateUsername(value);
       setErrors((prev) => ({
         ...prev,
         username: error,
@@ -541,10 +541,11 @@ export default function AccountPage() {
                           wordBreak: "break-word",
                           whiteSpace: "pre-line",
                           textAlign: user.description ? "left" : "center",
-                          maxHeight: "200px",
+                          maxHeight: "190px",
                           overflowY: "auto",
                           marginLeft: "10px",
                           paddingRight: "10px",
+                          paddingBottom: "10px",
                           scrollbarWidth: "thin",
                           scrollbarColor: `${theme.palette.primary.main} transparent`
                         }}

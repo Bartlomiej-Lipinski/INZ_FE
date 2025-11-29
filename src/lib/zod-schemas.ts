@@ -55,8 +55,8 @@ export const birthDateSchema = z.string()
 export const usernameSchema = z.string()
     .nullable()
     .refine((value) => {
-        if (value === null || value === undefined) return true;
-        return /^[A-Za-z0-9]+$/.test(value);
+        if (value === "") return true;
+        return /^[A-Za-z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/.test(value ?? "");
     }, {
         message: "Pseudonim może zawierać tylko litery i cyfry"
     });
@@ -82,7 +82,7 @@ export const validateBirthDate = (value: string): string => {
     return result.success ? "" : result.error.issues[0]?.message;
 };
 
-export const validatePseudonym = (value: string | null): string => {
+export const validateUsername = (value: string | null): string => {
     const result = usernameSchema.safeParse(value);
     return result.success ? "" : result.error.issues[0]?.message;
 };
