@@ -28,7 +28,21 @@ export async function PUT(request: NextRequest) {
     });
 
     const textBody = await response.text();
-    const data = textBody ? JSON.parse(textBody) : {};
+    
+    let data = {};
+    const contentType = response.headers.get('content-type') || '';
+    
+    if (textBody && contentType.includes('application/json')) {
+      try {
+        data = JSON.parse(textBody);
+      } catch (parseError) {
+        console.error('Failed to parse JSON response:', parseError);
+        return NextResponse.json(
+          { success: false},
+          { status: 502 }
+        );
+      }
+    }
 
     const nextResponse = NextResponse.json(data, { status: response.status });
 

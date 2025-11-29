@@ -63,7 +63,7 @@ export function useUser(): UserHookResult {
         
         return data;
       } else {
-        const errorMessage = data.message || 'Nie udało się zaktualizować profilu';
+        const errorMessage = 'Nie udało się zaktualizować profilu';
         setError(errorMessage);
         return { success: false, message: errorMessage };
       }
