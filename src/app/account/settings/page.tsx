@@ -1,17 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, IconButton, Typography } from "@mui/material";
+import { Box, Button, Divider, IconButton, Typography, Switch, FormControlLabel, Alert } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
 import NewPasswordForm from "@/components/pages/New-password-form";
+import { use2FA } from "@/hooks/use-2FA";
 
 export default function AccountSettingsPage() {
   const theme = useTheme();
   const router = useRouter();
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const { isEnabled, isLoading, error, successMessage, toggle2FA, setErrorMessage } = use2FA();
 
   return (
     <Box
@@ -64,6 +66,63 @@ export default function AccountSettingsPage() {
           Zarządzanie kontem
         </Typography>
 
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" }} />
+
+        {/* 2FA Toggle */}
+        <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <Typography  fontWeight={500}>
+                Dwuetapowa weryfikacja (2FA)
+              </Typography>
+              <Typography  sx={{ color: theme.palette.text.secondary, fontSize: "14px" , width: "90%"}}>
+                2FA działa przez e-mail z kodem weryfikacyjnym
+              </Typography>
+            </Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isEnabled}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => toggle2FA(e.target.checked as boolean)}
+                  disabled={isLoading}
+                  sx={{
+                    "& .MuiSwitch-switchBase.Mui-checked": {
+                      color: theme.palette.primary.main,
+                    },
+                    "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                      backgroundColor: theme.palette.primary.main,
+                    },
+                  }}
+                />
+              }
+              label=""
+              sx={{ m: 0 }}
+            />
+          </Box>
+
+          {error && (
+            <Alert 
+              severity="error" 
+              onClose={() => setErrorMessage(null)}
+              sx={{ mt: 1 }}
+            >
+              {error}
+            </Alert>
+          )}
+
+          {successMessage && (
+            <Alert 
+              severity="success"
+              sx={{ mt: 1 }}
+            >
+              {successMessage}
+            </Alert>
+          )}
+        </Box>
+
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" }} />
+
+        {/* change password */}
         {!isChangingPassword ? (
           <Button
             onClick={() => setIsChangingPassword(true)}
