@@ -124,38 +124,22 @@ export default function AccountPage() {
     populateFormFromUser();
   };
 
+  const validators: Record<keyof typeof errors, (value: string) => string> = {
+    name: (value) => validateRequiredInput(value, "Podaj imię"),
+    surname: (value) => validateRequiredInput(value, "Podaj nazwisko"),
+    username: (value) => validateUsername(value),
+    birthDate: (value) => validateBirthDate(value),
+  };
+
   const handleFieldChange = (field: keyof typeof formValues, value: string) => {
-    if (field === "name") {
-      const error = validateRequiredInput(value, "Podaj imię");
+    if (field in validators) {
+      const error = validators[field as keyof typeof validators](value);
       setErrors((prev) => ({
         ...prev,
-        name: error,
+        [field]: error,
       }));
     }
 
-    if (field === "surname") {
-      const error = validateRequiredInput(value, "Podaj nazwisko");
-      setErrors((prev) => ({
-        ...prev,
-        surname: error,
-      }));
-    }
-
-    if (field === "username") {
-      const error = validateUsername(value);
-      setErrors((prev) => ({
-        ...prev,
-        username: error,
-      }));
-    }
-
-    if (field === "birthDate") {
-      const error = validateBirthDate(value);
-      setErrors((prev) => ({
-        ...prev,
-        birthDate: error,
-      }));
-    }
     setFormValues((prev) => ({
       ...prev,
       [field]: value,
@@ -167,7 +151,15 @@ export default function AccountPage() {
       return;
     }
 
-    const hasErrors = Object.values(errors).some(err => err !== "");
+    const validationErrors = Object.keys(validators).reduce((acc, key) => {
+      const field = key as keyof typeof validators;
+      acc[field] = validators[field](formValues[field]);
+      return acc;
+    }, {} as typeof errors);
+
+    setErrors(validationErrors);
+
+    const hasErrors = Object.values(validationErrors).some(err => err !== "");
     if (hasErrors) {
       setErrorMessage("Popraw błędy w polach!");
       return;
