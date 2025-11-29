@@ -174,12 +174,12 @@ export default function AccountPage() {
     }
 
     const payload = {
-      name: formValues.name.trim() || null,
-      surname: formValues.surname.trim() || null,
+      name: formValues.name.trim(),
+      surname: formValues.surname.trim(),
       username: formValues.username.trim() || null,
       status: formValues.status.trim() === "" ? null : formValues.status.trim(),
       description: formValues.description.trim() || null,
-      birthDate: formValues.birthDate ? new Date(formValues.birthDate) : null,
+      birthDate: new Date(formValues.birthDate),
     };
 
     const result = await updateProfile(payload);
