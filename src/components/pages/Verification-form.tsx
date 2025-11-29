@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { ChangeEvent, ClipboardEvent, FormEvent, KeyboardEvent } from 'react';
 import { Box, Button, Typography, TextField, Link, CircularProgress } from '@mui/material';
-import {Verify2FA} from "@/hooks/use-Verify2FA";
+import {use2FA} from "@/hooks/use-2FA";
 import {useRouter} from "next/navigation";
 
 export default function VerificationForm() {
@@ -11,7 +11,7 @@ export default function VerificationForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { verify2FA } = Verify2FA();
+  const { verify2FA } = use2FA();
   const router = useRouter();
 
  
