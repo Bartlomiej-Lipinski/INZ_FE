@@ -1,6 +1,6 @@
 export interface User {
   id: string;
-  username: string;
+  username: string | null;
   email: string;
   name: string;
   surname: string;
@@ -20,3 +20,15 @@ export interface UserCreate{
   birthDate: string;
   password: string;
 }
+
+
+
+export interface UserUpdate{
+  name: string;
+  surname: string;
+  username: string | null;
+  status: string | null;
+  description: string | null;
+  birthDate: Date;
+}
+

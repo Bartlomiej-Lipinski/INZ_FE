@@ -134,7 +134,6 @@ const theme = createTheme({
             borderRadius: 30,
             backgroundColor: 'rgba(125, 125, 125, 0.5)',
             color: customColors.text.primary,
-            height: '46px',
             paddingRight: '20px', 
             paddingLeft: '10px', 
             fontSize: '15px',
