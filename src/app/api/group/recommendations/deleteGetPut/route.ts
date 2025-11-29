@@ -1,103 +1,23 @@
-import {NextRequest, NextResponse} from 'next/server';
-import {GroupCreate} from '@/lib/types/group';
+import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const GROUP = process.env.GROUP;
-
-export async function POST(request: NextRequest) {
-    try {
-        const body: GroupCreate = await request.json();
-
-        const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${GROUP}`, {
-            method: 'POST',
-            headers: {
-                'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: body.name,
-                color: body.color
-            }),
-            credentials: 'include',
-        });
-
-        const data = await response.json();
-
-
-        return NextResponse.json(data, {status: response.status});
-    } catch (error) {
-        console.error('Group creation API error:', error);
-        return NextResponse.json(
-            {success: false, message: 'Wystąpił błąd połączenia'},
-            {status: 500}
-        );
-    }
-}
-
-export async function PUT(request: NextRequest) {
-    try {
-        const {id, name, color}: GroupCreate & { id: string } = await request.json();
-        
-        const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${GROUP}/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                color: color
-            }),
-            credentials: 'include',
-        });
-
-        const data = await response.json();
-
-
-        return NextResponse.json(data, {status: response.status});
-    } catch (error) {
-        console.error('Group update API error:', error);
-        return NextResponse.json(
-            {success: false, message: 'Wystąpił błąd połączenia'},
-            {status: 500}
-        );
-    }
-}
-
-export async function DELETE(request: NextRequest) {
-    try {
-        const {id} = await request.json();
-        const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${GROUP}/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-        });
-
-        const data = await response.json();
-
-
-        return NextResponse.json(data, {status: response.status});
-    } catch (error) {
-        console.error('Group deletion API error:', error);
-        return NextResponse.json(
-            {success: false, message: 'Wystąpił błąd połączenia'},
-            {status: 500}
-        );
-    }
-}
+const DELETE_GET_PUT_RECOMMENDATIONS = process.env.DELETE_GET_PUT_RECOMMENDATIONS;
 
 export async function GET(request: NextRequest) {
     try {
-        const id = request.nextUrl.searchParams.get('id');
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const recommendationId = request.nextUrl.searchParams.get('recommendationId');
+        if (!groupId || !recommendationId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
+        }
+        const endpoint = DELETE_GET_PUT_RECOMMENDATIONS?.replace('{groupId}', groupId)
+            .replace('{recommendationId}', recommendationId);
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${GROUP}/${id}`, {
+        const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'GET',
             headers: {
                 'Cookie': cookieHeader,
@@ -107,11 +27,9 @@ export async function GET(request: NextRequest) {
         });
 
         const data = await response.json();
-
-
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
-        console.error('Group retrieval API error:', error);
+        console.error('Recommendation retrieval API error:', error);
         return NextResponse.json(
             {success: false, message: 'Wystąpił błąd połączenia'},
             {status: 500}
@@ -119,4 +37,59 @@ export async function GET(request: NextRequest) {
     }
 }
 
+export async function PUT(request: NextRequest) {
+    try {
+        const {title, category, imageURL, linkURL, content, groupId, recommendationId} = await request.json();
+        const endpoint = DELETE_GET_PUT_RECOMMENDATIONS?.replace('{groupId}', groupId)
+            .replace('{recommendationId}', recommendationId);
+        const cookieHeader = request.headers.get('cookie') ?? '';
+        const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
+            method: 'PUT',
+            headers: {
+                'Cookie': cookieHeader,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title,
+                content,
+                category,
+                imageUrl: imageURL,
+                linkURL
+            }),
+            credentials: 'include',
+        });
+        const data = await response.json();
+        return NextResponse.json(data, {status: response.status});
+    } catch (error) {
+        console.error('Recommendation update API error:', error);
+        return NextResponse.json(
+            {success: false, message: 'Wystąpił błąd połączenia'},
+            {status: 500}
+        );
+    }
+}
 
+export async function DELETE(request: NextRequest) {
+    try {
+        const {groupId, recommendationId} = await request.json();
+        const endpoint = DELETE_GET_PUT_RECOMMENDATIONS?.replace('{groupId}', groupId)
+            .replace('{recommendationId}', recommendationId);
+        const cookieHeader = request.headers.get('cookie') ?? '';
+        const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
+            method: 'DELETE',
+            headers: {
+                'Cookie': cookieHeader,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+        });
+        const data = await response.json();
+        return NextResponse.json(data, {status: response.status});
+    } catch (error) {
+        console.error('Recommendation deletion API error:', error);
+        return NextResponse.json(
+            {success: false, message: 'Wystąpił błąd połączenia'},
+            {status: 500}
+        );
+    }
+}
