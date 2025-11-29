@@ -80,7 +80,7 @@ export default function AccountSettingsPage() {
                 backgroundColor: theme.palette.grey[800],
                 color: theme.palette.text.primary,
                 border: `1px solid ${theme.palette.grey[700]}`,
-                mt: -2,
+                width: "120px",
               }}
             >
               Anuluj
