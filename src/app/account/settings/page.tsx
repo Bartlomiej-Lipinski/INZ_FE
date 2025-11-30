@@ -66,7 +66,7 @@ export default function AccountSettingsPage() {
           Zarządzanie kontem
         </Typography>
 
-        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" }} />
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
 
         {/* 2FA Toggle */}
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
@@ -120,13 +120,12 @@ export default function AccountSettingsPage() {
           )}
         </Box>
 
-        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" }} />
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
 
         {/* change password */}
         {!isChangingPassword ? (
           <Button
             onClick={() => setIsChangingPassword(true)}
-            sx={{ mt: 1 }}
           >
             Zmiana hasła
           </Button>
@@ -146,6 +145,18 @@ export default function AccountSettingsPage() {
             </Button>
           </Box>
         )}
+        
+        
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
+
+        <Button
+          sx={{
+            backgroundColor: theme.palette.error.main,
+            width: "130px",
+          }}
+        >
+          Usuń konto
+        </Button>
       </Box>
     </Box>
   );
