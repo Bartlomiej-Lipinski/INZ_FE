@@ -18,6 +18,7 @@ export default function AccountSettingsPage() {
   const [isResetLinkLoading, setIsResetLinkLoading] = useState(false);
   const [resetLinkError, setResetLinkError] = useState<string | null>(null);
   const [resetLinkSuccess, setResetLinkSuccess] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleSendPasswordReset = async () => {
     if (isResetLinkLoading) {
@@ -211,14 +212,54 @@ export default function AccountSettingsPage() {
         <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
 
         {/* delete account*/}
-        <Button
-          sx={{
-            backgroundColor: theme.palette.error.main,
-            width: "130px",
-          }}
-        >
-          Usuń konto
-        </Button>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {!showDeleteConfirm && (
+            <Button
+              onClick={() => setShowDeleteConfirm(true)}
+              sx={{
+                backgroundColor: theme.palette.error.main,
+              }}
+            >
+              Usuń konto
+            </Button>
+          )}
+
+          {showDeleteConfirm && (
+            <Box
+              sx={{
+                width: "100%",
+                p: 4,
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.error.main}`,
+                bgcolor: "rgba(255, 0, 0, 0.08)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1.5,
+              }}
+            >
+              <Typography fontWeight={600} textAlign="center" mb={3}>
+                Czy na pewno chcesz usunąć konto?
+              </Typography>
+
+              <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
+                <Button
+                  sx={{ minWidth: 120, backgroundColor: theme.palette.grey[800] }}
+                  onClick={() => {
+                    console.log("Potwierdzenie usunięcia konta - logika do zaimplementowania.");
+                  }}
+                >
+                  Tak
+                </Button>
+                <Button
+                  sx={{ minWidth: 120 }}
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Nie
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Box>
       </Box>
     </Box>
   );
