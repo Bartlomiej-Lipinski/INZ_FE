@@ -22,6 +22,7 @@ export function use2FA() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const { user, setUser } = useAuthContext();
+    
 
     const verify2FA = async (request: Verify2FARequest): Promise<ApiResponse> => {
         setIsLoading(true);
@@ -69,6 +70,39 @@ export function use2FA() {
         }
     }
 
+    const resend2FA = async (email: string): Promise<ApiResponse> => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await fetch(`${API_ROUTES.RESEND_2FA}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: email,
+                }),
+                credentials: 'include',
+            });
+
+            const data = await response.json() as ApiResponse;
+
+            console.log('Resend 2FA data:', data);
+
+            if (response.ok && data.success) {
+                return data;
+            }
+
+            return { success: false };
+        } catch (err) {
+            console.error('Resend 2FA error:', err);
+            return { success: false, message: 'Wystąpił błąd podczas wysyłania kodu weryfikacyjnego' };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    
     const toggle2FA = async (enabled: boolean): Promise<boolean> => {
         setIsLoading(true);
         setError(null);
@@ -114,6 +148,7 @@ export function use2FA() {
 
     return {
         verify2FA,
+        resend2FA,
         toggle2FA,
         isEnabled,
         isLoading,

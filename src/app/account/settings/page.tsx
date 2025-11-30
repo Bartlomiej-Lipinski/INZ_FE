@@ -245,7 +245,7 @@ export default function AccountSettingsPage() {
                 <Button
                   sx={{ minWidth: 120, backgroundColor: theme.palette.grey[800] }}
                   onClick={() => {
-                    console.log("Potwierdzenie usunięcia konta - logika do zaimplementowania.");
+                    console.log("usunięcia konta - logika do zaimplementowania.");
                   }}
                 >
                   Tak

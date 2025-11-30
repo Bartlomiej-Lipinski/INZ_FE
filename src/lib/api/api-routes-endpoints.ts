@@ -7,6 +7,7 @@ export const API_ROUTES = {
     USER_BY_ID: '/api/user',
     USER_PROFILE: '/api/user/profile',
     VERIFY_2FA: '/api/auth/2FA',
+    RESEND_2FA: '/api/auth/2FA/resend',
     STATUS_2FA: '/api/auth/2FA/status',
     USER_GROUPS: '/api/user/groups',
     GROUP_BY_ID: '/api/group',
