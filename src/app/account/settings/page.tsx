@@ -48,11 +48,11 @@ export default function AccountSettingsPage() {
       const data = await response.json().catch(() => null);
 
       if (response.ok && data?.success) {
-        setResetLinkSuccess("Link resetujący został wysłany na Twój e-mail.");
+        setResetLinkSuccess("Link został wysłany na Twój e-mail.");
       } else if (response.status === 500) {
-        setResetLinkError("Nie udało się wysłać linku resetującego. Błąd połączenia z serwerem.");
+        setResetLinkError("Nie udało się wysłać linku. Błąd połączenia z serwerem.");
       } else {
-        setResetLinkError("Nie udało się wysłać linku resetującego. Spróbuj ponownie.");
+        setResetLinkError("Nie udało się wysłać linku. Spróbuj ponownie.");
       }
 
     } catch (sendError) {
@@ -170,7 +170,8 @@ export default function AccountSettingsPage() {
 
         <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
 
-        {/* password reset link */}
+
+        {/* password change link */}
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
     
           <Button
@@ -180,7 +181,7 @@ export default function AccountSettingsPage() {
             {isResetLinkLoading ? (
               <CircularProgress size={20} thickness={4} sx={{ color: "white" }} />
             ) : (
-              "Wyślij link do resetu hasła"
+              "Wyślij link do zmiany hasła"
             )}
           </Button>
 
@@ -209,6 +210,7 @@ export default function AccountSettingsPage() {
         
         <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
 
+        {/* delete account*/}
         <Button
           sx={{
             backgroundColor: theme.palette.error.main,
