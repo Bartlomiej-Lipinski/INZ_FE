@@ -102,6 +102,7 @@ export default function VerificationForm() {
   // TO-DO: Replace with actual API call
   const handleResendCode = async () => {
     setIsLoading(true);
+    setError('');
     await new Promise(resolve => setTimeout(resolve, 1000));
     setCode(['', '', '', '', '', '']);
     inputRefs.current[0]?.focus();
@@ -181,17 +182,8 @@ export default function VerificationForm() {
           />
         ))}
       </Box>
-
-      {/* Link to resend code */}
-      <Link
-        component="button"
-        type="button"
-        onClick={handleResendCode}
-        disabled={isLoading}
-      >
-        Wyślij ponownie kod
-      </Link>
-
+      
+      
       {/* Error message */}
       {error && (
         <Typography
@@ -204,6 +196,19 @@ export default function VerificationForm() {
           {error}
         </Typography>
       )}
+
+
+      {/* Link to resend code */}
+      <Link
+        component="button"
+        type="button"
+        onClick={handleResendCode}
+        disabled={isLoading}
+      >
+        Wyślij ponownie kod
+      </Link>
+
+      
 
       {/* Verification button */}
       <Button

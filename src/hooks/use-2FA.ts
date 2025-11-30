@@ -39,8 +39,7 @@ export function use2FA() {
             if (response.ok && data.success) {
                 return data;
             } else {
-                setError(data.message || "Błąd weryfikacji 2FA");
-                return {success: false, message: data.message || "Błąd weryfikacji 2FA"};
+                return {success: false, message: "Kod weryfikacyjny jest niepoprawny lub wygasł"};
             }
         } catch(err) {
             console.error('Verify 2FA error:', err);
