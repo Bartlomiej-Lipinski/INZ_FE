@@ -1,19 +1,67 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Divider, IconButton, Typography, Switch, FormControlLabel, Alert } from "@mui/material";
+import { Box, Button, Divider, IconButton, Typography, Switch, FormControlLabel, Alert, CircularProgress } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
-import NewPasswordForm from "@/components/pages/New-password-form";
 import { use2FA } from "@/hooks/use-2FA";
+import { useAuthContext } from "@/contexts/AuthContext";
+import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 
 export default function AccountSettingsPage() {
   const theme = useTheme();
   const router = useRouter();
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const { user } = useAuthContext();
   const { isEnabled, isLoading, error, successMessage, toggle2FA, setErrorMessage } = use2FA();
+  const [isResetLinkLoading, setIsResetLinkLoading] = useState(false);
+  const [resetLinkError, setResetLinkError] = useState<string | null>(null);
+  const [resetLinkSuccess, setResetLinkSuccess] = useState<string | null>(null);
+
+  const handleSendPasswordReset = async () => {
+    if (isResetLinkLoading) {
+      return;
+    }
+
+    if (!user?.email) {
+      setResetLinkError("Brak przypisanego adresu e-mail. Spróbuj ponownie po zalogowaniu.");
+      return;
+    }
+
+    setResetLinkError(null);
+    setResetLinkSuccess(null);
+    setIsResetLinkLoading(true);
+
+    try {
+      const response = await fetch(API_ROUTES.RESET_PASSWORD_REQUEST, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email: user.email,
+        }),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (response.ok && data?.success) {
+        setResetLinkSuccess("Link resetujący został wysłany na Twój e-mail.");
+      } else if (response.status === 500) {
+        setResetLinkError("Nie udało się wysłać linku resetującego. Błąd połączenia z serwerem.");
+      } else {
+        setResetLinkError("Nie udało się wysłać linku resetującego. Spróbuj ponownie.");
+      }
+
+    } catch (sendError) {
+      console.error("Send reset link error:", sendError);
+      setResetLinkError(sendError instanceof Error ? sendError.message : "Wystąpił błąd podczas wysyłania linku.");
+    } finally {
+      setIsResetLinkLoading(false);
+    }
+  };
 
   return (
     <Box
@@ -122,29 +170,41 @@ export default function AccountSettingsPage() {
 
         <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
 
-        {/* change password */}
-        {!isChangingPassword ? (
+        {/* password reset link */}
+        <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+    
           <Button
-            onClick={() => setIsChangingPassword(true)}
+            onClick={handleSendPasswordReset}
+            disabled={isResetLinkLoading || !user?.email}
           >
-            Zmiana hasła
+            {isResetLinkLoading ? (
+              <CircularProgress size={20} thickness={4} sx={{ color: "white" }} />
+            ) : (
+              "Wyślij link do resetu hasła"
+            )}
           </Button>
-        ) : (
-          <Box sx={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-            <NewPasswordForm />
-            <Button
-              onClick={() => setIsChangingPassword(false)}
-              sx={{
-                backgroundColor: theme.palette.grey[800],
-                color: theme.palette.text.primary,
-                border: `1px solid ${theme.palette.grey[700]}`,
-                width: "120px",
-              }}
+
+          {resetLinkSuccess && (
+            <Alert 
+              severity="success" 
+              onClose={() => setResetLinkSuccess(null)}
+              sx={{ width: "100%", mt: 1 }}
             >
-              Anuluj
-            </Button>
-          </Box>
-        )}
+              {resetLinkSuccess}
+            </Alert>
+          )}
+
+          {resetLinkError && (
+            <Alert 
+              severity="error" 
+              onClose={() => setResetLinkError(null)}
+              sx={{ width: "100%" , mt: 1}}
+            >
+              {resetLinkError}
+            </Alert>
+          )}
+
+        </Box>
         
         
         <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
