@@ -21,9 +21,15 @@ export async function POST(request: NextRequest) {
         const textBody = await response.text();
         const data = textBody ? JSON.parse(textBody) : {};
 
-
-         return  NextResponse.json(data, { status: response.status });
-
+        const nextResponse = NextResponse.json(data, { status: response.status });
+        
+        const setCookieHeaders = response.headers.getSetCookie();
+        setCookieHeaders.forEach((cookie) => {
+            nextResponse.headers.append('Set-Cookie', cookie);
+        });
+        
+        
+        return nextResponse;
     } catch (error) {
         console.error('Login API error:', error);
         return NextResponse.json(

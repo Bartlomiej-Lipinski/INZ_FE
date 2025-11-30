@@ -50,6 +50,11 @@ export function useAuth(): AuthHookResult {
       });
 
       const data = await response.json() as { success: boolean; data?: string; message?: string };
+      const requires2FA = data.data === 'Verification code sent to your email';
+
+      if (requires2FA) {
+        return { success: true, data: 'Verification code sent to your email', message: data.message };
+      }
 
       if (response.ok && data.success) {
         if (data.data) {

@@ -4,6 +4,7 @@ import {useState} from "react";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {useAuthContext} from "@/contexts/AuthContext";
+import {User} from "@/lib/types/user";
 
 interface Verify2FARequest {
     email: string;
@@ -26,17 +27,35 @@ export function use2FA() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetchWithAuth(`${API_ROUTES.VERIFY_2FA}`, {
+            const response = await fetch(`${API_ROUTES.VERIFY_2FA}`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     email: request.email.trim(),
                     code: request.code,
                 }),
+                credentials: 'include',
             });
 
-            const data = await response.json() as ApiResponse;
+            const data = await response.json() as { success: boolean; data?: string; message?: string };
 
             if (response.ok && data.success) {
+                if (data.data) {
+                    try {
+                        const userResponse = await fetchWithAuth(`${API_ROUTES.USER_BY_ID}/${data.data}`, {
+                            method: 'GET',
+                        });
+                        const userData = await userResponse.json();
+                        
+                        if (userData.success && userData.data) {
+                            setUser(userData.data as User);
+                        }
+                    } catch (userError) {
+                        console.error('Error fetching user data after 2FA verification:', userError);
+                    }
+                }
                 return data;
             } else {
                 return {success: false, message: "Kod weryfikacyjny jest niepoprawny lub wygasł"};
