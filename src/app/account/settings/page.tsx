@@ -228,7 +228,9 @@ export default function AccountSettingsPage() {
             <Box
               sx={{
                 width: "100%",
-                p: 4,
+                maxWidth: "100%",
+                boxSizing: "border-box",
+                p: { xs: 2.5, sm: 4 },
                 borderRadius: 2,
                 border: `1px solid ${theme.palette.error.main}`,
                 bgcolor: "rgba(255, 0, 0, 0.08)",
@@ -242,10 +244,25 @@ export default function AccountSettingsPage() {
               </Typography>
 
 
-              {/* TODO: Add logic to delete account */}
-              <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  justifyContent: "center",
+                  alignItems: "stretch",
+                  gap: { xs: 1.5, sm: 3 },
+                  width: "100%",
+                }}
+              >
+
+                {/* TODO: Add logic to delete account */}
+                {/* Yes button */}
                 <Button
-                  sx={{ minWidth: 120, backgroundColor: theme.palette.grey[800] }}
+                  fullWidth
+                  sx={{
+                    minWidth: { xs: "auto", sm: 120 },
+                    backgroundColor: theme.palette.grey[800],
+                  }}
                   onClick={() => {
                     console.log("usunięcia konta - logika do zaimplementowania.");
                   }}
@@ -253,8 +270,10 @@ export default function AccountSettingsPage() {
                   Tak
                 </Button>
 
+                {/* No button */}
                 <Button
-                  sx={{ minWidth: 120 }}
+                  fullWidth
+                  sx={{ minWidth: { xs: "auto", sm: 120 } }}
                   onClick={() => setShowDeleteConfirm(false)}
                 >
                   Nie
