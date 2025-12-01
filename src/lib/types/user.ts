@@ -7,7 +7,10 @@ export interface User {
   birthDate: Date;
   status: string | null;
   description: string | null;
-  photo: string | null;
+    profilePicture: {
+        id: string;
+    }
+    isTwoFactorEnabled: boolean;
   role?: 'Member';
 }
 

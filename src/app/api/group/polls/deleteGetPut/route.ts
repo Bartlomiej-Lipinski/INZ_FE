@@ -64,6 +64,12 @@ export async function GET(request: NextRequest) {
     try {
         const groupId = request.nextUrl.searchParams.get('groupId');
         const pollId = request.nextUrl.searchParams.get('pollId');
+        if (!groupId || !pollId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
+        }
         const endpoint = POLLS_GET_DELETE_PUT?.replace('{groupId}', groupId)
             .replace('{pollId}', pollId);
         const cookieHeader = request.headers.get('cookie') ?? '';
