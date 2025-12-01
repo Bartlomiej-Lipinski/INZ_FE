@@ -1,7 +1,7 @@
 "use client";
 
-import {useMemo} from 'react';
-import {useRouter, useSearchParams} from 'next/navigation';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 import {Box, Typography} from '@mui/material';
 import {alpha} from '@mui/material/styles';
 import {
@@ -37,22 +37,13 @@ const MENU_ITEMS = [
 ] as const;
 
 export default function GroupMenuPage() {
-  const searchParams = useSearchParams();
     const router = useRouter();
-  
-  const groupData = useMemo(() => {
-      const groupId = localStorage.getItem('groupId');
-      const groupName = localStorage.getItem('groupName');
-    
-    if (!groupId) {
-      return null;
-    }
-    
-    return {
-      id: groupId,
-        name: groupName,
-    };
-  }, [searchParams]);
+
+    const [groupData, setGroupData] = useState(() => {
+        const groupId = localStorage.getItem('groupId');
+        const groupName = localStorage.getItem('groupName');
+        return {id: groupId, name: groupName};
+    });
  
   return (
     <Box

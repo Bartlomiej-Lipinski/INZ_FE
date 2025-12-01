@@ -38,7 +38,9 @@ export default function ResetPasswordForm() {
               console.error('Failed to Send Reset password:', response.status, response.statusText);
           }
       } catch (error) {
-          console.error('Error resting password:', error);
+          console.error('Error resetting password:', error);
+      } finally {
+          setIsLoading(false);
       }
   };
 
