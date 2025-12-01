@@ -9,20 +9,59 @@ import {
   ButtonBase,
   CircularProgress,
   Divider,
+  MenuItem,
+  TextField,
   Typography,
 } from "@mui/material";
-import { useMemo } from "react";
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "@mui/material/styles";
 import { ChevronRight, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { formatDate } from "@/lib/utils/date";
+import { formatDate, formatDateForInput } from "@/lib/utils/date";
+import { STATUS_OPTIONS, getStatusLabel } from "@/lib/constants";
+import { useUser } from "@/hooks/use-user";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
+import { validateBirthDate, validateRequiredInput, validateUsername } from "@/lib/zod-schemas";
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
+  const { updateProfile, isLoading: isUpdatingProfile, error: updateError, setErrorMessage } = useUser();
   const theme = useTheme();
   const router = useRouter();
+  const [isMediumScreen, setIsMediumScreen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [errors, setErrors] = useState<{
+    name: string;
+    surname: string;
+    username: string;
+    birthDate: string;
+  }>({
+    name: "",
+    surname: "",
+    username: "",
+    birthDate: "",
+  });
+  
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMediumScreen(window.innerWidth >= theme.breakpoints.values.sm);
+    };
+    
+    checkScreenSize();
+    window.addEventListener("resize", checkScreenSize);
+    return () => window.removeEventListener("resize", checkScreenSize);
+  }, [theme.breakpoints.values.sm]);
+  
+  const descriptionMinRows = useMemo(() => (isMediumScreen ? 8 : 6), [isMediumScreen]);
+  const [formValues, setFormValues] = useState({
+    name: "",
+    surname: "",
+    username: "",
+    birthDate: "",
+    status: "",
+    description: "",
+  });
   const initials = useMemo(() => {
     if (!user) return "?";
 
@@ -32,6 +71,100 @@ export default function AccountPage() {
     const combined = `${nameInitial}${surnameInitial}`.trim();
     return combined.toUpperCase();
   }, [user]);
+
+  const populateFormFromUser = useCallback(() => {
+    if (!user) return;
+
+    setFormValues({
+      name: user.name ?? "",
+      surname: user.surname ?? "",
+      username: user.username ?? "",
+      birthDate: formatDateForInput(user.birthDate),
+      status: user.status ?? "",
+      description: user.description ?? "",
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (!isEditing) {
+      populateFormFromUser();
+    }
+  }, [populateFormFromUser, isEditing]);
+
+  const handleStartEditing = () => {
+    setErrorMessage("");
+    setErrors({
+      name: "",
+      surname: "",
+      username: "",
+      birthDate: "",
+    });
+    populateFormFromUser();
+    setIsEditing(true);
+  };
+
+  const handleCancelEditing = () => {
+    setIsEditing(false);
+    setErrorMessage("");
+    populateFormFromUser();
+  };
+
+  const validators: Record<keyof typeof errors, (value: string) => string> = {
+    name: (value) => validateRequiredInput(value, "Podaj imię"),
+    surname: (value) => validateRequiredInput(value, "Podaj nazwisko"),
+    username: (value) => validateUsername(value),
+    birthDate: (value) => validateBirthDate(value),
+  };
+
+  const handleFieldChange = (field: keyof typeof formValues, value: string) => {
+    if (field in validators) {
+      const error = validators[field as keyof typeof validators](value);
+      setErrors((prev) => ({
+        ...prev,
+        [field]: error,
+      }));
+    }
+
+    setFormValues((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!user) {
+      return;
+    }
+
+    const validationErrors = Object.keys(validators).reduce((acc, key) => {
+      const field = key as keyof typeof validators;
+      acc[field] = validators[field](formValues[field]);
+      return acc;
+    }, {} as typeof errors);
+
+    setErrors(validationErrors);
+
+    const hasErrors = Object.values(validationErrors).some(err => err !== "");
+    if (hasErrors) {
+      setErrorMessage("Popraw błędy w polach!");
+      return;
+    }
+
+    const payload = {
+      name: formValues.name.trim(),
+      surname: formValues.surname.trim(),
+      username: formValues.username.trim() || null,
+      status: formValues.status.trim() === "" ? null : formValues.status.trim(),
+      description: formValues.description.trim() || null,
+      birthDate: new Date(formValues.birthDate),
+    };
+
+    const result = await updateProfile(payload);
+
+    if (result.success) {
+      setIsEditing(false);
+    }
+  };
 
 
   const handleLogout = async () => {
@@ -100,23 +233,65 @@ export default function AccountPage() {
             </Avatar>
 
   
-              <Typography variant="h5" fontWeight={700} textAlign="center">
-                {`${user.name} ${user.surname}`}
-              </Typography>
-              
+              {isEditing ? (
+                <>
+                  <Typography variant="h6" fontWeight={700} textAlign="center" color="text.secondary">
+                    Tryb edycji profilu 
+                  </Typography>
+                <Box
+                  sx={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    mt: 1,
+                  }}
+                >
 
-              {/* TODO: Add logic for logout button */}
-              <Button onClick={handleLogout}>
-                  Wyloguj się
-                  </Button>
+                  {/* name */}
+                  <TextField
+                    label="Imię"
+                    value={formValues.name}
+                    onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      handleFieldChange("name", event.target.value)
+                    }
+                    fullWidth
+                    error={!!errors.name}
+                    helperText={errors.name}
+                  />
+
+                  {/* surname */}
+                  <TextField
+                    label="Nazwisko"
+                    value={formValues.surname}
+                    onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                      handleFieldChange("surname", event.target.value)
+                    }
+                    fullWidth
+                    error={!!errors.surname}
+                    helperText={errors.surname}
+                  />
+                </Box>
+                </>
+              ) : (
+                <Typography variant="h5" fontWeight={700} textAlign="center">
+                  {`${user.name} ${user.surname}`}
+                </Typography>
+              )}
+              
+              {!isEditing && (
+                <Button onClick={handleLogout}>
+                    Wyloguj się
+                    </Button>
+              )}
 
             <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" }} />
 
             <Box
               width="100%"
               display="flex"
-              flexDirection={{ xs: "column", md: "row" }}
-              alignItems={{ xs: "center", md: "stretch" }}
+              flexDirection={{ xs: "column", sm: "row" }}
+              alignItems={{ xs: "center", sm: "stretch" }}
             >
 
               <Box
@@ -124,58 +299,147 @@ export default function AccountPage() {
                 display="flex"
                 flexDirection="column"
                 gap={3}
-                pr={{ md: 3 }}
+                pr={{ xs: 0, sm: 3 }}
                 alignItems="center"
                 textAlign="center"
                 width="100%"
+                sx={{
+                  minWidth: 0,
+                  maxWidth: "100%",
+                }}
               >
                 
                 {/* user name */}
                 <Box width="100%">
-                  <Typography color="text.secondary" >
-                    Pseudonim
-                  </Typography>
-                  <Typography >
-                    {user.username?.trim() || "Brak pseudonimu"}
-                  </Typography>
+                  {isEditing ? (
+                    <TextField
+                      label="Pseudonim"
+                      value={formValues.username}
+                      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                        handleFieldChange("username", event.target.value)
+                      }
+                      error={!!errors.username}
+                      helperText={errors.username}
+                      fullWidth
+                    />
+                  ) : (
+                    <>
+                      <Typography color="text.secondary" >
+                        Pseudonim
+                      </Typography>
+                      <Typography >
+                        {user.username?.trim() || "Brak pseudonimu"}
+                      </Typography>
+                    </>
+                  )}
                 </Box>
 
 
                 {/* birth date */}
-                <Box >
-                  <Typography  color="text.secondary" >
-                    Data urodzenia
-                  </Typography>
-                  <Typography>
-                    {formatDate(user.birthDate)}
-                  </Typography>
+                <Box width="100%">
+                  {isEditing ? (
+                    <TextField
+                      type="date"
+                      label="Data urodzenia"
+                      value={formValues.birthDate}
+                      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                        handleFieldChange("birthDate", event.target.value)
+                      }
+                      error={!!errors.birthDate}
+                      helperText={errors.birthDate}
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      sx={{
+                        '& input[type="date"]::-webkit-calendar-picker-indicator': {
+                          opacity: 0.6,
+                          marginRight: "-18px",
+                        },
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <Typography  color="text.secondary" >
+                        Data urodzenia
+                      </Typography>
+                      <Typography>
+                        {formatDate(user.birthDate)}
+                      </Typography>
+                    </>
+                  )}
                 </Box>
 
 
                 {/* status */}
                 <Box
                 mb={3}
-                justifyItems={"center"}
+                textAlign={isEditing ? "left" : "center"}
+                width="100%"
                 >
-                  <Typography color="text.secondary" >
-                    Status
-                  </Typography>
-                  <Typography
-                  sx={{
-                    width: "95%",
-                      overflowWrap: "break-word",
-                      wordBreak: "break-word",
-                      whiteSpace: "pre-line",
-                      maxHeight: "50px",
-                      overflowY: "auto",
-                      marginLeft: "10px",
-                      paddingRight: "10px",
-                      scrollbarWidth: "thin",
-                      scrollbarColor: `${theme.palette.primary.main} transparent`,     
-                  }}
-                  >
-                    {user.status?.trim() || "Brak statusu"}
-                  </Typography>
+                  {isEditing ? (
+                    <TextField
+                      select
+                      label="Status"
+                      value={formValues.status}
+                      onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                        handleFieldChange("status", event.target.value)
+                      }
+                      fullWidth
+                      sx={{
+                        "& .MuiSelect-select": {
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                          paddingLeft: "12px",
+                        },
+                      }}
+                      SelectProps={{
+                        displayEmpty: true,
+                        MenuProps: {
+                          PaperProps: {
+                            sx: {
+                              backgroundColor: theme.palette.grey[800],
+                              border: `2px solid ${theme.palette.grey[700]}`,
+                              height: "196px",
+                              overflowY: "auto",
+                              scrollbarWidth: "thin",
+                              scrollbarColor: `${theme.palette.primary.main} transparent`,
+                            },
+                          },
+                        },
+                      }}
+                    >
+                      <MenuItem value="">
+                        <em>Brak statusu</em>
+                      </MenuItem>
+                      {STATUS_OPTIONS.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  ) : (
+                    <>
+                      <Typography color="text.secondary" >
+                        Status
+                      </Typography>
+                      <Typography
+                      sx={{
+                        width: "95%",
+                          overflowWrap: "break-word",
+                          wordBreak: "break-word",
+                          whiteSpace: "pre-line",
+                          maxHeight: "50px",
+                          overflowY: "auto",
+                          marginLeft: "10px",
+                          paddingRight: "10px",
+                          scrollbarWidth: "thin",
+                          scrollbarColor: `${theme.palette.primary.main} transparent`,     
+                      }}
+                      >
+                        {getStatusLabel(user.status)}
+                      </Typography>
+                    </>
+                  )}
                 </Box>
 
 
@@ -186,7 +450,7 @@ export default function AccountPage() {
                 orientation="vertical"
                 flexItem
                 sx={{
-                  display: { xs: "block", md: "block" },
+                  display: { xs: "block", sm: "block" },
                   borderColor: "rgba(255,255,255,0.2)",
                 }}
               />
@@ -195,44 +459,128 @@ export default function AccountPage() {
                 flex={1}
                 display="flex"
                 flexDirection="column"
-                pl={{ md: 3 }}
+                pl={{ xs: 0, sm: 3 }}
                 alignItems={"center"}
                 textAlign={"center"}
+                width="100%"
               >
 
                 {/* description */}
                 <Box
                 justifyItems="center"
+                width="100%"
                 >
-                  <Typography color="text.secondary" >
-                    Opis
-                  </Typography>
-                  <Typography
-                    sx={{
-                      width: "90%",
-                      overflowWrap: "break-word",
-                      wordBreak: "break-word",
-                      whiteSpace: "pre-line",
-                      textAlign: "left",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      marginLeft: "10px",
-                      paddingRight: "10px",
-                      scrollbarWidth: "thin",
-                      scrollbarColor: `${theme.palette.primary.main} transparent`
-                    }}
-                  >
-                    {user.description?.trim() || "Brak opisu"}
-                  </Typography>
+                  {isEditing ? (
+                    <Box width="100%">
+                      <TextField
+                        label="Opis"
+                        value={formValues.description}
+                        onChange={(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                          handleFieldChange("description", event.target.value)
+                        }
+                        fullWidth
+                        multiline
+                        minRows={descriptionMinRows}
+                        maxRows={8}
+                        inputProps={{ maxLength: 250 }}
+                        sx={{
+                          scrollbarWidth: "thin",
+                          scrollbarColor: `${theme.palette.primary.main} transparent`,
+                          "& .MuiInputBase-input": {
+                            paddingTop: "2.5px",
+                            paddingInline: "15px",
+                          },
+                        }}
+                      />
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          display: "block",
+                          textAlign: "right",
+                          marginRight: "5px",
+                          color: theme.palette.grey[400],
+                          mt: 0.5,
+                        }}
+                      >
+                        {formValues.description.length}/250
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <>
+                      <Typography color="text.secondary" >
+                        Opis
+                      </Typography>
+                      <Typography
+                        sx={{
+                          width: "90%",
+                          overflowWrap: "break-word",
+                          wordBreak: "break-word",
+                          whiteSpace: "pre-line",
+                          textAlign: user.description ? "left" : "center",
+                          maxHeight: "190px",
+                          overflowY: "auto",
+                          marginLeft: "10px",
+                          paddingRight: "10px",
+                          paddingBottom: "10px",
+                          scrollbarWidth: "thin",
+                          scrollbarColor: `${theme.palette.primary.main} transparent`
+                        }}
+                      >
+                        {user.description?.trim() || "Brak opisu"}
+                      </Typography>
+                    </>
+                  )}
                   </Box>
                 
                 </Box>
               </Box>
               
-            {/* TODO: Add logic for edit profile button */}
-              <Button sx={{ mt: 1 }}>
+              {updateError && (
+              <Typography color="error" textAlign="center">
+                {updateError}
+              </Typography>
+            )}
+
+            {isEditing ? (
+              <Box
+                sx={{
+                  mt: 0.5,
+                  width: "80%",
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: 2.5,
+                  justifyContent: "center",
+                }}
+              >
+
+
+                <Button
+                  sx={{
+                    backgroundColor: theme.palette.grey[800],
+                    color: theme.palette.text.primary,
+                    border: `1px solid ${theme.palette.grey[700]}`,
+                  }}
+                  fullWidth
+                  onClick={handleCancelEditing}
+                  disabled={isUpdatingProfile}
+                >
+                  Anuluj
+                </Button>
+                <Button
+                  fullWidth
+                  onClick={handleSave}
+                  disabled={isUpdatingProfile}
+                >
+                  {isUpdatingProfile ? "Zapisywanie..." : "Zapisz"}
+                </Button>
+              </Box>
+            ) : (
+              <Button sx={{ mt: 1 }} onClick={handleStartEditing}>
                 Edytuj profil
               </Button>
+            )}
+
+          
 
                 <ButtonBase
                   sx={{

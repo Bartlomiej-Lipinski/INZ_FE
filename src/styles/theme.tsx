@@ -63,8 +63,26 @@ const theme = createTheme({
             fontSize: '2.5rem',
             fontWeight: 600,
         },
-        h2: {
-            fontSize: '2rem',
+      },
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 30,
+            backgroundColor: 'rgba(125, 125, 125, 0.5)',
+            color: customColors.text.primary,
+            paddingRight: '20px', 
+            paddingLeft: '10px', 
+            fontSize: '15px',
+            '& fieldset': {
+              borderColor: 'transparent',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: customColors.primary.main,
+              borderWidth: 2,
+            },
+          },
+          '& .MuiInputLabel-root': {
+            color: customColors.text.primary,
             fontWeight: 600,
         },
         h3: {

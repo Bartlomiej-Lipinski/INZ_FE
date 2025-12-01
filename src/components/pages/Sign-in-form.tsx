@@ -46,12 +46,14 @@ export default function SignInForm() {
         password
       });
 
-        if (response.success && response.data === 'Verification code sent to your email') {
-            localStorage.setItem("pendingVerificationEmail", email);
-            router.push('/verification');
-        }else if(response.success) {
-            router.push('/');
-        }
+      const requires2FA = response.data === 'Verification code sent to your email' ;
+      
+      if (response.success && requires2FA) {
+        localStorage.setItem("pendingVerificationEmail", email);
+        router.push('/verification');
+      } else if(response.success) {
+        router.push('/');
+      }
       
     } catch (error: unknown) {
       console.log('Login error:', error);

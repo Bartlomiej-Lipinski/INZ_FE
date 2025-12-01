@@ -2,16 +2,17 @@
 
 import { useState, useRef, useEffect } from 'react';
 import type { ChangeEvent, ClipboardEvent, FormEvent, KeyboardEvent } from 'react';
-import { Box, Button, Typography, TextField, Link, CircularProgress } from '@mui/material';
-import {Verify2FA} from "@/hooks/use-Verify2FA";
+import { Alert, Box, Button, Typography, TextField, Link, CircularProgress } from '@mui/material';
+import {use2FA} from "@/hooks/use-2FA";
 import {useRouter} from "next/navigation";
 
 export default function VerificationForm() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+  const [resendAlert, setResendAlert] = useState<{ severity: 'success' | 'error'; message: string } | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { verify2FA } = Verify2FA();
+  const { verify2FA, resend2FA } = use2FA();
   const router = useRouter();
 
  
@@ -22,7 +23,7 @@ export default function VerificationForm() {
     const newCode = [...code];
     newCode[index] = value;
     setCode(newCode);
-    setError('');
+    setVerificationError('');
 
     if (value && index < 5) {
       setTimeout(() => {
@@ -54,7 +55,7 @@ export default function VerificationForm() {
     if (pastedData.length === 6) {
       const newCode = pastedData.split('');
       setCode(newCode);
-      setError('');
+      setVerificationError('');
       inputRefs.current[5]?.focus();
     }
   };
@@ -63,12 +64,13 @@ export default function VerificationForm() {
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
+        setVerificationError('');
+        setResendAlert(null);
         try {
             const email = localStorage.getItem('pendingVerificationEmail');
 
             if (!email) {
-                setError('Nie znaleziono adresu email. Zaloguj się ponownie.');
+                setVerificationError('Nie znaleziono adresu email. Zaloguj się ponownie.');
                 setIsLoading(false);
                 return;
             }
@@ -84,13 +86,13 @@ export default function VerificationForm() {
                 localStorage.removeItem('pendingVerificationEmail');
                 router.push('/');
             } else {
-                setError(response.message || 'Nieprawidłowy kod weryfikacyjny');
+                setVerificationError(response.message || 'Wystąpił błąd podczas weryfikacji. Spróbuj ponownie.');
                 setCode(['', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();
             }
         } catch (err) {
             console.error('Verification error:', err);
-            setError('Wystąpił błąd podczas weryfikacji. Spróbuj ponownie.');
+            setVerificationError('Wystąpił błąd podczas weryfikacji. Spróbuj ponownie.');
             setCode(['', '', '', '', '', '']);
             inputRefs.current[0]?.focus();
         } finally {
@@ -99,18 +101,60 @@ export default function VerificationForm() {
     };
 
 
-  // TO-DO: Replace with actual API call
   const handleResendCode = async () => {
+    if (isLoading) return;
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setCode(['', '', '', '', '', '']);
-    inputRefs.current[0]?.focus();
-    setIsLoading(false);
+    setVerificationError('');
+    setResendAlert(null);
+    try {
+      const email = localStorage.getItem('pendingVerificationEmail');
+
+      if (!email) {
+        setResendAlert({
+          severity: 'error',
+          message: 'Nie znaleziono adresu email. Zaloguj się ponownie.',
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await resend2FA(email);
+
+      if (response.success) {
+        setCode(['', '', '', '', '', '']);
+        inputRefs.current[0]?.focus();
+
+        setResendAlert({
+          severity: 'success',
+          message: `Nowy kod został wysłany na Twój adres e-mail.`,
+        });
+      } else {
+        setResendAlert({
+          severity: 'error',
+          message: 'Nie udało się wysłać nowego kodu.',
+        });
+      }
+    } catch (err) {
+      console.error('Resend code error:', err);
+      setResendAlert({
+        severity: 'error',
+        message: 'Wystąpił błąd podczas wysyłania kodu. Spróbuj ponownie.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
+
+  useEffect(() => {
+    if (!resendAlert) return;
+
+    const timer = setTimeout(() => setResendAlert(null), 3500);
+    return () => clearTimeout(timer);
+  }, [resendAlert]);
 
 
 
@@ -181,6 +225,30 @@ export default function VerificationForm() {
           />
         ))}
       </Box>
+      
+      
+      {/* Error message */}
+      {verificationError && (
+        <Typography
+          sx={{
+            color: 'error.main',
+            fontSize: '14px',
+            textAlign: 'center',
+          }}
+        >
+          {verificationError}
+        </Typography>
+      )}
+
+      {resendAlert && (
+        <Alert
+          severity={resendAlert.severity}
+          sx={{ width: { xs: '80%', sm: '100%' } }}
+        >
+          {resendAlert.message}
+        </Alert>
+      )}
+
 
       {/* Link to resend code */}
       <Link
@@ -192,18 +260,7 @@ export default function VerificationForm() {
         Wyślij ponownie kod
       </Link>
 
-      {/* Error message */}
-      {error && (
-        <Typography
-          sx={{
-            color: 'error.main',
-            fontSize: '14px',
-            textAlign: 'center',
-          }}
-        >
-          {error}
-        </Typography>
-      )}
+      
 
       {/* Verification button */}
       <Button

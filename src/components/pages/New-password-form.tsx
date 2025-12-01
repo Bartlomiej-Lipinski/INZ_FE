@@ -60,7 +60,7 @@ export default function NewPasswordForm() {
         gap: 4,
         mt: 3,
         width: '100%',
-        maxWidth: 400,
+        maxWidth: 350,
       }}
     >
         <>
@@ -71,7 +71,6 @@ export default function NewPasswordForm() {
             error={newPasswordError}
             required
             disabled={isLoading}
-            sx={{ width: '80%' }}
           />
 
           <PasswordInput
@@ -81,16 +80,12 @@ export default function NewPasswordForm() {
             error={repeatPasswordError}
             required
             disabled={isLoading}
-            sx={{ width: '80%' }}
           />
 
           <Button
             type="submit"
             variant="contained"
             disabled={isLoading || !newPassword || !repeatPassword}
-            sx={{
-              mb: 5,
-            }}
           >
             {isLoading ? (
               <CircularProgress size={20} thickness={4} sx={{ color: 'white' }} />

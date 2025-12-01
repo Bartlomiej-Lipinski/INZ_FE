@@ -13,3 +13,10 @@ export function formatDate(
   return `${day}.${month}.${year}`;
 }
 
+export function formatDateForInput(date: Date | string | null | undefined): string {
+  if (!date) return "";
+  const dateObj = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(dateObj.getTime())) return "";
+  return dateObj.toISOString().split("T")[0];
+}
+
