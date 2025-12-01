@@ -19,7 +19,7 @@ import {
 import {useRouter} from 'next/navigation';
 
 const MENU_ITEMS = [
-    {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-board'},
+    {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu'},
     {key: 'chat', label: 'CZAT', icon: MessageCircle, path: '/group-chat'},
     {key: 'events', label: 'WYDARZENIA', icon: Coffee, path: '/group-events'},
     {key: 'calendar', label: 'KALENDARZ', icon: CalendarDays, path: '/group-calendar'},

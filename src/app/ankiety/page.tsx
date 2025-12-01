@@ -73,7 +73,7 @@ export default function PollsPage() {
         if (userId) {
             try {
                 const parsed = JSON.parse(userId);
-                setCurrentUserId(parsed.Id || '');
+                setCurrentUserId(parsed.id || '');
             } catch {
                 setCurrentUserId('');
             }
@@ -328,13 +328,26 @@ export default function PollsPage() {
                             size="small"
                             startIcon={<Plus size={18}/>}
                             onClick={handleAddOption}
-                            sx={{mt: 2}}
+                            sx={{
+                                mt: 2,
+                                backgroundColor: groupData.color,
+                                '&:hover': {
+                                    backgroundColor: groupData.color,
+                                    opacity: 0.9,
+                                },
+                            }}
                         >
                             Dodaj opcję
                         </Button>
                     </DialogContent>
                     <DialogActions sx={{px: 3, pb: 2}}>
-                        <Button onClick={() => setCreateDialog(false)}>
+                        <Button
+                            sx={{
+                                backgroundColor: '#f44336',
+                                color: '#fff'
+                            }}
+                            onClick={() => setCreateDialog(false)}
+                        >
                             Anuluj
                         </Button>
                         <Button
@@ -370,10 +383,12 @@ export default function PollsPage() {
                         </Typography>
                     </DialogContent>
                     <DialogActions sx={{px: 3, pb: 2}}>
-                        <Button onClick={() => setDeleteDialog({open: false, pollId: null})}>
+                        <Button sx={{backgroundColor: groupData.color}}
+                                onClick={() => setDeleteDialog({open: false, pollId: null})}>
                             Anuluj
                         </Button>
-                        <Button variant="contained" color="error" onClick={handleDeletePoll}>
+                        <Button variant="contained" color="error" sx={{backgroundColor: '#f44336'}}
+                                onClick={handleDeletePoll}>
                             Usuń
                         </Button>
                     </DialogActions>

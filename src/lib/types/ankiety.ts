@@ -10,7 +10,7 @@ export interface PollRequestDto {
 }
 
 export interface PollResponseDto {
-    id?: string;
+    id: string;
     createdByUserId: string;
     question: string;
     createdAt: string;
