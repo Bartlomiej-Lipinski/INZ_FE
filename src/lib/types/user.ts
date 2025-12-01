@@ -9,6 +9,7 @@ export interface User {
   description: string | null;
   photo: string | null;
   role?: 'Member';
+  isTwoFactorEnabled: boolean;
 }
 
 
