@@ -24,10 +24,11 @@ export async function POST(request: NextRequest) {
         const nextResponse = NextResponse.json(data, { status: response.status });
         
         const setCookieHeaders = response.headers.getSetCookie();
-        setCookieHeaders.forEach((cookie) => {
-            nextResponse.headers.append('Set-Cookie', cookie);
-        });
-        
+        if (setCookieHeaders && setCookieHeaders.length > 0) {
+            setCookieHeaders.forEach((cookie) => {
+                nextResponse.headers.append('Set-Cookie', cookie);
+            });
+        }
         
         return nextResponse;
     } catch (error) {

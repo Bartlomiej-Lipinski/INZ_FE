@@ -1,6 +1,6 @@
 "use client";
 
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {useAuthContext} from "@/contexts/AuthContext";
@@ -127,7 +127,6 @@ export function use2FA() {
                 setSuccessMessage(enabled 
                     ? "Dwuetapowa weryfikacja została włączona" 
                     : "Dwuetapowa weryfikacja została wyłączona");
-                setTimeout(() => setSuccessMessage(null), 3000);
                 return true;
             } else {
                 setError(data.message || (enabled 
@@ -143,6 +142,15 @@ export function use2FA() {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (!successMessage) {
+            return;
+        }
+
+        const timeoutId = setTimeout(() => setSuccessMessage(null), 3000);
+        return () => clearTimeout(timeoutId);
+    }, [successMessage]);
 
     const isEnabled = user?.isTwoFactorEnabled ?? false;
 

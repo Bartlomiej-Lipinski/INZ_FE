@@ -115,7 +115,7 @@ export default function AccountSettingsPage() {
           Zarządzanie kontem
         </Typography>
 
-        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)", marginBlock: 1}} />
 
         {/* 2FA Toggle */}
         <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 2 }}>
@@ -132,7 +132,7 @@ export default function AccountSettingsPage() {
               control={
                 <Switch
                   checked={isEnabled}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => toggle2FA(e.target.checked as boolean)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => toggle2FA(e.target.checked)}
                   disabled={isLoading}
                   sx={{
                     "& .MuiSwitch-switchBase.Mui-checked": {
@@ -200,7 +200,7 @@ export default function AccountSettingsPage() {
             <Alert 
               severity="error" 
               onClose={() => setResetLinkError(null)}
-              sx={{ width: "100%" , mt: 1}}
+              sx={{ width: "100%", mt: 1}}
             >
               {resetLinkError}
             </Alert>
@@ -209,7 +209,7 @@ export default function AccountSettingsPage() {
         </Box>
         
         
-        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)" , marginBlock: 1}} />
+        <Divider flexItem sx={{ width: "100%", borderColor: "rgba(255,255,255,0.2)", marginBlock: 1}} />
 
         {/* delete account*/}
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -241,6 +241,8 @@ export default function AccountSettingsPage() {
                 Czy na pewno chcesz usunąć konto?
               </Typography>
 
+
+              {/* TODO: Add logic to delete account */}
               <Box sx={{ display: "flex", justifyContent: "center", gap: 3 }}>
                 <Button
                   sx={{ minWidth: 120, backgroundColor: theme.palette.grey[800] }}
@@ -250,12 +252,14 @@ export default function AccountSettingsPage() {
                 >
                   Tak
                 </Button>
+
                 <Button
                   sx={{ minWidth: 120 }}
                   onClick={() => setShowDeleteConfirm(false)}
                 >
                   Nie
                 </Button>
+
               </Box>
             </Box>
           )}

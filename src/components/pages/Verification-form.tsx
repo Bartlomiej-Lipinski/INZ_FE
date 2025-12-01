@@ -126,7 +126,7 @@ export default function VerificationForm() {
 
         setResendAlert({
           severity: 'success',
-          message:  `Nowy kod został wysłany na Twój adres e-mail.`,
+          message: `Nowy kod został wysłany na Twój adres e-mail.`,
         });
       } else {
         setResendAlert({

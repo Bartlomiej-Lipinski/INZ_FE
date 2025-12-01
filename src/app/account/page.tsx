@@ -89,7 +89,7 @@ export default function AccountPage() {
     if (!isEditing) {
       populateFormFromUser();
     }
-  }, [user, isEditing]);
+  }, [populateFormFromUser, isEditing]);
 
   const handleStartEditing = () => {
     setErrorMessage("");
