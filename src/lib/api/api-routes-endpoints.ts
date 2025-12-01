@@ -18,4 +18,6 @@ export const API_ROUTES = {
     GET_GROUP_MEMBERS: '/api/group/members',
     GET_JOIN_REQUESTS: '/api/user/joinRequest',
     GENERATE_JOIN_GROUP_CODE: '/api/group/generateJoinCode',
+    RESET_PASSWORD_REQUEST: '/api/auth/resetPasswordRequest',
+    RESET_PASSWORD: '/api/auth/resetPassword',
 } as const; 

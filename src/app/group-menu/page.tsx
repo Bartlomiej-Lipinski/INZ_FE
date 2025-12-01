@@ -1,23 +1,23 @@
 "use client";
 
-import {useMemo} from 'react';
-import {useSearchParams} from 'next/navigation';
+import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 import {Box, Typography} from '@mui/material';
 import {alpha} from '@mui/material/styles';
 import {
-  Bell,
-  MessageCircle,
-  Coffee,
-  CalendarDays,
-  Star,
-  CheckSquare,
-  ChevronRight,
-  Settings,
-  Images,
-  Notebook,
-  Users,
-  Gamepad2,
-  DollarSign,
+    Bell,
+    CalendarDays,
+    CheckSquare,
+    ChevronRight,
+    Coffee,
+    DollarSign,
+    Gamepad2,
+    Images,
+    MessageCircle,
+    Notebook,
+    Settings,
+    Star,
+    Users,
 } from 'lucide-react';
 
 
@@ -37,21 +37,13 @@ const MENU_ITEMS = [
 ] as const;
 
 export default function GroupMenuPage() {
-  const searchParams = useSearchParams();
-  
-  const groupData = useMemo(() => {
-    const groupId = searchParams.get('groupId') || '';
-    const groupName = searchParams.get('groupName') || '';
-    
-    if (!groupId) {
-      return null;
-    }
-    
-    return {
-      id: groupId,
-      name: decodeURIComponent(groupName),
-    };
-  }, [searchParams]);
+    const router = useRouter();
+
+    const [groupData, setGroupData] = useState(() => {
+        const groupId = localStorage.getItem('groupId');
+        const groupName = localStorage.getItem('groupName');
+        return {id: groupId, name: groupName};
+    });
  
   return (
     <Box
@@ -121,6 +113,10 @@ export default function GroupMenuPage() {
                     }
                   })}
                   onClick={() => {
+                      if (item.key === 'chat') {
+                          router.push(`/chat`);
+                          return;
+                      }
                     console.debug(`Moduł: ${item.label}`);
                   }}
                 >

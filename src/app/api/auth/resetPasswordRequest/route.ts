@@ -9,7 +9,6 @@ export async function POST(request: NextRequest) {
     try {
 
         const {email} = await request.json();
-
         const response = await fetchWithAuth(`${BASE_URL}${PASSWORD_RESET_REQUEST}`, {
             method: 'POST',
             headers: {
