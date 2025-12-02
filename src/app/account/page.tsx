@@ -1,28 +1,29 @@
 "use client";
 
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
-import { useAuthContext } from "@/contexts/AuthContext";
+import {useAuthContext} from "@/contexts/AuthContext";
 import {
-  Avatar,
-  Box,
-  Button,
-  ButtonBase,
-  CircularProgress,
-  Divider,
-  MenuItem,
-  TextField,
-  Typography,
+    Avatar,
+    Box,
+    Button,
+    ButtonBase,
+    CircularProgress,
+    Divider,
+    MenuItem,
+    TextField,
+    Typography,
 } from "@mui/material";
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { useTheme } from "@mui/material/styles";
-import { ChevronRight, Settings } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { formatDate, formatDateForInput } from "@/lib/utils/date";
-import { STATUS_OPTIONS, getStatusLabel } from "@/lib/constants";
-import { useUser } from "@/hooks/use-user";
-import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
-import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { validateBirthDate, validateRequiredInput, validateUsername } from "@/lib/zod-schemas";
+import {ChangeEvent, useCallback, useEffect, useMemo, useState} from "react";
+import {useTheme} from "@mui/material/styles";
+import {ChevronRight, Settings} from "lucide-react";
+import {useRouter} from "next/navigation";
+import {formatDate, formatDateForInput} from "@/lib/utils/date";
+import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
+import {useUser} from "@/hooks/use-user";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
+import useGetUserProfilePicture from "@/hooks/use-getUserProfilePicture";
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
@@ -42,6 +43,8 @@ export default function AccountPage() {
     username: "",
     birthDate: "",
   });
+
+    const {src: avatarSrc, loading: avatarLoading} = useGetUserProfilePicture(user?.profilePicture.id);
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -216,21 +219,41 @@ export default function AccountPage() {
           <CircularProgress size={36} />
         ) : user ? (
           <>
-            <Avatar
-              alt={`${user.name} ${user.surname}`.trim() || undefined}
-              src={user.photo?.toString() || undefined}
-              sx={ {
-                width: { xs: 80, sm: 90 },
-                height: { xs: 80, sm: 90 },
-                bgcolor: theme.palette.grey[700],
-                border: `3px solid ${theme.palette.primary.main}`,
-                color: theme.palette.primary.contrastText,
-                fontSize: { xs: 24, sm: 28 },
-                fontWeight: 600,
-              }}
-            >
-              {initials}
-            </Avatar>
+              <Box sx={{position: "relative", display: "inline-flex"}}>
+                  <Avatar
+                      alt={`${user.name} ${user.surname}`.trim() || undefined}
+                      src={avatarSrc ?? undefined}
+                      sx={{
+                          width: {xs: 80, sm: 90},
+                          height: {xs: 80, sm: 90},
+                          bgcolor: theme.palette.grey[700],
+                          border: `3px solid ${theme.palette.primary.main}`,
+                          color: theme.palette.primary.contrastText,
+                          fontSize: {xs: 24, sm: 28},
+                          fontWeight: 600,
+                      }}
+                  >
+                      {initials}
+                  </Avatar>
+                  {avatarLoading && (
+                      <Box
+                          sx={{
+                              position: "absolute",
+                              top: 0,
+                              left: 0,
+                              width: "100%",
+                              height: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              bgcolor: "rgba(0,0,0,0.25)",
+                              borderRadius: "50%",
+                          }}
+                      >
+                          <CircularProgress size={28}/>
+                      </Box>
+                  )}
+              </Box>
 
   
               {isEditing ? (

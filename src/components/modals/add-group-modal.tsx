@@ -1,17 +1,8 @@
 "use client";
 
-import { useState } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    TextField,
-    Button,
-    Box,
-    IconButton,
-    Typography,
-} from '@mui/material';
-import { X } from 'lucide-react';
+import React, {useState} from 'react';
+import {Box, Button, Dialog, DialogContent, DialogTitle, IconButton, TextField, Typography,} from '@mui/material';
+import {X} from 'lucide-react';
 
 interface AddGroupModalProps {
     isOpen: boolean;
@@ -65,7 +56,7 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
             onAdd(groupName, selectedColor);
             setGroupName('');
             setHue(0);
-            setSaturation(100);
+            setSaturation(70);
             onClose();
         }
     };

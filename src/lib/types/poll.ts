@@ -1,14 +1,10 @@
 export interface PollCreate {
     question: string;
-    options: [
-        {
+    options: Array<{
+        id: string;
+        text: string;
+        votedUsers: Array<{
             id: string;
-            text: string;
-            votedUsers: [
-                {
-                    id: string;
-                }
-            ]
-        }
-    ]
+        }>
+    }>
 }
