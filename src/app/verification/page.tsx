@@ -20,10 +20,10 @@ export default function VerificationPage() {
         <Image 
         src={IMAGES.MATES_LOGO} 
         alt="Logo" 
-        width={220} 
-        height={200} 
+        width={200} 
+        height={180} 
         priority 
-        style={{ marginTop: 10, marginBottom: 20 }} />
+        style={{ marginTop: 40, marginBottom: 20 }} />
 
       
       <Typography

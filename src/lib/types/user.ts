@@ -12,6 +12,7 @@ export interface User {
     }
     isTwoFactorEnabled: boolean;
   role?: 'Member';
+  isTwoFactorEnabled: boolean;
 }
 
 
