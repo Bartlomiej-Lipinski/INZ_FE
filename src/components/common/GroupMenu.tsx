@@ -23,7 +23,7 @@ import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 
 const MENU_ITEMS = [
     {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu'},
-    {key: 'chat', label: 'CZAT', icon: MessageCircle, path: '/group-chat'},
+    {key: 'chat', label: 'CZAT', icon: MessageCircle, path: '/chat'},
     {key: 'events', label: 'WYDARZENIA', icon: Coffee, path: '/group-events'},
     {key: 'calendar', label: 'KALENDARZ', icon: CalendarDays, path: '/group-calendar'},
     {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, path: '/group-settlements'},

@@ -23,6 +23,8 @@ export default function GroupBoardPage() {
     const [page] = useState(0);
     const [pageSize] = useState(10);
     const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatar: string } | null>(null);
+    const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
+
 
 
     useEffect(() => {
@@ -131,12 +133,6 @@ export default function GroupBoardPage() {
                 throw new Error('Błąd podczas zapisywania reakcji');
             }
 
-            const updatedReactions = await response.json();
-            setItems(
-                items.map((item) =>
-                    item.id === itemId ? {...item, reactions: updatedReactions} : item
-                )
-            );
         } catch (error) {
             console.error('Błąd podczas zapisywania reakcji:', error);
             setItems(previousItems);
@@ -157,12 +153,11 @@ export default function GroupBoardPage() {
 
     const handleAddComment = async (itemId: string) => {
         if (!currentUser) return;
-
         const content = newComment[itemId]?.trim();
         if (!content) return;
 
-        const comment: CommentResponseDto = {
-            id: 'c-' + Date.now(),
+        const tempComment: CommentResponseDto = {
+            id: `temp-${Date.now()}`,
             content,
             createdAt: new Date().toISOString(),
             userId: currentUser.id,
@@ -170,13 +165,122 @@ export default function GroupBoardPage() {
             userAvatarUrl: currentUser.avatar,
         };
 
-        setItems(items.map((item) => (item.id === itemId ? {...item, comments: [...item.comments, comment]} : item)));
-        setNewComment({...newComment, [itemId]: ''});
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === itemId
+                    ? {
+                        ...item,
+                        reactions: Array.isArray(item.reactions) ? item.reactions : [],
+                        comments: Array.isArray(item.comments)
+                            ? [...item.comments, tempComment]
+                            : [tempComment]
+                    }
+                    : item
+            )
+        );
+
+        setNewComment((prev) => ({...prev, [itemId]: ''}));
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.POST_COMMENT}?groupId=${groupData.id}&targetId=${itemId}`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({content, entityType: "GroupFeedItem"}),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas dodawania komentarza');
+            }
+
+            const result = await response.json();
+
+            const savedComment: CommentResponseDto = {
+                ...tempComment,
+                id: result.data,
+            };
+
+            setItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id === itemId
+                        ? {
+                            ...item,
+                            reactions: Array.isArray(item.reactions) ? item.reactions : [],
+                            comments: Array.isArray(item.comments)
+                                ? item.comments.map((c) => c.id === tempComment.id ? savedComment : c)
+                                : [savedComment]
+                        }
+                        : item
+                )
+            );
+        } catch (error) {
+            console.error('Błąd podczas dodawania komentarza:', error);
+
+            setItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id === itemId
+                        ? {
+                            ...item,
+                            reactions: Array.isArray(item.reactions) ? item.reactions : [],
+                            comments: Array.isArray(item.comments)
+                                ? item.comments.filter((c) => c.id !== tempComment.id)
+                                : []
+                        }
+                        : item
+                )
+            );
+
+            setNewComment((prev) => ({...prev, [itemId]: content}));
+        }
     };
 
+
     const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, itemId: string) => {
-        console.log('Menu opened for item:', itemId);
+        setMenuAnchor({el: event.currentTarget, itemId});
     };
+
+    const handleCloseMenu = () => {
+        setMenuAnchor(null);
+    };
+
+    const handleEditPost = () => {
+        if (!menuAnchor) return;
+        console.log('Edytuj post:', menuAnchor.itemId);
+        handleCloseMenu();
+    };
+
+    const handleDeletePost = async () => {
+        if (!menuAnchor) return;
+
+        const itemId = menuAnchor.itemId;
+        handleCloseMenu();
+
+        const previousItems = [...items];
+
+        setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.DELETE_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${itemId}`,
+                {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas usuwania posta');
+            }
+        } catch (error) {
+            console.error('Błąd podczas usuwania posta:', error);
+            setItems(previousItems);
+        }
+    };
+
 
     if (!currentUser) {
         return (
@@ -225,10 +329,9 @@ export default function GroupBoardPage() {
                     user={currentUser}
                     groupColor={groupColor}
                     groupId={groupData.id}
-                    onAddPost={async (newItem) => {
-
+                    onAddPost={(newItem) => {
                         const tempPost: GroupFeedItemResponseDto = {
-                            ...newItem, // ✅ Zachowaj wszystkie dane z formularza
+                            ...newItem,
                             id: newItem.id || `temp-${Date.now()}`,
                             userId: currentUser.id,
                             userName: currentUser.name,
@@ -236,14 +339,16 @@ export default function GroupBoardPage() {
                             reactions: [],
                             comments: [],
                             createdAt: new Date().toISOString(),
-                            type: newItem.type || FeedItemType.POST, // ✅ Ustaw domyślny typ
-                            description: newItem.description || 'nie ma', // ✅ Zachowaj opis
-                            title: newItem.title, // ✅ Zachowaj tytuł (opcjonalny)
-                            storedFileId: newItem.storedFileId, // ✅ Zachowaj załącznik
+                            type: newItem.type || FeedItemType.POST,
+                            description: newItem.description || '',
+                            title: newItem.title,
+                            storedFileId: newItem.storedFileId,
                         };
-                        setItems([tempPost, ...items]);
+
+                        setItems((prevItems) => [tempPost, ...prevItems]);
                     }}
                 />
+
 
                 <FeedList
                     items={items}
@@ -256,13 +361,10 @@ export default function GroupBoardPage() {
                     newComment={newComment}
                     onCommentChange={(id, value) => setNewComment({...newComment, [id]: value})}
                     onAddComment={handleAddComment}
-                    menuAnchor={null}
-                    onCloseMenu={() => {
-                    }}
-                    onEditPost={() => {
-                    }}
-                    onDeletePost={() => {
-                    }}
+                    menuAnchor={menuAnchor}
+                    onCloseMenu={handleCloseMenu}
+                    onEditPost={handleEditPost}
+                    onDeletePost={handleDeletePost}
                 />
             </Box>
         </Box>

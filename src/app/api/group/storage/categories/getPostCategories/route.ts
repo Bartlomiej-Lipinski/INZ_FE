@@ -44,7 +44,8 @@ export async function POST(request: NextRequest) {
                 {status: 400}
             );
         }
-        const str = await request.json();
+        const body = await request.json();
+        const str = body.str;
         const endpoint = GET_POST_CATEGORIES?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {

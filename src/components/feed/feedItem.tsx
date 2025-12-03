@@ -124,13 +124,18 @@ export default function FeedItem({
                                  }: FeedItemProps) {
     const ItemIcon = getItemIcon(item.type);
     const imageUrl = getImageUrl(item.storedFileId);
-    const userLiked = item.reactions.some(r => r.userId === userId && r.reactionType === 'Like');
+    const userLiked = Array.isArray(item.reactions)
+        ? item.reactions.some(r => r.userId === userId && r.reactionType === 'Like')
+        : false;
     const isUserPost = item.userId === userId;
-    const avatarsToShow = item.reactions.slice(0, 3).map((r) => ({
-        id: r.userId,
-        name: r.userName,
-        picture: `https://i.pravatar.cc/150?u=${r.userId}`,
-    }));
+    const avatarsToShow = Array.isArray(item.reactions)
+        ? item.reactions.slice(0, 3).map((r) => ({
+            id: r.userId,
+            name: r.userName,
+            picture: `https://i.pravatar.cc/150?u=${r.userId}`,
+        }))
+        : [];
+
 
     return (
         <Card sx={{bgcolor: 'background.paper', borderRadius: 3, position: 'relative'}}>
@@ -183,9 +188,10 @@ export default function FeedItem({
                                 }}
                             >
                                 <Typography sx={{fontWeight: 600, fontSize: '1.25rem', color: 'white'}}>
-                                    {item.userName?.[0] || '?'}
+                                    {item.userName?.[0]?.toUpperCase() || '?'}
                                 </Typography>
                             </Box>
+
                         )}
                         <Box>
                             <Typography sx={{fontWeight: 600, fontSize: '1rem'}}>
@@ -261,8 +267,9 @@ export default function FeedItem({
                             }
                         }}
                     >
-                        {item.reactions.length}
+                        {(item.reactions || []).length}
                     </Button>
+
                     {/* Overlapping avatars */}
                     {avatarsToShow.length > 0 && (
                         <Box sx={{display: 'flex', alignItems: 'center', ml: 1}}>
@@ -299,7 +306,7 @@ export default function FeedItem({
                         }
                     }}
                 >
-                    {item.comments.length}
+                    {(item.comments || []).length}
                 </Button>
             </CardActions>
             {/* Komentarze */}
@@ -310,12 +317,12 @@ export default function FeedItem({
                         {item.comments.map(comment => (
                             <Box key={comment.id} sx={{display: 'flex', gap: 1.5, mb: 2}}>
                                 <Avatar src={comment.userAvatarUrl} sx={{width: 32, height: 32}}>
-                                    {comment.userName[0]}
+                                    {comment.userName?.[0]?.toUpperCase() || '?'}
                                 </Avatar>
                                 <Box sx={{flex: 1}}>
                                     <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 1.5}}>
                                         <Typography sx={{fontWeight: 600, fontSize: '0.875rem', mb: 0.5}}>
-                                            {comment.userName}
+                                            {comment.userName || 'Nieznany użytkownik'}
                                         </Typography>
                                         <Typography sx={{fontSize: '0.875rem'}}>{comment.content}</Typography>
                                     </Box>
@@ -325,6 +332,7 @@ export default function FeedItem({
                                 </Box>
                             </Box>
                         ))}
+
                         {/* Dodawanie komentarza */}
                         <Box sx={{display: 'flex', gap: 1.5, mt: item.comments.length > 0 ? 2 : 0}}>
                             <Avatar src={MOCK_USER.avatar} sx={{width: 32, height: 32}}>

@@ -65,11 +65,11 @@ export async function fetchWithAuth(
     method: options.method,
     credentials: 'include',
       headers: {
+          ...options.headers,
           ...(options.body instanceof FormData
                   ? {}
                   : {'Content-Type': 'application/json'}
           ),
-          ...options.headers,
       },
   };
 
