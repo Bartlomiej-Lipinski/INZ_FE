@@ -26,7 +26,7 @@ import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getCroppedFile} from "@/lib/utils/image";
 import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
-import {useUser, type ProfilePhotoResponseData} from "@/hooks/use-user";
+import {useUser, type ProfilePhotoResponseData, clearProfilePictureCache} from "@/hooks/use-user";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
@@ -477,6 +477,7 @@ export default function AccountPage() {
       return;
     }
 
+    const previousProfilePictureId = user.profilePicture?.id ?? null;
     const validationErrors = Object.keys(validators).reduce((acc, key) => {
       const field = key as keyof typeof validators;
       acc[field] = validators[field](formValues[field]);
@@ -523,6 +524,17 @@ export default function AccountPage() {
       }
     }
 
+    if (shouldRemoveAvatar || selectedAvatarFile) {
+      const cacheKeysToInvalidate = new Set<string>();
+      if (previousProfilePictureId) {
+        cacheKeysToInvalidate.add(previousProfilePictureId);
+      }
+      if (uploadedPhotoData?.id) {
+        cacheKeysToInvalidate.add(uploadedPhotoData.id);
+      }
+      cacheKeysToInvalidate.forEach((cacheKey) => clearProfilePictureCache(cacheKey));
+    }
+
     const refreshedUser = await fetchAuthenticatedUser();
 
     if (refreshedUser) {
@@ -563,6 +575,7 @@ export default function AccountPage() {
         const response = await fetchWithAuth(`${API_ROUTES.LOGOUT}`, { method: 'POST' });
         if (response.ok) {
             setUser(null);
+            clearProfilePictureCache();
             router.push('/');
         } else {
             console.error('Logout failed:', response.status, response.statusText);
