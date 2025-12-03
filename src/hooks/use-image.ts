@@ -220,9 +220,44 @@ export const useImage = () => {
     return getCachedProfilePicture(fileId);
   }, []);
 
+  const deleteProfilePicture = useCallback(async (fileId: string | null | undefined): Promise<boolean> => {
+    if (!fileId) {
+      return true;
+    }
+
+    try {
+      const response = await fetchWithAuth(`${API_ROUTES.PROFILE_PICTURE}`, {
+        method: "DELETE",
+        body: JSON.stringify({ fileId }),
+      });
+
+      let data: { success?: boolean; message?: string } | null = null;
+      const contentType = response.headers.get("content-type") ?? "";
+      if (contentType.includes("application/json")) {
+        try {
+          data = await response.json();
+        } catch (error) {
+          console.error("Delete profile picture parse error:", error);
+        }
+      }
+
+      if (!response.ok || data?.success === false) {
+        console.error("Delete profile picture error:", data?.message ?? response.statusText);
+        return false;
+      }
+
+      clearProfilePictureCache(fileId);
+      return true;
+    } catch (error) {
+      console.error("Delete profile picture request failed:", error);
+      return false;
+    }
+  }, []);
+
   return {
     fetchProfilePicture,
     getProfilePictureFromCache,
+    deleteProfilePicture,
   };
 };
 

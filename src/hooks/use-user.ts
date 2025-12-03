@@ -110,7 +110,7 @@ export function useUser(): UserHookResult {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await fetchWithAuth(`${API_ROUTES.POST_PROFILE_PICTURE}`, {
+      const response = await fetchWithAuth(`${API_ROUTES.PROFILE_PICTURE}`, {
         method: 'POST',
         body: formData,
       });

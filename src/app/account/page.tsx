@@ -51,7 +51,7 @@ export default function AccountPage() {
     setErrorMessage
   } = useUser();
   type UpdatePayload = Parameters<typeof updateProfile>[0];
-  const { fetchProfilePicture, getProfilePictureFromCache } = useImage();
+  const { fetchProfilePicture, getProfilePictureFromCache, deleteProfilePicture } = useImage();
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -568,6 +568,14 @@ export default function AccountPage() {
 
       if (!result.success) {
         return;
+      }
+
+      if (shouldRemoveAvatar) {
+        const deleteSuccess = await deleteProfilePicture(previousProfilePictureId);
+        if (!deleteSuccess) {
+          setErrorMessage("Nie udało się usunąć zdjęcia profilowego.");
+          return;
+        }
       }
     } else if (shouldUploadAvatar) {
       setErrorMessage("");
