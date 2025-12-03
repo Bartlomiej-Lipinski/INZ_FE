@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 import { UserUpdate, User } from '@/lib/types/user';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -12,8 +12,23 @@ interface ApiResponse {
   message?: string;
 }
 
+interface ProfilePhotoResponse {
+  success: boolean;
+  data?: ProfilePhotoResponseData;
+  message?: string;
+}
+
+export interface ProfilePhotoResponseData {
+  id?: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  url: string;
+}
+
 interface UserHookResult {
   updateProfile: (request: UserUpdate) => Promise<ApiResponse>;
+  uploadProfilePicture: (file: File) => Promise<ProfilePhotoResponseData | null>;
   isLoading: boolean;
   error: string | null;
   setErrorMessage: (message: string) => void;
@@ -77,12 +92,39 @@ export function useUser(): UserHookResult {
     }
   };
 
+  const uploadProfilePicture = useCallback(async (file: File): Promise<ProfilePhotoResponseData | null> => {
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetchWithAuth(`${API_ROUTES.POST_PROFILE_PICTURE}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json() as ProfilePhotoResponse;
+
+      if (!response.ok || !data.success || !data.data) {
+        const message = data?.message ?? 'Nie udało się przesłać zdjęcia profilowego.';
+        setError(message);
+        return null;
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error('Profile photo upload error:', error);
+      setError('Wystąpił błąd podczas przesyłania zdjęcia.');
+      return null;
+    }
+  }, [setError]);
+
   const setErrorMessage = (message: string) => {
     setError(message);
   };
 
   return {
     updateProfile,
+    uploadProfilePicture,
     isLoading,
     error,
     setErrorMessage

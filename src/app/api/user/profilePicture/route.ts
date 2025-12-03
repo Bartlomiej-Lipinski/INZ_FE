@@ -1,5 +1,4 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
 const PROFILE_PHOTO = process.env.PROFILE_PHOTO;
@@ -18,7 +17,7 @@ export async function POST(request: NextRequest) {
         const upstreamFormData = new FormData();
         upstreamFormData.append('file', file, file.name);
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${PROFILE_PHOTO}`, {
+        const response = await fetch(`${BASE_URL}${PROFILE_PHOTO}`, {
             method: 'POST',
             headers: {
                 'Cookie': cookieHeader,

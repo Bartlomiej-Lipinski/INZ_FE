@@ -58,14 +58,18 @@ export async function fetchWithAuth(
   url: string, 
   options: RequestInit = {}
 ): Promise<Response> {
+  const isFormDataBody = typeof FormData !== 'undefined' && options.body instanceof FormData;
+  const headers = new Headers(options.headers ?? undefined);
+
+  if (!isFormDataBody && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const requestOptions: RequestInit = {
     ...options,
     method: options.method,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   };
 
 

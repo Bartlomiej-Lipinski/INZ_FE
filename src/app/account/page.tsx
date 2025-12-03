@@ -26,7 +26,7 @@ import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getCroppedFile} from "@/lib/utils/image";
 import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
-import {useUser} from "@/hooks/use-user";
+import {useUser, type ProfilePhotoResponseData} from "@/hooks/use-user";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
@@ -34,23 +34,9 @@ import Cropper, {Area} from "react-easy-crop";
 
 const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
 const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
-type ProfilePhotoResponseData = {
-  id?: string;
-  fileName: string;
-  contentType: string;
-  size: number;
-  url: string;
-};
-
-type ProfilePhotoResponse = {
-  success: boolean;
-  data?: ProfilePhotoResponseData;
-  message?: string;
-};
-
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
-  const { updateProfile, isLoading: isUpdatingProfile, error: updateError, setErrorMessage } = useUser();
+  const { updateProfile, uploadProfilePicture, isLoading: isUpdatingProfile, error: updateError, setErrorMessage } = useUser();
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -327,35 +313,6 @@ export default function AccountPage() {
     handleCancelAvatarCrop();
   };
 
-  const uploadProfilePicture = useCallback(async (file: File): Promise<ProfilePhotoResponseData | null> => {
-    setIsUploadingPhoto(true);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetchWithAuth(`${API_ROUTES.POST_PROFILE_PICTURE}`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const data: ProfilePhotoResponse = await response.json();
-
-      if (!response.ok || !data.success || !data.data) {
-        const message = data?.message ?? "Nie udało się przesłać zdjęcia profilowego.";
-        setErrorMessage(message);
-        return null;
-      }
-
-      return data.data;
-    } catch (error) {
-      console.error("Profile photo upload error:", error);
-      setErrorMessage("Wystąpił błąd podczas przesyłania zdjęcia.");
-      return null;
-    } finally {
-      setIsUploadingPhoto(false);
-    }
-  }, [setErrorMessage]);
-
   const handleFieldChange = (field: keyof typeof formValues, value: string) => {
     if (field in validators) {
       const error = validators[field as keyof typeof validators](value);
@@ -410,7 +367,12 @@ export default function AccountPage() {
     let uploadedPhotoData: ProfilePhotoResponseData | null = null;
 
     if (selectedAvatarFile) {
-      uploadedPhotoData = await uploadProfilePicture(selectedAvatarFile);
+      setIsUploadingPhoto(true);
+      try {
+        uploadedPhotoData = await uploadProfilePicture(selectedAvatarFile);
+      } finally {
+        setIsUploadingPhoto(false);
+      }
       if (!uploadedPhotoData) {
         return;
       }
