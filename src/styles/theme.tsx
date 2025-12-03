@@ -4,7 +4,7 @@ import {createTheme, ThemeProvider as MuiThemeProvider} from '@mui/material/styl
 import CssBaseline from '@mui/material/CssBaseline';
 import {CacheProvider} from '@emotion/react';
 import createCache from '@emotion/cache';
-import {usePathname, useServerInsertedHTML} from 'next/navigation';
+import {usePathname, useSearchParams, useServerInsertedHTML} from 'next/navigation';
 import {type ReactNode, useEffect, useMemo} from 'react';
 
 
@@ -63,26 +63,8 @@ const theme = createTheme({
             fontSize: '2.5rem',
             fontWeight: 600,
         },
-      },
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 30,
-            backgroundColor: 'rgba(125, 125, 125, 0.5)',
-            color: customColors.text.primary,
-            paddingRight: '20px', 
-            paddingLeft: '10px', 
-            fontSize: '15px',
-            '& fieldset': {
-              borderColor: 'transparent',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: customColors.primary.main,
-              borderWidth: 2,
-            },
-          },
-          '& .MuiInputLabel-root': {
-            color: customColors.text.primary,
+        h2: {
+            fontSize: '2rem',
             fontWeight: 600,
         },
         h3: {
@@ -151,7 +133,6 @@ const theme = createTheme({
                         borderRadius: 30,
                         backgroundColor: 'rgba(125, 125, 125, 0.5)',
                         color: customColors.text.primary,
-                        height: '46px',
                         paddingRight: '20px',
                         paddingLeft: '10px',
                         fontSize: '15px',
@@ -353,36 +334,31 @@ export function ThemeProvider({children}: { children: ReactNode }) {
 const GROUP_COLOR_STORAGE_KEY = 'currentGroupColor';
 
 export function GroupThemeUpdater() {
+    const searchParams = useSearchParams();
     const pathname = usePathname();
+    const groupColor = searchParams?.get('groupColor');
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-
         const body = document.body;
         const isGroupMenuPath = pathname?.startsWith('/group-menu') ?? false;
 
-        if (!isGroupMenuPath) {
-            localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
-            localStorage.removeItem('groupColor');
-            body.style.background = DEFAULT_BACKGROUND;
-            return;
-        }
 
-        // Jesteśmy na group-menu — odczytujemy kolor (najpierw z parametu, potem z zapisanego klucza)
-        const groupColorRaw = localStorage.getItem('groupColor');
-        if (groupColorRaw) {
-            const decodedColor = decodeURIComponent(groupColorRaw);
+        if (groupColor) {
+            const decodedColor = decodeURIComponent(groupColor);
             localStorage.setItem(GROUP_COLOR_STORAGE_KEY, decodedColor);
             body.style.background = createGroupGradient(decodedColor);
-        } else {
+        } else if (isGroupMenuPath) {
             const savedColor = localStorage.getItem(GROUP_COLOR_STORAGE_KEY);
             if (savedColor) {
                 body.style.background = createGroupGradient(savedColor);
             } else {
                 body.style.background = DEFAULT_BACKGROUND;
             }
+        } else {
+            localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
+            body.style.background = DEFAULT_BACKGROUND;
         }
-    }, [pathname]);
+    }, [groupColor, pathname]);
 
     return null;
 }

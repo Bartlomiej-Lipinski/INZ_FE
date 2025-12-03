@@ -1,4 +1,3 @@
-// TypeScript
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
 import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
@@ -10,7 +9,7 @@ type UseGetUserProfilePictureResult = {
     reload: () => void;
 };
 
-const inMemoryCache = new Map<string, string>(); // fileId -> objectURL
+const inMemoryCache = new Map<string, string>();
 
 export default function useGetUserProfilePicture(
     fileId?: string | null,
@@ -29,8 +28,8 @@ export default function useGetUserProfilePicture(
     useEffect(() => {
         let cancelled = false;
 
-        async function tryFetch(fallbackUrl: string, signal?: AbortSignal) {
-            const res = await fetchWithAuth("${API_ROUTES.GET_FILE_BY_ID}?fileId=${fileId}", {signal});
+        async function tryFetch(signal?: AbortSignal) {
+            const res = await fetchWithAuth('${API_ROUTES.GET_FILE_BY_ID}?fileId=${fileId}', {signal});
             if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
             return res;
         }
@@ -90,7 +89,7 @@ export default function useGetUserProfilePicture(
 
                 // fallback: stary endpoint z query param (relatywny)
                 try {
-                    const fallbackUrl = `${API_ROUTES.GET_FILE_BY_ID}?id=${encodeURIComponent(fileId)}`;
+                    const fallbackUrl = `${API_ROUTES.GET_FILE_BY_ID}?fileId=${encodeURIComponent(fileId)}`;
                     const res2 = await tryFetch(fallbackUrl, controller.signal);
                     const blob2 = await res2.blob();
                     if (cancelled) return;

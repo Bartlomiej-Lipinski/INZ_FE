@@ -44,8 +44,8 @@ export default function AccountPage() {
     birthDate: "",
   });
 
-    const {src: avatarSrc, loading: avatarLoading} = useGetUserProfilePicture(user?.profilePicture.id);
-  
+    const {src: avatarSrc, loading: avatarLoading} = useGetUserProfilePicture(user?.profilePicture?.id);
+
   useEffect(() => {
     const checkScreenSize = () => {
       setIsMediumScreen(window.innerWidth >= theme.breakpoints.values.sm);

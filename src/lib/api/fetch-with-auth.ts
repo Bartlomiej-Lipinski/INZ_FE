@@ -1,4 +1,4 @@
-import { API_ROUTES } from "./api-routes-endpoints";
+import {API_ROUTES} from "./api-routes-endpoints";
 
 let isRefreshing = false;
 let refreshPromise: Promise<{ success: boolean; noRefreshToken?: boolean }> | null = null;
@@ -64,10 +64,13 @@ export async function fetchWithAuth(
     ...options,
     method: options.method,
     credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+      headers: {
+          ...(options.body instanceof FormData
+                  ? {}
+                  : {'Content-Type': 'application/json'}
+          ),
+          ...options.headers,
+      },
   };
 
 
