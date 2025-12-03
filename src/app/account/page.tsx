@@ -347,6 +347,23 @@ export default function AccountPage() {
     }
   }, [avatarPreview, setAvatarPreviewUrl, user?.profilePicture, fileInputRef]);
 
+  const handleRestoreRemovedAvatar = useCallback(() => {
+    if (!user?.profilePicture) {
+      setShouldRemoveAvatar(false);
+      return;
+    }
+
+    setShouldRemoveAvatar(false);
+    setErrorMessage("");
+
+    if (user.profilePicture.id) {
+      setIsAvatarFileLoading(true);
+    } else {
+      setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture.url));
+      setIsAvatarFileLoading(false);
+    }
+  }, [setAvatarPreviewUrl, setErrorMessage, user, setIsAvatarFileLoading]);
+
   const handleAvatarInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -672,33 +689,40 @@ export default function AccountPage() {
               )}
               {isEditing && selectedAvatarFile && (
                 <Button
-                  variant="text"
-                  size="small"
                   onClick={resetAvatarSelection}
-                  sx={{textTransform: "none", mb: 1, backgroundColor: theme.palette.primary.dark}}
+                  sx={{mb: 1, backgroundColor: theme.palette.primary.dark}}
                 >
                   Usuń wybrane zdjęcie
                 </Button>
               )}
               {isEditing && !selectedAvatarFile && user?.profilePicture && !shouldRemoveAvatar && (
                 <Button
-                  variant="text"
-                  size="small"
                   onClick={handleRemoveCurrentAvatar}
-                  sx={{textTransform: "none", mb: 1, mt: -2, backgroundColor: theme.palette.error.main}}
+                  sx={{ mb: 1, mt: -2, backgroundColor: theme.palette.error.main}}
                 >
                   Usuń aktualne zdjęcie
                 </Button>
               )}
               {isEditing && shouldRemoveAvatar && (
-                <Typography
-                  variant="caption"
-                  color="warning.main"
-                  textAlign="center"
-                  sx={{mt: -1}}
+                <Box
+                  sx={{
+                    mt: -1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 0.5,
+                  }}
                 >
-                  Zdjęcie zostanie usunięte po zapisaniu zmian.
-                </Typography>
+                  <Typography variant="caption" color="warning.light" textAlign="center">
+                    Zdjęcie zostanie usunięte po zapisaniu zmian.
+                  </Typography>
+                  <Button
+                    onClick={handleRestoreRemovedAvatar}
+                    sx={{backgroundColor: theme.palette.primary.dark, mt:1}}
+                  >
+                    Cofnij
+                  </Button>
+                </Box>
               )}
 
   
