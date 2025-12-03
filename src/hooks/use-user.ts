@@ -26,9 +26,13 @@ export interface ProfilePhotoResponseData {
   url: string;
 }
 
+
+
 interface UserHookResult {
   updateProfile: (request: UserUpdate) => Promise<ApiResponse>;
   uploadProfilePicture: (file: File) => Promise<ProfilePhotoResponseData | null>;
+  fetchAuthenticatedUser: (userId?: string) => Promise<User | null>;
+  fetchProfilePictureBlob: (fileId: string, signal?: AbortSignal) => Promise<Blob | null>;
   isLoading: boolean;
   error: string | null;
   setErrorMessage: (message: string) => void;
@@ -118,6 +122,68 @@ export function useUser(): UserHookResult {
     }
   }, [setError]);
 
+
+
+  const fetchAuthenticatedUser = useCallback(async (userId?: string): Promise<User | null> => {
+    const targetUserId = userId ?? user?.id;
+
+    if (!targetUserId) {
+      return null;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetchWithAuth(`${API_ROUTES.USER_BY_ID}/${targetUserId}`, {
+        method: 'GET',
+      });
+
+      const data = await response.json() as { success: boolean; data?: User; message?: string };
+
+      if (response.ok && data.success && data.data) {
+        setUser(data.data);
+        return data.data;
+      }
+
+      const errorMessage = data.message ?? 'Nie udało się pobrać danych użytkownika.';
+      setError(errorMessage);
+      return null;
+    } catch (error) {
+      console.error('Fetch authenticated user error:', error);
+      setError('Wystąpił błąd podczas pobierania danych użytkownika.');
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setUser, user?.id]);
+
+
+
+  const fetchProfilePictureBlob = useCallback(async (fileId: string, signal?: AbortSignal): Promise<Blob | null> => {
+    try {
+      const response = await fetchWithAuth(`${API_ROUTES.GET_FILE_BY_ID}?id=${fileId}`, {
+        method: 'GET',
+        headers: {
+          Accept: '*/*',
+        },
+        signal,
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.blob();
+    } catch (error) {
+      if ((error as Error)?.name === 'AbortError') {
+        return null;
+      }
+      console.error('Fetch profile picture error:', error);
+      return null;
+    }
+  }, []);
+
   const setErrorMessage = (message: string) => {
     setError(message);
   };
@@ -125,6 +191,8 @@ export function useUser(): UserHookResult {
   return {
     updateProfile,
     uploadProfilePicture,
+    fetchAuthenticatedUser,
+    fetchProfilePictureBlob,
     isLoading,
     error,
     setErrorMessage
