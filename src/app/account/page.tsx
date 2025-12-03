@@ -50,7 +50,8 @@ export default function AccountPage() {
     error: updateError,
     setErrorMessage
   } = useUser();
-  const { fetchProfilePicture } = useImage();
+  type UpdatePayload = Parameters<typeof updateProfile>[0];
+  const { fetchProfilePicture, getProfilePictureFromCache } = useImage();
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -145,6 +146,49 @@ export default function AccountPage() {
     return combined.toUpperCase();
   }, [user]);
 
+  const normalizedFormValues = useMemo(() => ({
+    name: formValues.name.trim(),
+    surname: formValues.surname.trim(),
+    username: formValues.username.trim(),
+    status: formValues.status.trim(),
+    description: formValues.description.trim(),
+    birthDate: formValues.birthDate,
+  }), [formValues]);
+
+  const normalizedUserValues = useMemo(() => {
+    if (!user) {
+      return null;
+    }
+
+    return {
+      name: user.name?.trim() ?? "",
+      surname: user.surname?.trim() ?? "",
+      username: user.username?.trim() ?? "",
+      status: user.status?.trim() ?? "",
+      description: user.description?.trim() ?? "",
+      birthDate: formatDateForInput(user.birthDate),
+    };
+  }, [user]);
+
+  const hasProfileDataChanged = useMemo(() => {
+    if (!normalizedUserValues) {
+      return false;
+    }
+
+    return (
+      normalizedFormValues.name !== normalizedUserValues.name ||
+      normalizedFormValues.surname !== normalizedUserValues.surname ||
+      normalizedFormValues.username !== normalizedUserValues.username ||
+      normalizedFormValues.status !== normalizedUserValues.status ||
+      normalizedFormValues.description !== normalizedUserValues.description ||
+      normalizedFormValues.birthDate !== normalizedUserValues.birthDate
+    );
+  }, [normalizedFormValues, normalizedUserValues]);
+
+  const shouldUploadAvatar = !!selectedAvatarFile;
+  const shouldUpdateProfile = hasProfileDataChanged || shouldRemoveAvatar;
+  const hasPendingChanges = shouldUpdateProfile || shouldUploadAvatar;
+
   useEffect(() => {
     if (shouldRemoveAvatar) {
       setAvatarPreviewUrl(null);
@@ -165,6 +209,14 @@ export default function AccountPage() {
 
     if (!user.profilePicture.id) {
       setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture.url));
+      setIsAvatarFileLoading(false);
+      return;
+    }
+
+    const cachedBlob = getProfilePictureFromCache(user.profilePicture.id);
+    if (cachedBlob) {
+      const objectUrl = URL.createObjectURL(cachedBlob);
+      setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
       setIsAvatarFileLoading(false);
       return;
     }
@@ -203,7 +255,7 @@ export default function AccountPage() {
     return () => {
       controller.abort();
     };
-  }, [selectedAvatarFile, user?.profilePicture?.id, user?.profilePicture?.url, setAvatarPreviewUrl, fetchProfilePicture, shouldRemoveAvatar]);
+  }, [selectedAvatarFile, user?.profilePicture?.id, user?.profilePicture?.url, setAvatarPreviewUrl, fetchProfilePicture, shouldRemoveAvatar, getProfilePictureFromCache]);
 
   useEffect(() => {
     if (!selectedAvatarFile) {
@@ -478,42 +530,52 @@ export default function AccountPage() {
       return;
     }
 
-    const previousProfilePictureId = user.profilePicture?.id ?? null;
-    const validationErrors = Object.keys(validators).reduce((acc, key) => {
-      const field = key as keyof typeof validators;
-      acc[field] = validators[field](formValues[field]);
-      return acc;
-    }, {} as typeof errors);
-
-    setErrors(validationErrors);
-
-    const hasErrors = Object.values(validationErrors).some(err => err !== "");
-    if (hasErrors) {
-      setErrorMessage("Popraw błędy w polach!");
+    if (!hasPendingChanges) {
       return;
     }
 
-    const payload = {
-      name: formValues.name.trim(),
-      surname: formValues.surname.trim(),
-      username: formValues.username.trim() || null,
-      status: formValues.status.trim() === "" ? null : formValues.status.trim(),
-      description: formValues.description.trim() || null,
-      birthDate: new Date(formValues.birthDate),
-      ...(shouldRemoveAvatar ? { profilePictureId: null } : {}),
-    };
+    const previousProfilePictureId = user.profilePicture?.id ?? null;
+    let payload: (UpdatePayload & { profilePictureId?: string | null }) | null = null;
 
-    setErrorMessage("");
+    if (shouldUpdateProfile) {
+      const validationErrors = Object.keys(validators).reduce((acc, key) => {
+        const field = key as keyof typeof validators;
+        acc[field] = validators[field](formValues[field]);
+        return acc;
+      }, {} as typeof errors);
 
-    const result = await updateProfile(payload);
+      setErrors(validationErrors);
 
-    if (!result.success) {
-      return;
+      const hasErrors = Object.values(validationErrors).some((err) => err !== "");
+      if (hasErrors) {
+        setErrorMessage("Popraw błędy w polach!");
+        return;
+      }
+
+      payload = {
+        name: normalizedFormValues.name,
+        surname: normalizedFormValues.surname,
+        username: normalizedFormValues.username || null,
+        status: normalizedFormValues.status === "" ? null : normalizedFormValues.status,
+        description: normalizedFormValues.description || null,
+        birthDate: new Date(formValues.birthDate),
+        ...(shouldRemoveAvatar ? { profilePictureId: null } : {}),
+      };
+
+      setErrorMessage("");
+
+      const result = await updateProfile(payload);
+
+      if (!result.success) {
+        return;
+      }
+    } else if (shouldUploadAvatar) {
+      setErrorMessage("");
     }
 
     let uploadedPhotoData: ProfilePhotoResponseData | null = null;
 
-    if (selectedAvatarFile) {
+    if (shouldUploadAvatar && selectedAvatarFile) {
       setIsUploadingPhoto(true);
       try {
         uploadedPhotoData = await uploadProfilePicture(selectedAvatarFile);
@@ -525,7 +587,7 @@ export default function AccountPage() {
       }
     }
 
-    if (shouldRemoveAvatar || selectedAvatarFile) {
+    if (shouldRemoveAvatar || shouldUploadAvatar) {
       const cacheKeysToInvalidate = new Set<string>();
       if (previousProfilePictureId) {
         cacheKeysToInvalidate.add(previousProfilePictureId);
@@ -544,14 +606,20 @@ export default function AccountPage() {
         profilePicture: shouldRemoveAvatar ? null : refreshedUser.profilePicture,
       });
     } else {
+      const fallbackUserData = payload
+        ? {
+            ...user,
+            name: payload.name,
+            surname: payload.surname,
+            username: payload.username,
+            status: payload.status,
+            description: payload.description,
+            birthDate: payload.birthDate,
+          }
+        : user;
+
       setUser({
-        ...user,
-        name: payload.name,
-        surname: payload.surname,
-        username: payload.username,
-        status: payload.status,
-        description: payload.description,
-        birthDate: payload.birthDate,
+        ...fallbackUserData,
         profilePicture: uploadedPhotoData
           ? {
               id: uploadedPhotoData.id ?? user.profilePicture?.id ?? "",
@@ -562,7 +630,7 @@ export default function AccountPage() {
             }
           : shouldRemoveAvatar
             ? null
-            : user.profilePicture,
+            : fallbackUserData.profilePicture,
       });
     }
 
@@ -1076,7 +1144,7 @@ export default function AccountPage() {
                 <Button
                   fullWidth
                   onClick={handleSave}
-                  disabled={isSavingProfile}
+                  disabled={isSavingProfile || !hasPendingChanges}
                 >
                   {isSavingProfile ? "Zapisywanie..." : "Zapisz"}
                 </Button>
