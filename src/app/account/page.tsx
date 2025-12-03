@@ -44,7 +44,7 @@ export default function AccountPage() {
     birthDate: "",
   });
 
-    const {src: avatarSrc, loading: avatarLoading} = useGetUserProfilePicture(user?.profilePicture.id);
+    const {src: avatarSrc, loading: avatarLoading} = useGetUserProfilePicture(user?.profilePicture?.id);
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -375,7 +375,7 @@ export default function AccountPage() {
                       sx={{
                         '& input[type="date"]::-webkit-calendar-picker-indicator': {
                           opacity: 0.6,
-                          marginRight: "-18px",
+                          marginRight: "-17px",
                         },
                       }}
                     />

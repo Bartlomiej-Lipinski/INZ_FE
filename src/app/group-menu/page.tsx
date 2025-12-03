@@ -130,18 +130,18 @@ const MOCK_ITEMS: GroupFeedItemResponseDto[] = [
 ];
 
 const MENU_ITEMS = [
-    {key: 'news', label: 'NOWOŚCI', icon: Bell},
-    {key: 'chat', label: 'CZAT', icon: MessageCircle},
-    {key: 'events', label: 'WYDARZENIA', icon: Coffee},
-    {key: 'calendar', label: 'KALENDARZ', icon: CalendarDays},
-    {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign},
-    {key: 'recommendations', label: 'REKOMENDACJE', icon: Star},
-    {key: 'tasks', label: 'ZADANIA', icon: CheckSquare},
-    {key: 'albums', label: 'ALBUM', icon: Images},
-    {key: 'games', label: 'GRY', icon: Gamepad2},
-    {key: 'study', label: 'NAUKA', icon: Notebook},
-    {key: 'members', label: 'CZŁONKOWIE', icon: Users},
-    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings},
+    {key: 'news', label: 'NOWOŚCI', icon: Bell, href: '/group-menu/news'},
+    {key: 'chat', label: 'CZAT', icon: MessageCircle, href: '/group-menu/chat'},
+    {key: 'events', label: 'WYDARZENIA', icon: Coffee, href: '/group-menu/events'},
+    {key: 'calendar', label: 'KALENDARZ', icon: CalendarDays, href: '/group-menu/calendar'},
+    {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, href: '/group-menu/settlements'},
+    {key: 'recommendations', label: 'REKOMENDACJE', icon: Star, href: '/group-menu/recommendations'},
+    {key: 'tasks', label: 'ZADANIA', icon: CheckSquare, href: '/group-menu/tasks'},
+    {key: 'albums', label: 'ALBUM', icon: Images, href: '/group-menu/album'},
+    {key: 'games', label: 'GRY', icon: Gamepad2, href: '/group-menu/games'},
+    {key: 'study', label: 'NAUKA', icon: Notebook, href: '/group-menu/study'},
+    {key: 'members', label: 'CZŁONKOWIE', icon: Users, href: '/group-menu/members'},
+    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, href: '/group-menu/settings'},
 ] as const;
 
 function getItemIcon(type: FeedItemType) {
@@ -432,7 +432,7 @@ export default function GroupBoardPage() {
                         <List>
                             {MENU_ITEMS.map((m) => (
                                 <ListItem key={m.key} disablePadding>
-                                    <ListItemButton sx={{borderRadius: 1}}>
+                                    <ListItemButton sx={{borderRadius: 1}} href={m.href}>
                                         <ListItemIcon>
                                             <m.icon/>
                                         </ListItemIcon>
