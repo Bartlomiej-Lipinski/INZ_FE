@@ -81,7 +81,7 @@ export async function fetchWithAuth(
     return response;
   }
 
-  if (response.status === 401) {
+    if (response.status === 401 || response.status === 403 || response.status === 500) {
     if (isRefreshing) {
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({ 
