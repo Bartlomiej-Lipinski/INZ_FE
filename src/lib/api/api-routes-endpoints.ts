@@ -17,7 +17,7 @@ export const API_ROUTES = {
     GET_JOIN_REQUESTS: '/api/user/joinRequest',
     GENERATE_JOIN_GROUP_CODE: '/api/group/generateJoinCode',
     POST_PROFILE_PICTURE: '/api/user/profilePicture',
-    GET_FILE_BY_ID: '/api/storage/getFileById',
+    GET_FILE_BY_ID: '/api/group/storage/getFileById',
     POLL_DELETE_GET_PUT: '/api/group/polls/deleteGetPut',
     POLL_CREATE_GETALL: '/api/group/polls/getPost',
     POLL_VOTE: '/api/group/polls/vote',
