@@ -63,28 +63,6 @@ const theme = createTheme({
             fontSize: '2.5rem',
             fontWeight: 600,
         },
-      },
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 30,
-            backgroundColor: 'rgba(125, 125, 125, 0.5)',
-            color: customColors.text.primary,
-            paddingRight: '20px', 
-            paddingLeft: '10px', 
-            fontSize: '15px',
-            '& fieldset': {
-              borderColor: 'transparent',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: customColors.primary.main,
-              borderWidth: 2,
-            },
-          },
-          '& .MuiInputLabel-root': {
-            color: customColors.text.primary,
-            fontWeight: 600,
-        },
         h3: {
             fontSize: '1.75rem',
             fontWeight: 500,
@@ -145,35 +123,22 @@ const theme = createTheme({
                     shrink: true,
                 },
             },
+        },
+        MuiOutlinedInput: {
             styleOverrides: {
                 root: {
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: 30,
-                        backgroundColor: 'rgba(125, 125, 125, 0.5)',
-                        color: customColors.text.primary,
-                        height: '46px',
-                        paddingRight: '20px',
-                        paddingLeft: '10px',
-                        fontSize: '15px',
-                        '& fieldset': {
-                            borderColor: 'transparent',
-                        },
-                        '&.Mui-focused fieldset': {
-                            borderColor: customColors.primary.main,
-                            borderWidth: 2,
-                        },
+                    borderRadius: 30,
+                    backgroundColor: 'rgba(125, 125, 125, 0.5)',
+                    color: customColors.text.primary,
+                    paddingRight: '20px',
+                    paddingLeft: '10px',
+                    fontSize: '15px',
+                    '& fieldset': {
+                        borderColor: 'transparent',
                     },
-                    '& .MuiInputLabel-root': {
-                        color: customColors.text.primary,
-                        fontWeight: 600,
-                        fontSize: '17px',
-                        transform: 'translate(14px, -9px) scale(0.75)',
-                        '&.MuiInputLabel-shrink': {
-                            transform: 'translate(14px, -9px) scale(0.75)',
-                        },
-                        '&.Mui-focused': {
-                            color: customColors.text.primary,
-                        },
+                    '&.Mui-focused fieldset': {
+                        borderColor: customColors.primary.main,
+                        borderWidth: 2,
                     },
                 },
             },
@@ -200,6 +165,13 @@ const theme = createTheme({
         MuiInputLabel: {
             styleOverrides: {
                 root: {
+                    color: customColors.text.primary,
+                    fontWeight: 600,
+                    fontSize: '17px',
+                    transform: 'translate(14px, -9px) scale(0.75)',
+                    '&.MuiInputLabel-shrink': {
+                        transform: 'translate(14px, -9px) scale(0.75)',
+                    },
                     '&.Mui-focused': {
                         color: customColors.text.primary,
                     },
@@ -350,7 +322,7 @@ export function ThemeProvider({children}: { children: ReactNode }) {
 }
 
 
-const GROUP_COLOR_STORAGE_KEY = 'currentGroupColor';
+const GROUP_COLOR_STORAGE_KEY = 'groupColor';
 
 export function GroupThemeUpdater() {
     const pathname = usePathname();
@@ -363,13 +335,11 @@ export function GroupThemeUpdater() {
 
         if (!isGroupMenuPath) {
             localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
-            localStorage.removeItem('groupColor');
             body.style.background = DEFAULT_BACKGROUND;
             return;
         }
 
-        // Jesteśmy na group-menu — odczytujemy kolor (najpierw z parametu, potem z zapisanego klucza)
-        const groupColorRaw = localStorage.getItem('groupColor');
+        const groupColorRaw = localStorage.getItem(GROUP_COLOR_STORAGE_KEY);
         if (groupColorRaw) {
             const decodedColor = decodeURIComponent(groupColorRaw);
             localStorage.setItem(GROUP_COLOR_STORAGE_KEY, decodedColor);

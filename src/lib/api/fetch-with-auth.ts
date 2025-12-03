@@ -1,5 +1,3 @@
-import { API_ROUTES } from "./api-routes-endpoints";
-
 let isRefreshing = false;
 let refreshPromise: Promise<{ success: boolean; noRefreshToken?: boolean }> | null = null;
 let failedQueue: Array<{
@@ -15,7 +13,7 @@ export function setLogoutCallback(callback: () => void) {
 
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
-    const response = await fetch(API_ROUTES.REFRESH, {
+    const response = await fetch("http://localhost:3000/api/auth/refresh", {
       method: 'POST',
       credentials: 'include',
     });
