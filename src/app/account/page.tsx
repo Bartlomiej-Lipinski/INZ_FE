@@ -24,6 +24,7 @@ import {useTheme} from "@mui/material/styles";
 import {Camera, ChevronRight, Settings} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
+import {getCroppedFile} from "@/lib/utils/image";
 import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
 import {useUser} from "@/hooks/use-user";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
@@ -33,7 +34,6 @@ import Cropper, {Area} from "react-easy-crop";
 
 const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
 const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
-
 type ProfilePhotoResponseData = {
   id?: string;
   fileName: string;
@@ -46,64 +46,6 @@ type ProfilePhotoResponse = {
   success: boolean;
   data?: ProfilePhotoResponseData;
   message?: string;
-};
-
-const loadImage = (src: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
-    image.onerror = (error) => reject(error);
-    image.src = src;
-  });
-
-const getCroppedFile = async (imageSrc: string, cropArea: Area, originalFile: File) => {
-  const image = await loadImage(imageSrc);
-  const canvas = document.createElement("canvas");
-  canvas.width = cropArea.width;
-  canvas.height = cropArea.height;
-
-  const context = canvas.getContext("2d");
-  if (!context) {
-    throw new Error("Nie udało się przygotować płótna.");
-  }
-
-  context.drawImage(
-    image,
-    cropArea.x,
-    cropArea.y,
-    cropArea.width,
-    cropArea.height,
-    0,
-    0,
-    cropArea.width,
-    cropArea.height
-  );
-
-  const outputType =
-    originalFile.type === "image/png"
-      ? "image/png"
-      : originalFile.type === "image/webp"
-        ? "image/webp"
-        : "image/jpeg";
-
-  const extension = outputType === "image/png" ? "png" : outputType === "image/webp" ? "webp" : "jpg";
-
-  return new Promise<File>((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(new Error("Nie udało się zapisać przyciętego zdjęcia."));
-          return;
-        }
-
-        const fileName = `avatar-${Date.now()}.${extension}`;
-        resolve(new File([blob], fileName, { type: outputType }));
-      },
-      outputType,
-      0.92
-    );
-  });
 };
 
 export default function AccountPage() {
@@ -625,7 +567,7 @@ export default function AccountPage() {
               {isEditing && (
                 <Typography variant="caption" color="text.secondary" textAlign="center">
                   {selectedAvatarFile
-                    ? `Wybrano: ${selectedAvatarFile.name}`
+                    ? ""
                     : "Obsługiwane formaty: JPG, PNG, WEBP (max 2 MB). Możesz przeciągnąć zdjęcie na avatara."}
                 </Typography>
               )}
@@ -634,7 +576,7 @@ export default function AccountPage() {
                   variant="text"
                   size="small"
                   onClick={resetAvatarSelection}
-                  sx={{textTransform: "none", mt: 0.5}}
+                  sx={{textTransform: "none", mb: 1, mt: -2.5}}
                 >
                   Usuń wybrane zdjęcie
                 </Button>
