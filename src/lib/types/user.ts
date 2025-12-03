@@ -7,12 +7,15 @@ export interface User {
   birthDate: Date;
   status: string | null;
   description: string | null;
-    profilePicture: {
+  profilePicture: {
         id: string;
-    }
-    isTwoFactorEnabled: boolean;
-  role?: 'Member';
+        fileName: string;
+        contentType: string;
+        size: number;
+        url: string;
+      } | null;
   isTwoFactorEnabled: boolean;
+  role?: 'Member';
 }
 
 
