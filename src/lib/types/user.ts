@@ -37,5 +37,6 @@ export interface UserUpdate{
   status: string | null;
   description: string | null;
   birthDate: Date;
+  profilePictureId?: string | null;
 }
 

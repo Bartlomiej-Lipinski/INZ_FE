@@ -52,22 +52,31 @@ export function useUser(): UserHookResult {
         ? request.birthDate.toISOString().split('T')[0]
         : null;
 
+      const payload: Record<string, unknown> = {
+        name: request.name,
+        surname: request.surname,
+        username: request.username,
+        birthDate: formattedBirthDate,
+        status: request.status,
+        description: request.description
+      };
+
+      if (Object.prototype.hasOwnProperty.call(request, 'profilePictureId')) {
+        payload.profilePictureId = request.profilePictureId;
+      }
+
       const response = await fetchWithAuth(`${API_ROUTES.USER_PROFILE}`, {
         method: 'PUT',
-        body: JSON.stringify({
-          name: request.name,
-          surname: request.surname,
-          username: request.username,
-          birthDate: formattedBirthDate,
-          status: request.status,
-          description: request.description
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json() as { success: boolean; data?: unknown; message?: string };
 
       if (response.ok && data.success) {
         if (user) {
+          const shouldClearProfilePicture = Object.prototype.hasOwnProperty.call(request, 'profilePictureId') &&
+            request.profilePictureId === null;
+
           const updatedUser: User = {
             ...user,
             name: request.name,
@@ -76,6 +85,7 @@ export function useUser(): UserHookResult {
             username: request.username,
             status: request.status,
             description: request.description,
+            profilePicture: shouldClearProfilePicture ? null : user.profilePicture,
           };
           setUser(updatedUser);
         }

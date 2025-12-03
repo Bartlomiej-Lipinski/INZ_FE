@@ -34,6 +34,10 @@ import Cropper, {Area} from "react-easy-crop";
 
 const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
 const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+const SAFE_AVATAR_URL_PATTERN = /^(?:https?:\/\/|data:|blob:)/i;
+
+const getSafeProfilePictureUrl = (url?: string | null) =>
+  typeof url === "string" && SAFE_AVATAR_URL_PATTERN.test(url) ? url : null;
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
@@ -54,8 +58,19 @@ export default function AccountPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.profilePicture?.url ?? null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(() => {
+    if (!user?.profilePicture) {
+      return null;
+    }
+
+    if (user.profilePicture.id) {
+      return null;
+    }
+
+    return getSafeProfilePictureUrl(user.profilePicture.url);
+  });
   const [pendingAvatarPreview, setPendingAvatarPreview] = useState<string | null>(null);
+  const [shouldRemoveAvatar, setShouldRemoveAvatar] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isAvatarFileLoading, setIsAvatarFileLoading] = useState(false);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -130,6 +145,12 @@ export default function AccountPage() {
   }, [user]);
 
   useEffect(() => {
+    if (shouldRemoveAvatar) {
+      setAvatarPreviewUrl(null);
+      setIsAvatarFileLoading(false);
+      return;
+    }
+
     if (selectedAvatarFile) {
       setIsAvatarFileLoading(false);
       return;
@@ -142,7 +163,7 @@ export default function AccountPage() {
     }
 
     if (!user.profilePicture.id) {
-      setAvatarPreviewUrl(user.profilePicture.url ?? null);
+      setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture.url));
       setIsAvatarFileLoading(false);
       return;
     }
@@ -158,7 +179,7 @@ export default function AccountPage() {
       }
 
       if (!blob) {
-        setAvatarPreviewUrl(user.profilePicture?.url ?? null);
+        setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture?.url));
       } else {
         const objectUrl = URL.createObjectURL(blob);
         setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
@@ -174,14 +195,14 @@ export default function AccountPage() {
         return;
       }
       console.error("Profile photo download error:", error);
-      setAvatarPreviewUrl(user.profilePicture?.url ?? null);
+      setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture?.url));
       setIsAvatarFileLoading(false);
     });
 
     return () => {
       controller.abort();
     };
-  }, [selectedAvatarFile, user?.profilePicture?.id, user?.profilePicture?.url, setAvatarPreviewUrl, fetchProfilePicture]);
+  }, [selectedAvatarFile, user?.profilePicture?.id, user?.profilePicture?.url, setAvatarPreviewUrl, fetchProfilePicture, shouldRemoveAvatar]);
 
   useEffect(() => {
     if (!selectedAvatarFile) {
@@ -242,6 +263,7 @@ export default function AccountPage() {
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setIsAvatarDragActive(false);
+    setShouldRemoveAvatar(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -296,12 +318,34 @@ export default function AccountPage() {
 
     setErrorMessage("");
     setIsAvatarDragActive(false);
+    setShouldRemoveAvatar(false);
     setPendingAvatarFile(file);
     setIsCropperOpen(true);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setCroppedAreaPixels(null);
-  }, [setErrorMessage]);
+  }, [setErrorMessage, setShouldRemoveAvatar]);
+
+  const handleRemoveCurrentAvatar = useCallback(() => {
+    if (!user?.profilePicture && !avatarPreview) {
+      return;
+    }
+
+    setSelectedAvatarFile(null);
+    setPendingAvatarFile(null);
+    setPendingAvatarPreview(null);
+    setIsCropperOpen(false);
+    setIsPreparingCrop(false);
+    setCroppedAreaPixels(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setIsAvatarDragActive(false);
+    setShouldRemoveAvatar(true);
+    setAvatarPreviewUrl(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [avatarPreview, setAvatarPreviewUrl, user?.profilePicture, fileInputRef]);
 
   const handleAvatarInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -437,6 +481,7 @@ export default function AccountPage() {
       status: formValues.status.trim() === "" ? null : formValues.status.trim(),
       description: formValues.description.trim() || null,
       birthDate: new Date(formValues.birthDate),
+      ...(shouldRemoveAvatar ? { profilePictureId: null } : {}),
     };
 
     setErrorMessage("");
@@ -464,7 +509,10 @@ export default function AccountPage() {
     const refreshedUser = await fetchAuthenticatedUser();
 
     if (refreshedUser) {
-      setUser(refreshedUser);
+      setUser({
+        ...refreshedUser,
+        profilePicture: shouldRemoveAvatar ? null : refreshedUser.profilePicture,
+      });
     } else {
       setUser({
         ...user,
@@ -482,7 +530,9 @@ export default function AccountPage() {
               size: uploadedPhotoData.size,
               url: uploadedPhotoData.url,
             }
-          : user.profilePicture,
+          : shouldRemoveAvatar
+            ? null
+            : user.profilePicture,
       });
     }
 
@@ -615,11 +665,9 @@ export default function AccountPage() {
                     </Box>
                   )}
               </Box>
-              {isEditing && (
+              {isEditing && !selectedAvatarFile && !shouldRemoveAvatar && (
                 <Typography variant="caption" color="text.secondary" textAlign="center">
-                  {selectedAvatarFile
-                    ? ""
-                    : "Obsługiwane formaty: JPG, PNG, WEBP (max 2 MB). Możesz przeciągnąć zdjęcie na avatara."}
+                  Obsługiwane formaty: JPG, PNG, WEBP (max 2 MB). Możesz przeciągnąć zdjęcie na avatara.
                 </Typography>
               )}
               {isEditing && selectedAvatarFile && (
@@ -627,10 +675,30 @@ export default function AccountPage() {
                   variant="text"
                   size="small"
                   onClick={resetAvatarSelection}
-                  sx={{textTransform: "none", mb: 1, mt: -2.5}}
+                  sx={{textTransform: "none", mb: 1, backgroundColor: theme.palette.primary.dark}}
                 >
                   Usuń wybrane zdjęcie
                 </Button>
+              )}
+              {isEditing && !selectedAvatarFile && user?.profilePicture && !shouldRemoveAvatar && (
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={handleRemoveCurrentAvatar}
+                  sx={{textTransform: "none", mb: 1, mt: -2, backgroundColor: theme.palette.error.main}}
+                >
+                  Usuń aktualne zdjęcie
+                </Button>
+              )}
+              {isEditing && shouldRemoveAvatar && (
+                <Typography
+                  variant="caption"
+                  color="warning.main"
+                  textAlign="center"
+                  sx={{mt: -1}}
+                >
+                  Zdjęcie zostanie usunięte po zapisaniu zmian.
+                </Typography>
               )}
 
   
