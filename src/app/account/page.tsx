@@ -8,14 +8,20 @@ import {
     Button,
     ButtonBase,
     CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Divider,
+    IconButton,
     MenuItem,
+    Slider,
     TextField,
     Typography,
 } from "@mui/material";
-import {ChangeEvent, useCallback, useEffect, useMemo, useState} from "react";
+import {ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useTheme} from "@mui/material/styles";
-import {ChevronRight, Settings} from "lucide-react";
+import {Camera, ChevronRight, Settings} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
@@ -23,15 +29,102 @@ import {useUser} from "@/hooks/use-user";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
-import useGetUserProfilePicture from "@/hooks/use-getUserProfilePicture";
+import Cropper, {Area} from "react-easy-crop";
+
+const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
+const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+type ProfilePhotoResponseData = {
+  id?: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+  url: string;
+};
+
+type ProfilePhotoResponse = {
+  success: boolean;
+  data?: ProfilePhotoResponseData;
+  message?: string;
+};
+
+const loadImage = (src: string) =>
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = (error) => reject(error);
+    image.src = src;
+  });
+
+const getCroppedFile = async (imageSrc: string, cropArea: Area, originalFile: File) => {
+  const image = await loadImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  canvas.width = cropArea.width;
+  canvas.height = cropArea.height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Nie udało się przygotować płótna.");
+  }
+
+  context.drawImage(
+    image,
+    cropArea.x,
+    cropArea.y,
+    cropArea.width,
+    cropArea.height,
+    0,
+    0,
+    cropArea.width,
+    cropArea.height
+  );
+
+  const outputType =
+    originalFile.type === "image/png"
+      ? "image/png"
+      : originalFile.type === "image/webp"
+        ? "image/webp"
+        : "image/jpeg";
+
+  const extension = outputType === "image/png" ? "png" : outputType === "image/webp" ? "webp" : "jpg";
+
+  return new Promise<File>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Nie udało się zapisać przyciętego zdjęcia."));
+          return;
+        }
+
+        const fileName = `avatar-${Date.now()}.${extension}`;
+        resolve(new File([blob], fileName, { type: outputType }));
+      },
+      outputType,
+      0.92
+    );
+  });
+};
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
   const { updateProfile, isLoading: isUpdatingProfile, error: updateError, setErrorMessage } = useUser();
   const theme = useTheme();
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isMediumScreen, setIsMediumScreen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.profilePicture?.url ?? null);
+  const [pendingAvatarPreview, setPendingAvatarPreview] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isCropperOpen, setIsCropperOpen] = useState(false);
+  const [isPreparingCrop, setIsPreparingCrop] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const [isAvatarDragActive, setIsAvatarDragActive] = useState(false);
   const [errors, setErrors] = useState<{
     name: string;
     surname: string;
@@ -43,8 +136,8 @@ export default function AccountPage() {
     username: "",
     birthDate: "",
   });
+  const isSavingProfile = isUpdatingProfile || isUploadingPhoto;
 
-    const {src: avatarSrc, loading: avatarLoading} = useGetUserProfilePicture(user?.profilePicture?.id);
   
   useEffect(() => {
     const checkScreenSize = () => {
@@ -75,6 +168,40 @@ export default function AccountPage() {
     return combined.toUpperCase();
   }, [user]);
 
+  useEffect(() => {
+    if (selectedAvatarFile) {
+      return;
+    }
+    setAvatarPreview(user?.profilePicture?.url ?? null);
+  }, [selectedAvatarFile, user]);
+
+  useEffect(() => {
+    if (!selectedAvatarFile) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedAvatarFile);
+    setAvatarPreview(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [selectedAvatarFile]);
+
+  useEffect(() => {
+    if (!pendingAvatarFile) {
+      setPendingAvatarPreview(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(pendingAvatarFile);
+    setPendingAvatarPreview(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [pendingAvatarFile]);
+
   const populateFormFromUser = useCallback(() => {
     if (!user) return;
 
@@ -94,6 +221,21 @@ export default function AccountPage() {
     }
   }, [populateFormFromUser, isEditing]);
 
+  const resetAvatarSelection = useCallback(() => {
+    setSelectedAvatarFile(null);
+    setPendingAvatarFile(null);
+    setPendingAvatarPreview(null);
+    setIsCropperOpen(false);
+    setIsPreparingCrop(false);
+    setCroppedAreaPixels(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setIsAvatarDragActive(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }, [fileInputRef]);
+
   const handleStartEditing = () => {
     setErrorMessage("");
     setErrors({
@@ -102,6 +244,7 @@ export default function AccountPage() {
       username: "",
       birthDate: "",
     });
+    resetAvatarSelection();
     populateFormFromUser();
     setIsEditing(true);
   };
@@ -110,6 +253,7 @@ export default function AccountPage() {
     setIsEditing(false);
     setErrorMessage("");
     populateFormFromUser();
+    resetAvatarSelection();
   };
 
   const validators: Record<keyof typeof errors, (value: string) => string> = {
@@ -118,6 +262,157 @@ export default function AccountPage() {
     username: (value) => validateUsername(value),
     birthDate: (value) => validateBirthDate(value),
   };
+
+  const validateAvatarFile = (file: File): string | null => {
+    const isAllowedType = ALLOWED_PROFILE_PHOTO_TYPES.includes(file.type as (typeof ALLOWED_PROFILE_PHOTO_TYPES)[number]);
+    if (!isAllowedType) {
+      return "Obsługiwane formaty zdjęć to JPG, PNG lub WEBP.";
+    }
+
+    if (file.size > MAX_PROFILE_PHOTO_SIZE) {
+      return "Maksymalny rozmiar zdjęcia to 2 MB.";
+    }
+
+    return null;
+  };
+
+  const handleAvatarFileSelection = useCallback((file: File) => {
+    const validationError = validateAvatarFile(file);
+    if (validationError) {
+      setErrorMessage(validationError);
+      return;
+    }
+
+    setErrorMessage("");
+    setIsAvatarDragActive(false);
+    setPendingAvatarFile(file);
+    setIsCropperOpen(true);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
+  }, [setErrorMessage]);
+
+  const handleAvatarInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleAvatarFileSelection(file);
+    }
+    event.target.value = "";
+  };
+
+  const handleAvatarDragOver = (event: DragEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "copy";
+    setIsAvatarDragActive(true);
+  };
+
+  const handleAvatarDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    event.preventDefault();
+    const nextTarget = event.relatedTarget as Node | null;
+    if (nextTarget && event.currentTarget.contains(nextTarget)) {
+      return;
+    }
+    setIsAvatarDragActive(false);
+  };
+
+  const handleAvatarDrop = (event: DragEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    event.preventDefault();
+    setIsAvatarDragActive(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) {
+      handleAvatarFileSelection(file);
+    }
+  };
+
+  const handleAvatarButtonClick = () => {
+    if (!isEditing) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarCropComplete = useCallback((_: Area, areaPixels: Area) => {
+    setCroppedAreaPixels(areaPixels);
+  }, []);
+
+  const handleCancelAvatarCrop = () => {
+    if (isPreparingCrop) {
+      return;
+    }
+
+    setIsCropperOpen(false);
+    setPendingAvatarFile(null);
+    setPendingAvatarPreview(null);
+    setCroppedAreaPixels(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  };
+
+  const handleConfirmAvatarCrop = async () => {
+    if (!pendingAvatarPreview || !pendingAvatarFile || !croppedAreaPixels) {
+      setErrorMessage("Najpierw wybierz kadr zdjęcia.");
+      return;
+    }
+
+    setIsPreparingCrop(true);
+    try {
+      const croppedFile = await getCroppedFile(pendingAvatarPreview, croppedAreaPixels, pendingAvatarFile);
+
+      if (croppedFile.size > MAX_PROFILE_PHOTO_SIZE) {
+        setErrorMessage("Przycięte zdjęcie jest większe niż 2 MB. Spróbuj zmniejszyć kadr.");
+        return;
+      }
+
+      setSelectedAvatarFile(croppedFile);
+      setIsCropperOpen(false);
+      setPendingAvatarFile(null);
+      setPendingAvatarPreview(null);
+      setCroppedAreaPixels(null);
+    } catch (error) {
+      console.error("Avatar crop error:", error);
+      setErrorMessage("Nie udało się przyciąć zdjęcia.");
+    } finally {
+      setIsPreparingCrop(false);
+    }
+  };
+
+  const handleCropDialogClose = (_event: object, reason: "backdropClick" | "escapeKeyDown") => {
+    if (isPreparingCrop) {
+      return;
+    }
+
+    handleCancelAvatarCrop();
+  };
+
+  const uploadProfilePicture = useCallback(async (file: File): Promise<ProfilePhotoResponseData | null> => {
+    setIsUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetchWithAuth(`${API_ROUTES.POST_PROFILE_PICTURE}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data: ProfilePhotoResponse = await response.json();
+
+      if (!response.ok || !data.success || !data.data) {
+        const message = data?.message ?? "Nie udało się przesłać zdjęcia profilowego.";
+        setErrorMessage(message);
+        return null;
+      }
+
+      return data.data;
+    } catch (error) {
+      console.error("Profile photo upload error:", error);
+      setErrorMessage("Wystąpił błąd podczas przesyłania zdjęcia.");
+      return null;
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  }, [setErrorMessage]);
 
   const handleFieldChange = (field: keyof typeof formValues, value: string) => {
     if (field in validators) {
@@ -162,11 +457,44 @@ export default function AccountPage() {
       birthDate: new Date(formValues.birthDate),
     };
 
+    setErrorMessage("");
+
     const result = await updateProfile(payload);
 
-    if (result.success) {
-      setIsEditing(false);
+    if (!result.success) {
+      return;
     }
+
+    let uploadedPhotoData: ProfilePhotoResponseData | null = null;
+
+    if (selectedAvatarFile) {
+      uploadedPhotoData = await uploadProfilePicture(selectedAvatarFile);
+      if (!uploadedPhotoData) {
+        return;
+      }
+    }
+
+    setUser({
+      ...user,
+      name: payload.name,
+      surname: payload.surname,
+      username: payload.username,
+      status: payload.status,
+      description: payload.description,
+      birthDate: payload.birthDate,
+      profilePicture: uploadedPhotoData
+        ? {
+            id: uploadedPhotoData.id ?? user.profilePicture?.id ?? "",
+            fileName: uploadedPhotoData.fileName,
+            contentType: uploadedPhotoData.contentType,
+            size: uploadedPhotoData.size,
+            url: uploadedPhotoData.url,
+          }
+        : user.profilePicture,
+    });
+
+    setIsEditing(false);
+    resetAvatarSelection();
   };
 
 
@@ -185,7 +513,8 @@ export default function AccountPage() {
 };
 
   return (
-    <Box
+    <>
+      <Box
       component="section"
       sx={{
         display: "flex",
@@ -219,41 +548,97 @@ export default function AccountPage() {
           <CircularProgress size={36} />
         ) : user ? (
           <>
-              <Box sx={{position: "relative", display: "inline-flex"}}>
+              <Box
+                sx={{position: "relative", display: "inline-flex"}}
+                onDragOver={handleAvatarDragOver}
+                onDragEnter={handleAvatarDragOver}
+                onDragLeave={handleAvatarDragLeave}
+                onDrop={handleAvatarDrop}
+                onClick={isEditing ? handleAvatarButtonClick : undefined}
+              >
                   <Avatar
                       alt={`${user.name} ${user.surname}`.trim() || undefined}
-                      src={avatarSrc ?? undefined}
+                      src={avatarPreview ?? undefined}
                       sx={{
                           width: {xs: 80, sm: 90},
                           height: {xs: 80, sm: 90},
                           bgcolor: theme.palette.grey[700],
-                          border: `3px solid ${theme.palette.primary.main}`,
+                          border: `3px solid ${isAvatarDragActive ? theme.palette.primary.light : theme.palette.primary.main}`,
                           color: theme.palette.primary.contrastText,
                           fontSize: {xs: 24, sm: 28},
                           fontWeight: 600,
+                          cursor: isEditing ? "pointer" : "default",
+                          transition: "border-color 0.2s ease",
                       }}
                   >
-                      {initials}
+                      {!avatarPreview && initials}
                   </Avatar>
-                  {avatarLoading && (
-                      <Box
-                          sx={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              width: "100%",
-                              height: "100%",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              bgcolor: "rgba(0,0,0,0.25)",
-                              borderRadius: "50%",
-                          }}
-                      >
-                          <CircularProgress size={28}/>
-                      </Box>
+                  {isEditing && (
+                    <IconButton
+                      size="small"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleAvatarButtonClick();
+                      }}
+                      sx={{
+                        position: "absolute",
+                        bottom: -8,
+                        right: -8,
+                        bgcolor: theme.palette.primary.main,
+                        color: theme.palette.primary.contrastText,
+                        border: `2px solid ${theme.palette.background.paper}`,
+                        "&:hover": {
+                          bgcolor: theme.palette.primary.dark,
+                        },
+                      }}
+                    >
+                      <Camera size={18} />
+                    </IconButton>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ALLOWED_PROFILE_PHOTO_TYPES.join(",")}
+                    style={{display: "none"}}
+                    onChange={handleAvatarInputChange}
+                    disabled={!isEditing}
+                  />
+                  {isUploadingPhoto && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        bgcolor: "rgba(0,0,0,0.35)",
+                        borderRadius: "50%",
+                      }}
+                    >
+                      <CircularProgress size={28}/>
+                    </Box>
                   )}
               </Box>
+              {isEditing && (
+                <Typography variant="caption" color="text.secondary" textAlign="center">
+                  {selectedAvatarFile
+                    ? `Wybrano: ${selectedAvatarFile.name}`
+                    : "Obsługiwane formaty: JPG, PNG, WEBP (max 2 MB). Możesz przeciągnąć zdjęcie na avatara."}
+                </Typography>
+              )}
+              {isEditing && selectedAvatarFile && (
+                <Button
+                  variant="text"
+                  size="small"
+                  onClick={resetAvatarSelection}
+                  sx={{textTransform: "none", mt: 0.5}}
+                >
+                  Usuń wybrane zdjęcie
+                </Button>
+              )}
 
   
               {isEditing ? (
@@ -585,16 +970,16 @@ export default function AccountPage() {
                   }}
                   fullWidth
                   onClick={handleCancelEditing}
-                  disabled={isUpdatingProfile}
+                  disabled={isSavingProfile}
                 >
                   Anuluj
                 </Button>
                 <Button
                   fullWidth
                   onClick={handleSave}
-                  disabled={isUpdatingProfile}
+                  disabled={isSavingProfile}
                 >
-                  {isUpdatingProfile ? "Zapisywanie..." : "Zapisz"}
+                  {isSavingProfile ? "Zapisywanie..." : "Zapisz"}
                 </Button>
               </Box>
             ) : (
@@ -646,6 +1031,77 @@ export default function AccountPage() {
         )}
       </Box>
     </Box>
+    <Dialog
+      open={isCropperOpen}
+      onClose={handleCropDialogClose}
+      fullWidth
+      maxWidth="xs"
+    >
+      <DialogTitle>Przytnij zdjęcie profilowe</DialogTitle>
+      <DialogContent>
+        <Box
+          sx={{
+            position: "relative",
+            width: "100%",
+            height: { xs: 260, sm: 320 },
+            bgcolor: "rgba(0,0,0,0.35)",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          {pendingAvatarPreview ? (
+            <Cropper
+              image={pendingAvatarPreview}
+              crop={crop}
+              zoom={zoom}
+              aspect={1}
+              cropShape="round"
+              showGrid={false}
+              onCropChange={setCrop}
+              onZoomChange={(value) => setZoom(value as number)}
+              onCropComplete={handleAvatarCropComplete}
+            />
+          ) : (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography color="text.secondary">Ładuję podgląd...</Typography>
+            </Box>
+          )}
+        </Box>
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="caption" sx={{ mb: 1, display: "block" }}>
+            Powiększenie
+          </Typography>
+          <Slider
+            value={zoom}
+            onChange={(_event, value) => setZoom(value as number)}
+            min={1}
+            max={3}
+            step={0.1}
+            aria-label="Skala przybliżenia"
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={handleCancelAvatarCrop} disabled={isPreparingCrop}>
+          Anuluj
+        </Button>
+        <Button
+          onClick={handleConfirmAvatarCrop}
+          disabled={isPreparingCrop || !croppedAreaPixels || !pendingAvatarPreview}
+        >
+          {isPreparingCrop ? "Przetwarzanie..." : "Zastosuj"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 }
 
