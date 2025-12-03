@@ -32,7 +32,7 @@ interface UserHookResult {
   updateProfile: (request: UserUpdate) => Promise<ApiResponse>;
   uploadProfilePicture: (file: File) => Promise<ProfilePhotoResponseData | null>;
   fetchAuthenticatedUser: (userId?: string) => Promise<User | null>;
-  fetchProfilePictureBlob: (fileId: string, signal?: AbortSignal) => Promise<Blob | null>;
+  fetchProfilePicture: (fileId: string, signal?: AbortSignal) => Promise<Blob | null>;
   isLoading: boolean;
   error: string | null;
   setErrorMessage: (message: string) => void;
@@ -160,7 +160,7 @@ export function useUser(): UserHookResult {
 
 
 
-  const fetchProfilePictureBlob = useCallback(async (fileId: string, signal?: AbortSignal): Promise<Blob | null> => {
+  const fetchProfilePicture = useCallback(async (fileId: string, signal?: AbortSignal): Promise<Blob | null> => {
     try {
       const response = await fetchWithAuth(`${API_ROUTES.GET_FILE_BY_ID}?id=${fileId}`, {
         method: 'GET',
@@ -192,7 +192,7 @@ export function useUser(): UserHookResult {
     updateProfile,
     uploadProfilePicture,
     fetchAuthenticatedUser,
-    fetchProfilePictureBlob,
+    fetchProfilePicture,
     isLoading,
     error,
     setErrorMessage

@@ -34,12 +34,22 @@ import Cropper, {Area} from "react-easy-crop";
 
 const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
 const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
-  const { updateProfile, uploadProfilePicture, isLoading: isUpdatingProfile, error: updateError, setErrorMessage } = useUser();
+  const {
+    updateProfile,
+    uploadProfilePicture,
+    fetchAuthenticatedUser,
+    fetchProfilePicture,
+    isLoading: isUpdatingProfile,
+    error: updateError,
+    setErrorMessage
+  } = useUser();
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const avatarObjectUrlRef = useRef<string | null>(null);
   const [isMediumScreen, setIsMediumScreen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
@@ -47,6 +57,7 @@ export default function AccountPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.profilePicture?.url ?? null);
   const [pendingAvatarPreview, setPendingAvatarPreview] = useState<string | null>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isAvatarFileLoading, setIsAvatarFileLoading] = useState(false);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isPreparingCrop, setIsPreparingCrop] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -65,6 +76,28 @@ export default function AccountPage() {
     birthDate: "",
   });
   const isSavingProfile = isUpdatingProfile || isUploadingPhoto;
+
+  const setAvatarPreviewUrl = useCallback((url: string | null, options: { isObjectUrl?: boolean } = {}) => {
+    if (avatarObjectUrlRef.current && avatarObjectUrlRef.current !== url) {
+      URL.revokeObjectURL(avatarObjectUrlRef.current);
+      avatarObjectUrlRef.current = null;
+    }
+
+    if (options.isObjectUrl && url) {
+      avatarObjectUrlRef.current = url;
+    }
+
+    setAvatarPreview(url);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (avatarObjectUrlRef.current) {
+        URL.revokeObjectURL(avatarObjectUrlRef.current);
+        avatarObjectUrlRef.current = null;
+      }
+    };
+  }, []);
 
   
   useEffect(() => {
@@ -98,10 +131,57 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (selectedAvatarFile) {
+      setIsAvatarFileLoading(false);
       return;
     }
-    setAvatarPreview(user?.profilePicture?.url ?? null);
-  }, [selectedAvatarFile, user]);
+
+    if (!user?.profilePicture) {
+      setAvatarPreviewUrl(null);
+      setIsAvatarFileLoading(false);
+      return;
+    }
+
+    if (!user.profilePicture.id) {
+      setAvatarPreviewUrl(user.profilePicture.url ?? null);
+      setIsAvatarFileLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setIsAvatarFileLoading(true);
+
+    const loadProfilePicture = async () => {
+      const blob = await fetchProfilePicture(user.profilePicture?.id ?? "", controller.signal);
+
+      if (controller.signal.aborted) {
+        return;
+      }
+
+      if (!blob) {
+        setAvatarPreviewUrl(user.profilePicture?.url ?? null);
+      } else {
+        const objectUrl = URL.createObjectURL(blob);
+        setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
+      }
+
+      if (!controller.signal.aborted) {
+        setIsAvatarFileLoading(false);
+      }
+    };
+
+    loadProfilePicture().catch((error) => {
+      if ((error as Error)?.name === "AbortError") {
+        return;
+      }
+      console.error("Profile photo download error:", error);
+      setAvatarPreviewUrl(user.profilePicture?.url ?? null);
+      setIsAvatarFileLoading(false);
+    });
+
+    return () => {
+      controller.abort();
+    };
+  }, [selectedAvatarFile, user?.profilePicture?.id, user?.profilePicture?.url, setAvatarPreviewUrl, fetchProfilePicture]);
 
   useEffect(() => {
     if (!selectedAvatarFile) {
@@ -109,12 +189,15 @@ export default function AccountPage() {
     }
 
     const objectUrl = URL.createObjectURL(selectedAvatarFile);
-    setAvatarPreview(objectUrl);
+    setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
 
     return () => {
       URL.revokeObjectURL(objectUrl);
+      if (avatarObjectUrlRef.current === objectUrl) {
+        avatarObjectUrlRef.current = null;
+      }
     };
-  }, [selectedAvatarFile]);
+  }, [selectedAvatarFile, setAvatarPreviewUrl]);
 
   useEffect(() => {
     if (!pendingAvatarFile) {
@@ -378,24 +461,30 @@ export default function AccountPage() {
       }
     }
 
-    setUser({
-      ...user,
-      name: payload.name,
-      surname: payload.surname,
-      username: payload.username,
-      status: payload.status,
-      description: payload.description,
-      birthDate: payload.birthDate,
-      profilePicture: uploadedPhotoData
-        ? {
-            id: uploadedPhotoData.id ?? user.profilePicture?.id ?? "",
-            fileName: uploadedPhotoData.fileName,
-            contentType: uploadedPhotoData.contentType,
-            size: uploadedPhotoData.size,
-            url: uploadedPhotoData.url,
-          }
-        : user.profilePicture,
-    });
+    const refreshedUser = await fetchAuthenticatedUser();
+
+    if (refreshedUser) {
+      setUser(refreshedUser);
+    } else {
+      setUser({
+        ...user,
+        name: payload.name,
+        surname: payload.surname,
+        username: payload.username,
+        status: payload.status,
+        description: payload.description,
+        birthDate: payload.birthDate,
+        profilePicture: uploadedPhotoData
+          ? {
+              id: uploadedPhotoData.id ?? user.profilePicture?.id ?? "",
+              fileName: uploadedPhotoData.fileName,
+              contentType: uploadedPhotoData.contentType,
+              size: uploadedPhotoData.size,
+              url: uploadedPhotoData.url,
+            }
+          : user.profilePicture,
+      });
+    }
 
     setIsEditing(false);
     resetAvatarSelection();
@@ -507,7 +596,7 @@ export default function AccountPage() {
                     onChange={handleAvatarInputChange}
                     disabled={!isEditing}
                   />
-                  {isUploadingPhoto && (
+                  {(isUploadingPhoto || isAvatarFileLoading) && (
                     <Box
                       sx={{
                         position: "absolute",
