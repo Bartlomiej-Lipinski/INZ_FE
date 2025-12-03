@@ -205,6 +205,32 @@ const theme = createTheme({
                 },
             },
         },
+        MuiDialog: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: customColors.grey[800],
+                    border: `3px solid ${customColors.grey[600]}`,
+                    backgroundImage: 'none',
+                    padding: '0px 20px 25px 20px',
+                },
+            },
+        },
+        MuiDialogActions: {
+            styleOverrides: {
+                root: {
+                    justifyContent: 'center',
+                    gap: 10,
+                },
+            },
+        },
+        MuiDialogTitle: {
+            styleOverrides: {
+                root: {
+                    fontSize: '18px',
+                    textAlign: 'center',
+                },
+            },
+        },
         MuiCssBaseline: {
             styleOverrides: {
                 body: {
