@@ -26,7 +26,8 @@ import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getCroppedFile} from "@/lib/utils/image";
 import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
-import {useUser, type ProfilePhotoResponseData, clearProfilePictureCache} from "@/hooks/use-user";
+import {useUser, type ProfilePhotoResponseData} from "@/hooks/use-user";
+import {useImage, clearProfilePictureCache} from "@/hooks/use-image";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
@@ -45,11 +46,11 @@ export default function AccountPage() {
     updateProfile,
     uploadProfilePicture,
     fetchAuthenticatedUser,
-    fetchProfilePicture,
     isLoading: isUpdatingProfile,
     error: updateError,
     setErrorMessage
   } = useUser();
+  const { fetchProfilePicture } = useImage();
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
