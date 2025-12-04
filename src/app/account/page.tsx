@@ -188,32 +188,46 @@ export default function AccountPage() {
   const shouldUploadAvatar = !!selectedAvatarFile;
   const shouldUpdateProfile = hasProfileDataChanged || shouldRemoveAvatar;
   const hasPendingChanges = shouldUpdateProfile || shouldUploadAvatar;
+  const shouldLoadRemoteAvatar = !shouldRemoveAvatar && !selectedAvatarFile;
+
+  const profilePictureSource = useMemo(() => {
+    if (!user?.profilePicture) {
+      return null;
+    }
+
+    return {
+      id: user.profilePicture.id ?? null,
+      url: user.profilePicture.url,
+    };
+  }, [user?.profilePicture?.id, user?.profilePicture?.url]);
 
   useEffect(() => {
-    if (shouldRemoveAvatar) {
+    if (!shouldRemoveAvatar) {
+      return;
+    }
+
+    setAvatarPreviewUrl(null);
+    setIsAvatarFileLoading(false);
+  }, [setAvatarPreviewUrl, shouldRemoveAvatar]);
+
+  useEffect(() => {
+    if (!shouldLoadRemoteAvatar) {
+      return;
+    }
+
+    if (!profilePictureSource) {
       setAvatarPreviewUrl(null);
       setIsAvatarFileLoading(false);
       return;
     }
 
-    if (selectedAvatarFile) {
+    if (!profilePictureSource.id) {
+      setAvatarPreviewUrl(getSafeProfilePictureUrl(profilePictureSource.url));
       setIsAvatarFileLoading(false);
       return;
     }
 
-    if (!user?.profilePicture) {
-      setAvatarPreviewUrl(null);
-      setIsAvatarFileLoading(false);
-      return;
-    }
-
-    if (!user.profilePicture.id) {
-      setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture.url));
-      setIsAvatarFileLoading(false);
-      return;
-    }
-
-    const cachedBlob = getProfilePictureFromCache(user.profilePicture.id);
+    const cachedBlob = getProfilePictureFromCache(profilePictureSource.id);
     if (cachedBlob) {
       const objectUrl = URL.createObjectURL(cachedBlob);
       setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
@@ -225,14 +239,14 @@ export default function AccountPage() {
     setIsAvatarFileLoading(true);
 
     const loadProfilePicture = async () => {
-      const blob = await fetchProfilePicture(user.profilePicture?.id ?? "", controller.signal);
+      const blob = await fetchProfilePicture(profilePictureSource.id ?? "", controller.signal);
 
       if (controller.signal.aborted) {
         return;
       }
 
       if (!blob) {
-        setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture?.url));
+        setAvatarPreviewUrl(getSafeProfilePictureUrl(profilePictureSource.url));
       } else {
         const objectUrl = URL.createObjectURL(blob);
         setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
@@ -248,14 +262,21 @@ export default function AccountPage() {
         return;
       }
       console.error("Profile photo download error:", error);
-      setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture?.url));
+      setAvatarPreviewUrl(getSafeProfilePictureUrl(profilePictureSource.url));
       setIsAvatarFileLoading(false);
     });
 
     return () => {
       controller.abort();
     };
-  }, [selectedAvatarFile, user?.profilePicture?.id, user?.profilePicture?.url, setAvatarPreviewUrl, fetchProfilePicture, shouldRemoveAvatar, getProfilePictureFromCache]);
+  }, [
+    fetchProfilePicture,
+    getProfilePictureFromCache,
+    profilePictureSource,
+    setAvatarPreviewUrl,
+    setIsAvatarFileLoading,
+    shouldLoadRemoteAvatar,
+  ]);
 
   useEffect(() => {
     if (!selectedAvatarFile) {
@@ -264,6 +285,7 @@ export default function AccountPage() {
 
     const objectUrl = URL.createObjectURL(selectedAvatarFile);
     setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
+    setIsAvatarFileLoading(false);
 
     return () => {
       URL.revokeObjectURL(objectUrl);
@@ -271,7 +293,7 @@ export default function AccountPage() {
         avatarObjectUrlRef.current = null;
       }
     };
-  }, [selectedAvatarFile, setAvatarPreviewUrl]);
+  }, [selectedAvatarFile, setAvatarPreviewUrl, setIsAvatarFileLoading]);
 
   useEffect(() => {
     if (!pendingAvatarFile) {
@@ -606,7 +628,7 @@ export default function AccountPage() {
       cacheKeysToInvalidate.forEach((cacheKey) => clearProfilePictureCache(cacheKey));
     }
 
-    const refreshedUser = await fetchAuthenticatedUser();
+    const refreshedUser = await fetchAuthenticatedUser(user?.id);
 
     if (refreshedUser) {
       setUser({
