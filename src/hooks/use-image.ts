@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
 
-const PROFILE_PICTURE_CACHE_TTL_MS = 5 * 60 * 1000;
+const PROFILE_PICTURE_CACHE_TTL_MS = 60 * 60 * 1000;
 const PROFILE_PICTURE_STORAGE_KEY = "profile-picture-cache";
 
 type ProfilePictureCacheEntry = {
