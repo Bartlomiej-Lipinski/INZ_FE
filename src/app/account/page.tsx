@@ -146,7 +146,7 @@ export default function AccountPage() {
     username: "",
     birthDate: "",
   });
-  const isSavingProfile = isUpdatingProfile || isUploadingPhoto;
+  const isSaving = isUpdatingProfile || isUploadingPhoto;
 
   const setAvatarPreviewUrl = useCallback((url: string | null, options: { isObjectUrl?: boolean } = {}) => {
     if (avatarObjectUrlRef.current && avatarObjectUrlRef.current !== url) {
@@ -1202,16 +1202,16 @@ export default function AccountPage() {
                   }}
                   fullWidth
                   onClick={handleCancelEditing}
-                  disabled={isSavingProfile}
+                  disabled={isSaving}
                 >
                   Anuluj
                 </Button>
                 <Button
                   fullWidth
                   onClick={handleSave}
-                  disabled={isSavingProfile || !hasPendingChanges}
+                  disabled={isSaving || !hasPendingChanges}
                 >
-                  {isSavingProfile ? "Zapisywanie..." : "Zapisz"}
+                  {isSaving ? "Zapisywanie..." : "Zapisz"}
                 </Button>
               </Box>
             ) : (
