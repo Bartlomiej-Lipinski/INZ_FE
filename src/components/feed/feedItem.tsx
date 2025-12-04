@@ -202,7 +202,7 @@ export default function FeedItem({
                             </Typography>
                         </Box>
                     </Box>
-                    {isUserPost && (
+                    {isUserPost && item.type === FeedItemType.POST && (
                         <IconButton
                             size="small"
                             onClick={e => onOpenMenu(e, item.id)}

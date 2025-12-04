@@ -27,7 +27,7 @@ export async function PUT(request: NextRequest) {
             method: 'PUT',
             headers: {
                 'Cookie': cookieHeader,
-                'Content-Type': 'multipart/form-data',
+                // 'Content-Type': 'multipart/form-data',
             },
             body: formData,
             credentials: 'include',

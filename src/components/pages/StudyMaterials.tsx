@@ -42,7 +42,6 @@ interface StudyMaterialsPageProps {
 export function StudyMaterialsPage({
                                        files,
                                        categories,
-                                       userId,
                                        isAdmin,
                                        groupData,
                                        onFilesChange,
@@ -279,7 +278,7 @@ export function StudyMaterialsPage({
     });
 
     const canDelete = (file: StoredFileResponseDto) => {
-        return isAdmin || file.uploadedById === userId;
+        return isAdmin || file.uploadedById === currentUser!.id;
     };
 
     const hasFilters: boolean = !!(searchQuery || selectedCategory !== 'all' || selectedAuthor !== 'all');
@@ -309,7 +308,7 @@ export function StudyMaterialsPage({
                             fontSize: {xs: '1.75rem', sm: '2rem'},
                         }}
                     >
-                        <Notebook size={32}/> {groupData?.name || 'Materiały Edukacyjne'}
+                        <Notebook size={32}/> {'Materiały Edukacyjne'}
                     </Typography>
                 </Box>
 

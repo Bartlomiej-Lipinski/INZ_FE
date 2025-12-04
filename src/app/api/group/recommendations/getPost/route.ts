@@ -39,27 +39,43 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const {title, category, imageURL, linkURL, content, groupId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const formData = await request.formData();
+        const title = formData.get('title') as string;
+        const content = formData.get('content') as string;
+        const category = formData.get('category') as string | null;
+        const linkUrl = formData.get('linkUrl') as string | null;
+        const imageUrl = formData.get('imageUrl') as string | null;
+        const file = formData.get('file') as File | null;
+
+        if (!groupId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów'},
+                {status: 400}
+            );
+        }
+
         const endpoint = GET_POST_RECOMMENDATIONS?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
+
+        const backendFormData = new FormData();
+        backendFormData.append('title', title);
+        backendFormData.append('content', content);
+        if (category) backendFormData.append('category', category);
+        if (linkUrl) backendFormData.append('linkUrl', linkUrl);
+        if (imageUrl) backendFormData.append('imageUrl', imageUrl);
+        if (file) backendFormData.append('file', file);
+
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                title,
-                content,
-                category,
-                imageUrl: imageURL,
-                linkURL
-            }),
+            body: backendFormData,
             credentials: 'include',
         });
 
         const data = await response.json();
-
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {

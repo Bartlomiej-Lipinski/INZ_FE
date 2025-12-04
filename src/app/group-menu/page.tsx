@@ -2,7 +2,17 @@
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {Box, IconButton, Typography} from '@mui/material';
+import {
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    TextField,
+    Typography
+} from '@mui/material';
 import {Menu as MenuIcon} from 'lucide-react';
 import {FeedItemType} from "@/lib/types/FeedItemType";
 import {CommentResponseDto, GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
@@ -13,6 +23,18 @@ import FeedList from '@/components/feed/feedlist';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {EntityType} from "@/lib/types/entityType";
 
+const mapFeedItemType = (type: number | string): FeedItemType => {
+    if (typeof type === 'string') return type as FeedItemType;
+
+    const typeMap: Record<number, FeedItemType> = {
+        0: FeedItemType.POST,
+        1: FeedItemType.EVENT,
+        2: FeedItemType.CHALLENGE,
+        3: FeedItemType.POLL,
+        4: FeedItemType.RECOMMENDATION,
+    };
+    return typeMap[type] ?? FeedItemType.POST;
+};
 
 export default function GroupBoardPage() {
     const searchParams = useSearchParams();
@@ -24,6 +46,11 @@ export default function GroupBoardPage() {
     const [pageSize] = useState(10);
     const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatar: string } | null>(null);
     const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editingPost, setEditingPost] = useState<GroupFeedItemResponseDto | null>(null);
+    const [editContent, setEditContent] = useState('');
+    const [editTitle, setEditTitle] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
 
 
 
@@ -71,7 +98,12 @@ export default function GroupBoardPage() {
                     const data = await response.json();
                     const payload = data.data as GroupFeedItemResponseDto[];
                     // const enrichedItems = await enrichItemsWithUserData(payload);
-                    setItems(payload);
+                    const mappedItems = payload.map(item => ({
+                        ...item,
+                        type: mapFeedItemType(item.type),
+                    }));
+
+                    setItems(mappedItems);
                 } else {
                     console.error('Błąd podczas pobierania feedu nie respons ok');
                     setItems([]);
@@ -248,8 +280,64 @@ export default function GroupBoardPage() {
 
     const handleEditPost = () => {
         if (!menuAnchor) return;
-        console.log('Edytuj post:', menuAnchor.itemId);
+
+        const post = items.find(item => item.id === menuAnchor.itemId);
+        if (post) {
+            setEditingPost(post);
+            setEditContent(post.description || '');
+            setEditTitle(post.title || '');
+            setEditDialogOpen(true);
+        }
         handleCloseMenu();
+    };
+
+    const handleEditDialogClose = () => {
+        setEditDialogOpen(false);
+        setEditingPost(null);
+        setEditContent('');
+        setEditTitle('');
+    };
+
+    const handleEditSubmit = async () => {
+        if (!editingPost || !editContent.trim()) return;
+
+        setIsEditing(true);
+        const previousItems = [...items];
+
+        // Optymistyczna aktualizacja
+        setItems(prevItems =>
+            prevItems.map(item =>
+                item.id === editingPost.id
+                    ? {...item, description: editContent, title: editTitle || undefined}
+                    : item
+            )
+        );
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.PUT_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${editingPost.id}`,
+                {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        description: editContent,
+                        title: editTitle || null,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas edycji posta');
+            }
+
+            handleEditDialogClose();
+        } catch (error) {
+            console.error('Błąd podczas edycji posta:', error);
+            setItems(previousItems);
+        } finally {
+            setIsEditing(false);
+        }
     };
 
     const handleDeletePost = async () => {
@@ -367,6 +455,48 @@ export default function GroupBoardPage() {
                     onDeletePost={handleDeletePost}
                 />
             </Box>
+            <Dialog
+                open={editDialogOpen}
+                onClose={handleEditDialogClose}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>Edytuj post</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        label="Tytuł (opcjonalnie)"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        margin="normal"
+                        disabled={isEditing}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Treść"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        multiline
+                        minRows={3}
+                        maxRows={6}
+                        margin="normal"
+                        disabled={isEditing}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleEditDialogClose} disabled={isEditing}>
+                        Anuluj
+                    </Button>
+                    <Button
+                        onClick={handleEditSubmit}
+                        variant="contained"
+                        disabled={!editContent.trim() || isEditing}
+                        sx={{bgcolor: groupColor}}
+                    >
+                        {isEditing ? 'Zapisywanie...' : 'Zapisz'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }
