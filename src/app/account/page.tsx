@@ -1292,7 +1292,7 @@ export default function AccountPage() {
               cropShape="round"
               showGrid={false}
               onCropChange={setCrop}
-              onZoomChange={(value) => setZoom(value as number)}
+              onZoomChange={setZoom}
               onCropComplete={handleAvatarCropComplete}
             />
           ) : (
@@ -1315,7 +1315,7 @@ export default function AccountPage() {
           </Typography>
           <Slider
             value={zoom}
-            onChange={(_event, value) => setZoom(value as number)}
+            onChange={(_event, value) => setZoom(value)}
             min={1}
             max={3}
             step={0.1}
