@@ -14,6 +14,14 @@ type ProfilePictureCacheEntry = {
 
 const profilePictureCache = new Map<string, ProfilePictureCacheEntry>();
 
+const normalizeFileId = (fileId?: string | null): string | null => {
+  if (typeof fileId !== "string") {
+    return null;
+  }
+  const normalized = fileId.trim();
+  return normalized.length > 0 ? normalized : null;
+};
+
 type StoredProfilePictureEntry = {
   dataUrl: string;
   expiresAt: number;
@@ -75,14 +83,19 @@ const blobToDataUrl = (blob: Blob): Promise<string> =>
   });
 
 const getPersistedProfilePicture = (fileId: string): ProfilePictureCacheEntry | null => {
+  const normalizedFileId = normalizeFileId(fileId);
+  if (!normalizedFileId) {
+    return null;
+  }
+
   const storedEntries = readStoredProfilePictures();
-  const storedEntry = storedEntries[fileId];
+  const storedEntry = storedEntries[normalizedFileId];
   if (!storedEntry) {
     return null;
   }
 
   if (Date.now() > storedEntry.expiresAt) {
-    delete storedEntries[fileId];
+    delete storedEntries[normalizedFileId];
     writeStoredProfilePictures(storedEntries);
     return null;
   }
@@ -95,21 +108,26 @@ const getPersistedProfilePicture = (fileId: string): ProfilePictureCacheEntry | 
     };
   } catch (error) {
     console.error("Deserialize profile picture cache error:", error);
-    delete storedEntries[fileId];
+    delete storedEntries[normalizedFileId];
     writeStoredProfilePictures(storedEntries);
     return null;
   }
 };
 
 const getCachedProfilePicture = (fileId: string): Blob | null => {
-  const cached = profilePictureCache.get(fileId);
+  const normalizedFileId = normalizeFileId(fileId);
+  if (!normalizedFileId) {
+    return null;
+  }
+
+  const cached = profilePictureCache.get(normalizedFileId);
   if (!cached) {
-    const persisted = getPersistedProfilePicture(fileId);
+    const persisted = getPersistedProfilePicture(normalizedFileId);
     if (!persisted) {
       return null;
     }
 
-    setCachedProfilePicture(fileId, persisted.blob, {
+    setCachedProfilePicture(normalizedFileId, persisted.blob, {
       expiresAt: persisted.expiresAt,
       persist: false,
     });
@@ -117,11 +135,11 @@ const getCachedProfilePicture = (fileId: string): Blob | null => {
   }
 
   if (Date.now() > cached.expiresAt) {
-    profilePictureCache.delete(fileId);
+    profilePictureCache.delete(normalizedFileId);
 
     const storedEntries = readStoredProfilePictures();
-    if (storedEntries[fileId]) {
-      delete storedEntries[fileId];
+    if (storedEntries[normalizedFileId]) {
+      delete storedEntries[normalizedFileId];
       writeStoredProfilePictures(storedEntries);
     }
 
@@ -136,8 +154,13 @@ const setCachedProfilePicture = (
   blob: Blob,
   options: { expiresAt?: number; persist?: boolean } = {}
 ) => {
+  const normalizedFileId = normalizeFileId(fileId);
+  if (!normalizedFileId) {
+    return;
+  }
+
   const expiresAt = options.expiresAt ?? Date.now() + PROFILE_PICTURE_CACHE_TTL_MS;
-  profilePictureCache.set(fileId, {
+  profilePictureCache.set(normalizedFileId, {
     blob,
     expiresAt,
   });
@@ -149,7 +172,7 @@ const setCachedProfilePicture = (
   blobToDataUrl(blob)
     .then((dataUrl) => {
       const storedEntries = readStoredProfilePictures();
-      storedEntries[fileId] = {
+      storedEntries[normalizedFileId] = {
         dataUrl,
         expiresAt,
       };
@@ -161,11 +184,12 @@ const setCachedProfilePicture = (
 };
 
 export const clearProfilePictureCache = (fileId?: string) => {
-  if (fileId) {
-    profilePictureCache.delete(fileId);
+  const normalizedFileId = normalizeFileId(fileId);
+  if (normalizedFileId) {
+    profilePictureCache.delete(normalizedFileId);
     const storedEntries = readStoredProfilePictures();
-    if (storedEntries[fileId]) {
-      delete storedEntries[fileId];
+    if (storedEntries[normalizedFileId]) {
+      delete storedEntries[normalizedFileId];
       writeStoredProfilePictures(storedEntries);
     }
     return;
@@ -179,17 +203,18 @@ export const clearProfilePictureCache = (fileId?: string) => {
 
 export const useImage = () => {
   const fetchProfilePicture = useCallback(async (fileId: string, signal?: AbortSignal): Promise<Blob | null> => {
-    if (!fileId) {
+    const normalizedFileId = normalizeFileId(fileId);
+    if (!normalizedFileId) {
       return null;
     }
 
-    const cachedBlob = getCachedProfilePicture(fileId);
+    const cachedBlob = getCachedProfilePicture(normalizedFileId);
     if (cachedBlob) {
       return cachedBlob;
     }
 
     try {
-      const response = await fetchWithAuth(`${API_ROUTES.GET_FILE_BY_ID}?id=${fileId}`, {
+      const response = await fetchWithAuth(`${API_ROUTES.GET_FILE_BY_ID}?id=${normalizedFileId}`, {
         method: "GET",
         headers: {
           Accept: "*/*",
@@ -202,7 +227,7 @@ export const useImage = () => {
       }
 
       const blob = await response.blob();
-      setCachedProfilePicture(fileId, blob);
+      setCachedProfilePicture(normalizedFileId, blob);
       return blob;
     } catch (error) {
       if ((error as Error)?.name === "AbortError") {
@@ -214,21 +239,23 @@ export const useImage = () => {
   }, []);
 
   const getProfilePictureFromCache = useCallback((fileId: string): Blob | null => {
-    if (!fileId) {
+    const normalizedFileId = normalizeFileId(fileId);
+    if (!normalizedFileId) {
       return null;
     }
-    return getCachedProfilePicture(fileId);
+    return getCachedProfilePicture(normalizedFileId);
   }, []);
 
   const deleteProfilePicture = useCallback(async (fileId: string | null | undefined): Promise<boolean> => {
-    if (!fileId) {
+    const normalizedFileId = normalizeFileId(fileId);
+    if (!normalizedFileId) {
       return true;
     }
 
     try {
       const response = await fetchWithAuth(`${API_ROUTES.PROFILE_PICTURE}`, {
         method: "DELETE",
-        body: JSON.stringify({ fileId }),
+        body: JSON.stringify({ fileId: normalizedFileId }),
       });
 
       let data: { success?: boolean; message?: string } | null = null;
@@ -246,7 +273,7 @@ export const useImage = () => {
         return false;
       }
 
-      clearProfilePictureCache(fileId);
+      clearProfilePictureCache(normalizedFileId);
       return true;
     } catch (error) {
       console.error("Delete profile picture request failed:", error);
