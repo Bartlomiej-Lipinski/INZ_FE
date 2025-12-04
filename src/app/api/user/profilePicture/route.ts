@@ -25,8 +25,17 @@ export async function POST(request: NextRequest) {
             body: upstreamFormData,
             credentials: 'include',
         });
-        const data = await response.json();
-        return NextResponse.json(data, {status: response.status});
+        const contentType = response.headers.get('content-type') ?? '';
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            return NextResponse.json(data, {status: response.status});
+        }
+
+        const bodyText = await response.text();
+        return NextResponse.json(
+            bodyText ? {raw: bodyText} : {success: response.ok},
+            {status: response.status},
+        );
     } catch (error) {
         console.error('File upload API error:', error);
         return NextResponse.json(
