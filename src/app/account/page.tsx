@@ -564,6 +564,7 @@ export default function AccountPage() {
 
       if (croppedFile.size > MAX_PROFILE_PHOTO_SIZE) {
         setErrorMessage("Przycięte zdjęcie jest większe niż 2 MB. Spróbuj zmniejszyć kadr.");
+        setIsPreparingCrop(false);
         return;
       }
 
