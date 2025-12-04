@@ -51,6 +51,60 @@ export default function AccountPage() {
     setErrorMessage
   } = useUser();
   type UpdatePayload = Parameters<typeof updateProfile>[0];
+  type UpdatePayloadWithAvatar = UpdatePayload & { profilePictureId?: string | null };
+  const buildOptimisticUserState = useCallback(
+    (
+      baseUser: typeof user,
+      {
+        payload,
+        uploadedPhoto,
+        removeAvatar,
+      }: {
+        payload: UpdatePayloadWithAvatar | null;
+        uploadedPhoto: ProfilePhotoResponseData | null;
+        removeAvatar: boolean;
+      },
+    ) => {
+      if (!baseUser) {
+        return null;
+      }
+
+      const mergedUser = payload
+        ? {
+            ...baseUser,
+            name: payload.name,
+            surname: payload.surname,
+            username: payload.username,
+            status: payload.status,
+            description: payload.description,
+            birthDate: payload.birthDate,
+          }
+        : baseUser;
+
+      if (removeAvatar) {
+        return {
+          ...mergedUser,
+          profilePicture: null,
+        };
+      }
+
+      if (uploadedPhoto) {
+        return {
+          ...mergedUser,
+          profilePicture: {
+            id: uploadedPhoto.id ?? baseUser.profilePicture?.id ?? "",
+            fileName: uploadedPhoto.fileName,
+            contentType: uploadedPhoto.contentType,
+            size: uploadedPhoto.size,
+            url: uploadedPhoto.url,
+          },
+        };
+      }
+
+      return mergedUser;
+    },
+    [],
+  );
   const { fetchProfilePicture, getProfilePictureFromCache, deleteProfilePicture } = useImage();
   const theme = useTheme();
   const router = useRouter();
@@ -557,7 +611,7 @@ export default function AccountPage() {
     }
 
     const previousProfilePictureId = user.profilePicture?.id ?? null;
-    let payload: (UpdatePayload & { profilePictureId?: string | null }) | null = null;
+    let payload: UpdatePayloadWithAvatar | null = null;
 
     if (shouldUpdateProfile) {
       const validationErrors = Object.keys(validators).reduce((acc, key) => {
@@ -628,6 +682,12 @@ export default function AccountPage() {
       cacheKeysToInvalidate.forEach((cacheKey) => clearProfilePictureCache(cacheKey));
     }
 
+    const optimisticUser = buildOptimisticUserState(user, {
+      payload,
+      uploadedPhoto: uploadedPhotoData,
+      removeAvatar: shouldRemoveAvatar,
+    });
+
     const refreshedUser = await fetchAuthenticatedUser(user?.id);
 
     if (refreshedUser) {
@@ -635,33 +695,8 @@ export default function AccountPage() {
         ...refreshedUser,
         profilePicture: shouldRemoveAvatar ? null : refreshedUser.profilePicture,
       });
-    } else {
-      const fallbackUserData = payload
-        ? {
-            ...user,
-            name: payload.name,
-            surname: payload.surname,
-            username: payload.username,
-            status: payload.status,
-            description: payload.description,
-            birthDate: payload.birthDate,
-          }
-        : user;
-
-      setUser({
-        ...fallbackUserData,
-        profilePicture: uploadedPhotoData
-          ? {
-              id: uploadedPhotoData.id ?? user.profilePicture?.id ?? "",
-              fileName: uploadedPhotoData.fileName,
-              contentType: uploadedPhotoData.contentType,
-              size: uploadedPhotoData.size,
-              url: uploadedPhotoData.url,
-            }
-          : shouldRemoveAvatar
-            ? null
-            : fallbackUserData.profilePicture,
-      });
+    } else if (optimisticUser) {
+      setUser(optimisticUser);
     }
 
     setIsEditing(false);
