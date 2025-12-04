@@ -39,7 +39,12 @@ export async function GET(request: NextRequest) {
             headers.set('Content-Length', contentLength);
         }
 
-        const nextResponse = new NextResponse(response.body, {
+        let upstreamBody: BodyInit | null = response.body;
+        if (!upstreamBody) {
+            upstreamBody = await response.arrayBuffer();
+        }
+
+        const nextResponse = new NextResponse(upstreamBody, {
             status: response.status,
             headers,
         });
