@@ -24,7 +24,11 @@ export const getCroppedFile = async (imageSrc: string, cropArea: Area, originalF
 
   const context = canvas.getContext("2d");
   if (!context) {
-    throw new Error("Nie udało się przygotować płótna.");
+    return Promise.reject(
+      new Error(
+        "Nie udało się przygotować płótna. Możliwa niekompatybilność przeglądarki lub ograniczenia zasobów."
+      )
+    );
   }
 
   context.drawImage(
