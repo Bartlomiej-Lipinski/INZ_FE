@@ -25,17 +25,19 @@ import {Camera, ChevronRight, Settings} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getCroppedFile} from "@/lib/utils/image";
-import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
+import {
+    getStatusLabel,
+    STATUS_OPTIONS,
+    MAX_PROFILE_PHOTO_SIZE,
+    ALLOWED_PROFILE_PHOTO_TYPES,
+    SAFE_AVATAR_URL_PATTERN
+} from "@/lib/constants";
 import {useUser, type ProfilePhotoResponseData} from "@/hooks/use-user";
 import {useImage, clearProfilePictureCache} from "@/hooks/use-image";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
 import Cropper, {Area} from "react-easy-crop";
-
-const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
-const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
-const SAFE_AVATAR_URL_PATTERN = /^(?:https?:\/\/|data:|blob:)/i;
 
 const getSafeProfilePictureUrl = (url?: string | null) =>
   typeof url === "string" && SAFE_AVATAR_URL_PATTERN.test(url) ? url : null;

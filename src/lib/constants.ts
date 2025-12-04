@@ -3,6 +3,11 @@ export const IMAGES = {
 } as const; 
 
 
+export const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
+export const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+export const SAFE_AVATAR_URL_PATTERN = /^(?:https?:\/\/|data:|blob:)/i;
+
+
 export const STATUS_OPTIONS = [
   { value: "happy", label: "😊 Szczęśliwy/a" },
   { value: "relaxed", label: "😌 Zrelaksowany/a" },
