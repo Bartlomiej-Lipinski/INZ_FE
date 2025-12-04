@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 import { UserUpdate, User } from '@/lib/types/user';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -41,6 +41,11 @@ export function useUser(): UserHookResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user, setUser } = useAuthContext();
+  const userIdRef = useRef<string | null>(user?.id ?? null);
+
+  useEffect(() => {
+    userIdRef.current = user?.id ?? null;
+  }, [user?.id]);
 
   const updateProfile = async (request: UserUpdate): Promise<ApiResponse> => {
     setIsLoading(true);
@@ -134,7 +139,7 @@ export function useUser(): UserHookResult {
 
 
   const fetchAuthenticatedUser = useCallback(async (userId?: string): Promise<User | null> => {
-    const targetUserId = userId ?? user?.id;
+    const targetUserId = userId ?? userIdRef.current;
 
     if (!targetUserId) {
       return null;
@@ -165,7 +170,7 @@ export function useUser(): UserHookResult {
     } finally {
       setIsLoading(false);
     }
-  }, [setUser, user?.id]);
+  }, [setUser]);
 
   const setErrorMessage = (message: string) => {
     setError(message);
