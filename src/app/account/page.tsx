@@ -107,7 +107,7 @@ export default function AccountPage() {
     },
     [],
   );
-  const { fetchProfilePicture, getProfilePictureFromCache, deleteProfilePicture } = useImage();
+  const { fetchProfilePicture, getProfilePictureFromCache, deleteProfilePicture, restoreProfilePictureCache } = useImage();
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -670,13 +670,14 @@ export default function AccountPage() {
         setIsUploadingPhoto(false);
       }
       if (!uploadedPhotoData) {
+        await restoreProfilePictureCache(previousProfilePictureId);
         return;
       }
     }
 
     if (shouldRemoveAvatar || shouldUploadAvatar) {
       const cacheKeysToInvalidate = new Set<string>();
-      if (previousProfilePictureId) {
+      if (previousProfilePictureId && (shouldRemoveAvatar || uploadedPhotoData?.id)) {
         cacheKeysToInvalidate.add(previousProfilePictureId);
       }
       if (uploadedPhotoData?.id) {

@@ -281,10 +281,27 @@ export const useImage = () => {
     }
   }, []);
 
+  const restoreProfilePictureCache = useCallback(
+    async (fileId: string | null | undefined): Promise<void> => {
+      const normalizedFileId = normalizeFileId(fileId);
+      if (!normalizedFileId) {
+        return;
+      }
+
+      try {
+        await fetchProfilePicture(normalizedFileId);
+      } catch (error) {
+        console.error("Restore profile picture cache failed:", error);
+      }
+    },
+    [fetchProfilePicture],
+  );
+
   return {
     fetchProfilePicture,
     getProfilePictureFromCache,
     deleteProfilePicture,
+    restoreProfilePictureCache,
   };
 };
 
