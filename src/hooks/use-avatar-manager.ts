@@ -115,5 +115,3 @@ export const useAvatarManager = (user: User | null): UseAvatarManagerResult => {
     isImageLoading,
   };
 };
-
-

@@ -188,7 +188,7 @@ export default function AccountPage() {
         reader.abort();
       }
     };
-  }, [pendingAvatarFile, setAvatarLocalError]);
+  }, [pendingAvatarFile]);
 
   useEffect(() => {
     if (!selectedAvatarFile) {
