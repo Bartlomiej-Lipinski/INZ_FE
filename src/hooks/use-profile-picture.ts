@@ -100,13 +100,6 @@ export const useProfilePicture = () => {
     }
   }, []);
 
-  const getProfilePictureFromCache = useCallback((fileId: string): Blob | null => {
-    const normalizedFileId = normalizeFileId(fileId);
-    if (!normalizedFileId) {
-      return null;
-    }
-    return getCachedProfilePicture(normalizedFileId);
-  }, []);
 
   const deleteProfilePicture = useCallback(async (fileId: string | null | undefined): Promise<boolean> => {
     const normalizedFileId = normalizeFileId(fileId);
@@ -144,6 +137,15 @@ export const useProfilePicture = () => {
   }, []);
 
 
+  const getProfilePictureFromCache = useCallback((fileId: string): Blob | null => {
+    const normalizedFileId = normalizeFileId(fileId);
+    if (!normalizedFileId) {
+      return null;
+    }
+    return getCachedProfilePicture(normalizedFileId);
+  }, []);
+
+  
   return {
     fetchProfilePicture,
     getProfilePictureFromCache,
