@@ -385,6 +385,12 @@ export default function AccountPage() {
     setErrorMessage("");
     try {
       const croppedFile = await getCroppedFile(pendingAvatarPreview, croppedAreaPixels, pendingAvatarFile);
+      const validationError = validateAvatarFile(croppedFile);
+      if (validationError) {
+        setAvatarLocalError(validationError);
+        setErrorMessage("");
+        return;
+      }
       setSelectedAvatarFile(croppedFile);
       setPendingAvatarFile(null);
       setPendingAvatarPreview(null);
