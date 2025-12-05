@@ -462,10 +462,11 @@ export default function AccountPage() {
     setErrorMessage("");
     setAvatarLocalError(null);
 
-    const result = await updateProfile(payload);
-
-    if (!result.success) {
-      return;
+    if (shouldUpdateProfile) {
+      const result = await updateProfile(payload);
+      if (!result.success) {
+        return;
+      }
     }
 
     const previousProfilePictureId = user.profilePicture?.id ?? null;
