@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALLOWED_PROFILE_PHOTO_TYPES, MAX_PROFILE_PHOTO_SIZE } from "@/lib/constants";
 
 export const passwordSchema = z.string()
     .superRefine((v, ctx) => {
@@ -85,5 +86,18 @@ export const validateBirthDate = (value: string): string => {
 export const validateUsername = (value: string | null): string => {
     const result = usernameSchema.safeParse(value);
     return result.success ? "" : result.error.issues[0]?.message;
+};
+
+export const validateAvatarFile = (file: File): string | null => {
+    const isAllowedType = ALLOWED_PROFILE_PHOTO_TYPES.includes(file.type as (typeof ALLOWED_PROFILE_PHOTO_TYPES)[number]);
+    if (!isAllowedType) {
+        return "Obsługiwane formaty zdjęć to JPG, PNG lub WEBP.";
+    }
+
+    if (file.size > MAX_PROFILE_PHOTO_SIZE) {
+        return "Maksymalny rozmiar zdjęcia to 2 MB.";
+    }
+
+    return null;
 };
 

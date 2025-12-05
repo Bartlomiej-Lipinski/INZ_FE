@@ -36,7 +36,7 @@ import {useUser, type ProfilePhotoResponseData} from "@/hooks/use-user";
 import {useImage, clearProfilePictureCache} from "@/hooks/use-image";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
+import {validateAvatarFile, validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
 import Cropper, {Area} from "react-easy-crop";
 
 const getSafeProfilePictureUrl = (url?: string | null) =>
@@ -427,19 +427,6 @@ export default function AccountPage() {
     birthDate: (value) => validateBirthDate(value),
   };
 
-  const validateAvatarFile = (file: File): string | null => {
-    const isAllowedType = ALLOWED_PROFILE_PHOTO_TYPES.includes(file.type as (typeof ALLOWED_PROFILE_PHOTO_TYPES)[number]);
-    if (!isAllowedType) {
-      return "Obsługiwane formaty zdjęć to JPG, PNG lub WEBP.";
-    }
-
-    if (file.size > MAX_PROFILE_PHOTO_SIZE) {
-      return "Maksymalny rozmiar zdjęcia to 2 MB.";
-    }
-
-    return null;
-  };
-
   const handleAvatarFileSelection = useCallback((file: File) => {
     const validationError = validateAvatarFile(file);
     if (validationError) {
@@ -561,12 +548,6 @@ export default function AccountPage() {
     setIsPreparingCrop(true);
     try {
       const croppedFile = await getCroppedFile(pendingAvatarPreview, croppedAreaPixels, pendingAvatarFile);
-
-      if (croppedFile.size > MAX_PROFILE_PHOTO_SIZE) {
-        setErrorMessage("Przycięte zdjęcie jest większe niż 2 MB. Spróbuj zmniejszyć kadr.");
-        setIsPreparingCrop(false);
-        return;
-      }
 
       setSelectedAvatarFile(croppedFile);
       setIsCropperOpen(false);
