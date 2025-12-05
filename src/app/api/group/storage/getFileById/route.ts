@@ -39,7 +39,15 @@ export async function GET(request: NextRequest) {
             headers.set('Content-Length', contentLength);
         }
 
-        const nextResponse = new NextResponse(response.body, {
+        const upstreamBody: BodyInit | null = response.body;
+        if (!upstreamBody) {
+            return NextResponse.json(
+                {success: false, message: 'Nie można pobrać pliku (brak strumienia danych)'},
+                {status: 502},
+            );
+        }
+
+        const nextResponse = new NextResponse(upstreamBody, {
             status: response.status,
             headers,
         });

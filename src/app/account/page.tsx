@@ -3,6 +3,7 @@
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
 import {useAuthContext} from "@/contexts/AuthContext";
 import {
+    Alert,
     Avatar,
     Box,
     Button,
@@ -25,20 +26,18 @@ import {Camera, ChevronRight, Settings} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getCroppedFile} from "@/lib/utils/image";
-import {getStatusLabel, STATUS_OPTIONS} from "@/lib/constants";
-import {useUser, type ProfilePhotoResponseData} from "@/hooks/use-user";
-import {useImage, clearProfilePictureCache} from "@/hooks/use-image";
+import {
+    getStatusLabel,
+    STATUS_OPTIONS,
+    ALLOWED_PROFILE_PHOTO_TYPES,
+} from "@/lib/constants";
+import {useUser} from "@/hooks/use-user";
+import {useProfilePicture, clearProfilePictureCache} from "@/hooks/use-profile-picture";
+import {useAvatarManager} from "@/hooks/use-avatar-manager";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
+import {validateAvatarFile, validateBirthDate, validateRequiredInput, validateUsername} from "@/lib/zod-schemas";
 import Cropper, {Area} from "react-easy-crop";
-
-const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
-const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
-const SAFE_AVATAR_URL_PATTERN = /^(?:https?:\/\/|data:|blob:)/i;
-
-const getSafeProfilePictureUrl = (url?: string | null) =>
-  typeof url === "string" && SAFE_AVATAR_URL_PATTERN.test(url) ? url : null;
 
 export default function AccountPage() {
   const { user, isLoading, setUser } = useAuthContext();
@@ -50,37 +49,29 @@ export default function AccountPage() {
     error: updateError,
     setErrorMessage
   } = useUser();
-  type UpdatePayload = Parameters<typeof updateProfile>[0];
-  const { fetchProfilePicture, getProfilePictureFromCache, deleteProfilePicture } = useImage();
+  const { deleteProfilePicture } = useProfilePicture();
+  const {
+    avatarSrc,
+    isImageLoading: isAvatarImageLoading,
+  } = useAvatarManager(user);
   const theme = useTheme();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const avatarObjectUrlRef = useRef<string | null>(null);
   const [isMediumScreen, setIsMediumScreen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState<File | null>(null);
+  const [selectedAvatarPreview, setSelectedAvatarPreview] = useState<string | null>(null);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(() => {
-    if (!user?.profilePicture) {
-      return null;
-    }
-
-    if (user.profilePicture.id) {
-      return null;
-    }
-
-    return getSafeProfilePictureUrl(user.profilePicture.url);
-  });
   const [pendingAvatarPreview, setPendingAvatarPreview] = useState<string | null>(null);
   const [shouldRemoveAvatar, setShouldRemoveAvatar] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [isAvatarFileLoading, setIsAvatarFileLoading] = useState(false);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
   const [isPreparingCrop, setIsPreparingCrop] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [isAvatarDragActive, setIsAvatarDragActive] = useState(false);
+  const [avatarLocalError, setAvatarLocalError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     name: string;
     surname: string;
@@ -92,29 +83,7 @@ export default function AccountPage() {
     username: "",
     birthDate: "",
   });
-  const isSavingProfile = isUpdatingProfile || isUploadingPhoto;
-
-  const setAvatarPreviewUrl = useCallback((url: string | null, options: { isObjectUrl?: boolean } = {}) => {
-    if (avatarObjectUrlRef.current && avatarObjectUrlRef.current !== url) {
-      URL.revokeObjectURL(avatarObjectUrlRef.current);
-      avatarObjectUrlRef.current = null;
-    }
-
-    if (options.isObjectUrl && url) {
-      avatarObjectUrlRef.current = url;
-    }
-
-    setAvatarPreview(url);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (avatarObjectUrlRef.current) {
-        URL.revokeObjectURL(avatarObjectUrlRef.current);
-        avatarObjectUrlRef.current = null;
-      }
-    };
-  }, []);
+  const isSaving = isUpdatingProfile || isUploadingPhoto;
 
   
   useEffect(() => {
@@ -186,114 +155,10 @@ export default function AccountPage() {
   }, [normalizedFormValues, normalizedUserValues]);
 
   const shouldUploadAvatar = !!selectedAvatarFile;
-  const shouldUpdateProfile = hasProfileDataChanged || shouldRemoveAvatar;
-  const hasPendingChanges = shouldUpdateProfile || shouldUploadAvatar;
-  const shouldLoadRemoteAvatar = !shouldRemoveAvatar && !selectedAvatarFile;
-
-  const profilePictureSource = useMemo(() => {
-    if (!user?.profilePicture) {
-      return null;
-    }
-
-    return {
-      id: user.profilePicture.id ?? null,
-      url: user.profilePicture.url,
-    };
-  }, [user?.profilePicture?.id, user?.profilePicture?.url]);
-
-  useEffect(() => {
-    if (!shouldRemoveAvatar) {
-      return;
-    }
-
-    setAvatarPreviewUrl(null);
-    setIsAvatarFileLoading(false);
-  }, [setAvatarPreviewUrl, shouldRemoveAvatar]);
-
-  useEffect(() => {
-    if (!shouldLoadRemoteAvatar) {
-      return;
-    }
-
-    if (!profilePictureSource) {
-      setAvatarPreviewUrl(null);
-      setIsAvatarFileLoading(false);
-      return;
-    }
-
-    if (!profilePictureSource.id) {
-      setAvatarPreviewUrl(getSafeProfilePictureUrl(profilePictureSource.url));
-      setIsAvatarFileLoading(false);
-      return;
-    }
-
-    const cachedBlob = getProfilePictureFromCache(profilePictureSource.id);
-    if (cachedBlob) {
-      const objectUrl = URL.createObjectURL(cachedBlob);
-      setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
-      setIsAvatarFileLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    setIsAvatarFileLoading(true);
-
-    const loadProfilePicture = async () => {
-      const blob = await fetchProfilePicture(profilePictureSource.id ?? "", controller.signal);
-
-      if (controller.signal.aborted) {
-        return;
-      }
-
-      if (!blob) {
-        setAvatarPreviewUrl(getSafeProfilePictureUrl(profilePictureSource.url));
-      } else {
-        const objectUrl = URL.createObjectURL(blob);
-        setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
-      }
-
-      if (!controller.signal.aborted) {
-        setIsAvatarFileLoading(false);
-      }
-    };
-
-    loadProfilePicture().catch((error) => {
-      if ((error as Error)?.name === "AbortError") {
-        return;
-      }
-      console.error("Profile photo download error:", error);
-      setAvatarPreviewUrl(getSafeProfilePictureUrl(profilePictureSource.url));
-      setIsAvatarFileLoading(false);
-    });
-
-    return () => {
-      controller.abort();
-    };
-  }, [
-    fetchProfilePicture,
-    getProfilePictureFromCache,
-    profilePictureSource,
-    setAvatarPreviewUrl,
-    setIsAvatarFileLoading,
-    shouldLoadRemoteAvatar,
-  ]);
-
-  useEffect(() => {
-    if (!selectedAvatarFile) {
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(selectedAvatarFile);
-    setAvatarPreviewUrl(objectUrl, { isObjectUrl: true });
-    setIsAvatarFileLoading(false);
-
-    return () => {
-      URL.revokeObjectURL(objectUrl);
-      if (avatarObjectUrlRef.current === objectUrl) {
-        avatarObjectUrlRef.current = null;
-      }
-    };
-  }, [selectedAvatarFile, setAvatarPreviewUrl, setIsAvatarFileLoading]);
+  const shouldUpdateProfile = hasProfileDataChanged;
+  const hasPendingChanges = shouldUpdateProfile || shouldUploadAvatar || shouldRemoveAvatar;
+  const avatarErrorMessage = avatarLocalError;
+  const displayedAvatarSrc = selectedAvatarPreview ?? (shouldRemoveAvatar ? null : avatarSrc);
 
   useEffect(() => {
     if (!pendingAvatarFile) {
@@ -301,13 +166,43 @@ export default function AccountPage() {
       return;
     }
 
-    const objectUrl = URL.createObjectURL(pendingAvatarFile);
-    setPendingAvatarPreview(objectUrl);
+    let isCancelled = false;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (!isCancelled) {
+        setPendingAvatarPreview(reader.result as string);
+      }
+    };
+    reader.onerror = () => {
+      if (!isCancelled) {
+        setPendingAvatarPreview(null);
+        setAvatarLocalError("Nie udało się przygotować podglądu zdjęcia.");
+      }
+    };
+
+    reader.readAsDataURL(pendingAvatarFile);
+
+    return () => {
+      isCancelled = true;
+      if (reader.readyState === FileReader.LOADING) {
+        reader.abort();
+      }
+    };
+  }, [pendingAvatarFile]);
+
+  useEffect(() => {
+    if (!selectedAvatarFile) {
+      setSelectedAvatarPreview(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedAvatarFile);
+    setSelectedAvatarPreview(objectUrl);
 
     return () => {
       URL.revokeObjectURL(objectUrl);
     };
-  }, [pendingAvatarFile]);
+  }, [selectedAvatarFile]);
 
   const populateFormFromUser = useCallback(() => {
     if (!user) return;
@@ -329,16 +224,18 @@ export default function AccountPage() {
   }, [populateFormFromUser, isEditing]);
 
   const resetAvatarSelection = useCallback(() => {
-    setSelectedAvatarFile(null);
     setPendingAvatarFile(null);
     setPendingAvatarPreview(null);
+    setSelectedAvatarFile(null);
+    setSelectedAvatarPreview(null);
+    setShouldRemoveAvatar(false);
     setIsCropperOpen(false);
     setIsPreparingCrop(false);
     setCroppedAreaPixels(null);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setIsAvatarDragActive(false);
-    setShouldRemoveAvatar(false);
+    setAvatarLocalError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -346,6 +243,7 @@ export default function AccountPage() {
 
   const handleStartEditing = () => {
     setErrorMessage("");
+    setAvatarLocalError(null);
     setErrors({
       name: "",
       surname: "",
@@ -360,6 +258,7 @@ export default function AccountPage() {
   const handleCancelEditing = () => {
     setIsEditing(false);
     setErrorMessage("");
+    setAvatarLocalError(null);
     populateFormFromUser();
     resetAvatarSelection();
   };
@@ -371,73 +270,51 @@ export default function AccountPage() {
     birthDate: (value) => validateBirthDate(value),
   };
 
-  const validateAvatarFile = (file: File): string | null => {
-    const isAllowedType = ALLOWED_PROFILE_PHOTO_TYPES.includes(file.type as (typeof ALLOWED_PROFILE_PHOTO_TYPES)[number]);
-    if (!isAllowedType) {
-      return "Obsługiwane formaty zdjęć to JPG, PNG lub WEBP.";
-    }
+  const handleAvatarFileSelection = useCallback(
+    (file: File) => {
+      const validationError = validateAvatarFile(file);
+      if (validationError) {
+        setAvatarLocalError(validationError);
+        setErrorMessage("");
+        return;
+      }
 
-    if (file.size > MAX_PROFILE_PHOTO_SIZE) {
-      return "Maksymalny rozmiar zdjęcia to 2 MB.";
-    }
-
-    return null;
-  };
-
-  const handleAvatarFileSelection = useCallback((file: File) => {
-    const validationError = validateAvatarFile(file);
-    if (validationError) {
-      setErrorMessage(validationError);
-      return;
-    }
-
-    setErrorMessage("");
-    setIsAvatarDragActive(false);
-    setShouldRemoveAvatar(false);
-    setPendingAvatarFile(file);
-    setIsCropperOpen(true);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setCroppedAreaPixels(null);
-  }, [setErrorMessage, setShouldRemoveAvatar]);
+      setAvatarLocalError(null);
+      setErrorMessage("");
+      setIsAvatarDragActive(false);
+      setShouldRemoveAvatar(false);
+      setPendingAvatarFile(file);
+      setIsCropperOpen(true);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCroppedAreaPixels(null);
+    },
+    [setAvatarLocalError, setErrorMessage, setShouldRemoveAvatar],
+  );
 
   const handleRemoveCurrentAvatar = useCallback(() => {
-    if (!user?.profilePicture && !avatarPreview) {
+    if (!user?.profilePicture) {
       return;
     }
 
     setSelectedAvatarFile(null);
+    setSelectedAvatarPreview(null);
     setPendingAvatarFile(null);
     setPendingAvatarPreview(null);
-    setIsCropperOpen(false);
-    setIsPreparingCrop(false);
-    setCroppedAreaPixels(null);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-    setIsAvatarDragActive(false);
     setShouldRemoveAvatar(true);
-    setAvatarPreviewUrl(null);
+    setAvatarLocalError(null);
+    setErrorMessage("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  }, [avatarPreview, setAvatarPreviewUrl, user?.profilePicture, fileInputRef]);
+  }, [fileInputRef, setErrorMessage, user?.profilePicture]);
 
   const handleRestoreRemovedAvatar = useCallback(() => {
-    if (!user?.profilePicture) {
-      setShouldRemoveAvatar(false);
-      return;
-    }
-
     setShouldRemoveAvatar(false);
+    setAvatarLocalError(null);
     setErrorMessage("");
+  }, [setErrorMessage]);
 
-    if (user.profilePicture.id) {
-      setIsAvatarFileLoading(true);
-    } else {
-      setAvatarPreviewUrl(getSafeProfilePictureUrl(user.profilePicture.url));
-      setIsAvatarFileLoading(false);
-    }
-  }, [setAvatarPreviewUrl, setErrorMessage, user, setIsAvatarFileLoading]);
 
   const handleAvatarInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -498,33 +375,39 @@ export default function AccountPage() {
 
   const handleConfirmAvatarCrop = async () => {
     if (!pendingAvatarPreview || !pendingAvatarFile || !croppedAreaPixels) {
-      setErrorMessage("Najpierw wybierz kadr zdjęcia.");
+      setAvatarLocalError("Najpierw wybierz kadr zdjęcia.");
+      setErrorMessage("");
       return;
     }
 
     setIsPreparingCrop(true);
+    setAvatarLocalError(null);
+    setErrorMessage("");
     try {
       const croppedFile = await getCroppedFile(pendingAvatarPreview, croppedAreaPixels, pendingAvatarFile);
-
-      if (croppedFile.size > MAX_PROFILE_PHOTO_SIZE) {
-        setErrorMessage("Przycięte zdjęcie jest większe niż 2 MB. Spróbuj zmniejszyć kadr.");
+      const validationError = validateAvatarFile(croppedFile);
+      if (validationError) {
+        setAvatarLocalError(validationError);
+        setErrorMessage("");
         return;
       }
-
       setSelectedAvatarFile(croppedFile);
-      setIsCropperOpen(false);
       setPendingAvatarFile(null);
       setPendingAvatarPreview(null);
+      setIsCropperOpen(false);
       setCroppedAreaPixels(null);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setShouldRemoveAvatar(false);
     } catch (error) {
       console.error("Avatar crop error:", error);
-      setErrorMessage("Nie udało się przyciąć zdjęcia.");
+      setAvatarLocalError("Nie udało się przyciąć zdjęcia.");
     } finally {
       setIsPreparingCrop(false);
     }
   };
 
-  const handleCropDialogClose = (_event: object, reason: "backdropClick" | "escapeKeyDown") => {
+  const handleCropDialogClose = () => {
     if (isPreparingCrop) {
       return;
     }
@@ -548,16 +431,22 @@ export default function AccountPage() {
   };
 
   const handleSave = async () => {
-    if (!user) {
+    if (!user || !hasPendingChanges) {
       return;
     }
 
-    if (!hasPendingChanges) {
-      return;
-    }
+    const payload = {
+      name: normalizedFormValues.name,
+      surname: normalizedFormValues.surname,
+      username: normalizedFormValues.username || null,
+      status: normalizedFormValues.status === "" ? null : normalizedFormValues.status,
+      description: normalizedFormValues.description || null,
+      birthDate: new Date(formValues.birthDate),
+      ...(shouldRemoveAvatar ? { profilePictureId: null } : {}),
+    };
 
-    const previousProfilePictureId = user.profilePicture?.id ?? null;
-    let payload: (UpdatePayload & { profilePictureId?: string | null }) | null = null;
+    setErrorMessage("");
+    setAvatarLocalError(null);
 
     if (shouldUpdateProfile) {
       const validationErrors = Object.keys(validators).reduce((acc, key) => {
@@ -574,96 +463,51 @@ export default function AccountPage() {
         return;
       }
 
-      payload = {
-        name: normalizedFormValues.name,
-        surname: normalizedFormValues.surname,
-        username: normalizedFormValues.username || null,
-        status: normalizedFormValues.status === "" ? null : normalizedFormValues.status,
-        description: normalizedFormValues.description || null,
-        birthDate: new Date(formValues.birthDate),
-        ...(shouldRemoveAvatar ? { profilePictureId: null } : {}),
-      };
-
-      setErrorMessage("");
-
       const result = await updateProfile(payload);
-
       if (!result.success) {
         return;
       }
-
-      if (shouldRemoveAvatar) {
-        const deleteSuccess = await deleteProfilePicture(previousProfilePictureId);
-        if (!deleteSuccess) {
-          setErrorMessage("Nie udało się usunąć zdjęcia profilowego.");
-          return;
-        }
-      }
-    } else if (shouldUploadAvatar) {
-      setErrorMessage("");
     }
 
-    let uploadedPhotoData: ProfilePhotoResponseData | null = null;
+    const previousProfilePictureId = user.profilePicture?.id ?? null;
+    let uploadedPhotoId: string | null = null;
 
-    if (shouldUploadAvatar && selectedAvatarFile) {
-      setIsUploadingPhoto(true);
-      try {
-        uploadedPhotoData = await uploadProfilePicture(selectedAvatarFile);
-      } finally {
-        setIsUploadingPhoto(false);
-      }
-      if (!uploadedPhotoData) {
+    if (shouldRemoveAvatar) {
+      const deleteSuccess = await deleteProfilePicture(previousProfilePictureId);
+      if (!deleteSuccess) {
+        setErrorMessage("Nie udało zaktualizować zdjęcia profilowego.");
         return;
       }
     }
 
-    if (shouldRemoveAvatar || shouldUploadAvatar) {
-      const cacheKeysToInvalidate = new Set<string>();
-      if (previousProfilePictureId) {
-        cacheKeysToInvalidate.add(previousProfilePictureId);
+    if (shouldUploadAvatar && selectedAvatarFile) {
+      setIsUploadingPhoto(true);
+      let uploadResult: Awaited<ReturnType<typeof uploadProfilePicture>> | null = null;
+      try {
+        uploadResult = await uploadProfilePicture(selectedAvatarFile);
+      } finally {
+        setIsUploadingPhoto(false);
       }
-      if (uploadedPhotoData?.id) {
-        cacheKeysToInvalidate.add(uploadedPhotoData.id);
+
+      if (!uploadResult?.success || !uploadResult.data) {
+        const message = uploadResult?.message ?? "Nie udało zaktualizować zdjęcia profilowego.";
+        setErrorMessage(message);
+        return;
       }
-      cacheKeysToInvalidate.forEach((cacheKey) => clearProfilePictureCache(cacheKey));
+
+      uploadedPhotoId = uploadResult.data.id ?? null;
     }
 
-    const refreshedUser = await fetchAuthenticatedUser(user?.id);
-
-    if (refreshedUser) {
-      setUser({
-        ...refreshedUser,
-        profilePicture: shouldRemoveAvatar ? null : refreshedUser.profilePicture,
-      });
-    } else {
-      const fallbackUserData = payload
-        ? {
-            ...user,
-            name: payload.name,
-            surname: payload.surname,
-            username: payload.username,
-            status: payload.status,
-            description: payload.description,
-            birthDate: payload.birthDate,
-          }
-        : user;
-
-      setUser({
-        ...fallbackUserData,
-        profilePicture: uploadedPhotoData
-          ? {
-              id: uploadedPhotoData.id ?? user.profilePicture?.id ?? "",
-              fileName: uploadedPhotoData.fileName,
-              contentType: uploadedPhotoData.contentType,
-              size: uploadedPhotoData.size,
-              url: uploadedPhotoData.url,
-            }
-          : shouldRemoveAvatar
-            ? null
-            : fallbackUserData.profilePicture,
-      });
+    const cacheKeysToInvalidate = new Set<string>();
+    if (previousProfilePictureId && (shouldRemoveAvatar || uploadedPhotoId)) {
+      cacheKeysToInvalidate.add(previousProfilePictureId);
     }
+    if (uploadedPhotoId) {
+      cacheKeysToInvalidate.add(uploadedPhotoId);
+    }
+    cacheKeysToInvalidate.forEach((cacheKey) => clearProfilePictureCache(cacheKey));
 
+    await fetchAuthenticatedUser(user.id);
     setIsEditing(false);
     resetAvatarSelection();
   };
@@ -730,7 +574,7 @@ export default function AccountPage() {
               >
                   <Avatar
                       alt={`${user.name} ${user.surname}`.trim() || undefined}
-                      src={avatarPreview ?? undefined}
+                      src={displayedAvatarSrc ?? undefined}
                       sx={{
                           width: {xs: 80, sm: 90},
                           height: {xs: 80, sm: 90},
@@ -743,7 +587,7 @@ export default function AccountPage() {
                           transition: "border-color 0.2s ease",
                       }}
                   >
-                      {!avatarPreview && initials}
+                      {!displayedAvatarSrc && initials}
                   </Avatar>
                   {isEditing && (
                     <IconButton
@@ -775,7 +619,7 @@ export default function AccountPage() {
                     onChange={handleAvatarInputChange}
                     disabled={!isEditing}
                   />
-                  {(isUploadingPhoto || isAvatarFileLoading) && (
+                  {(isAvatarImageLoading || isUploadingPhoto) && (
                     <Box
                       sx={{
                         position: "absolute",
@@ -794,7 +638,18 @@ export default function AccountPage() {
                     </Box>
                   )}
               </Box>
-              {isEditing && !selectedAvatarFile && !shouldRemoveAvatar && (
+              
+              {avatarErrorMessage && (
+                <Alert
+                  severity="error"
+                  onClose={() => setAvatarLocalError(null)}
+                  sx={{ width: "100%", mt: 1, textAlign: "center" }}
+                >
+                  {avatarErrorMessage}
+                </Alert>
+              )}
+              
+              {isEditing && !pendingAvatarFile && !isCropperOpen && !selectedAvatarFile && !shouldRemoveAvatar && (
                 <Typography variant="caption" color="text.secondary" textAlign="center">
                   Obsługiwane formaty: JPG, PNG, WEBP (max 2 MB). Możesz przeciągnąć zdjęcie na avatara.
                 </Typography>
@@ -803,6 +658,7 @@ export default function AccountPage() {
                 <Button
                   onClick={resetAvatarSelection}
                   sx={{mb: 1, backgroundColor: theme.palette.primary.dark}}
+                  disabled={isSaving}
                 >
                   Usuń wybrane zdjęcie
                 </Button>
@@ -811,6 +667,7 @@ export default function AccountPage() {
                 <Button
                   onClick={handleRemoveCurrentAvatar}
                   sx={{ mb: 1, mt: -2, backgroundColor: theme.palette.error.main}}
+                  disabled={isSaving}
                 >
                   Usuń aktualne zdjęcie
                 </Button>
@@ -825,12 +682,18 @@ export default function AccountPage() {
                     gap: 0.5,
                   }}
                 >
-                  <Typography variant="caption" color="warning.light" textAlign="center">
-                    Zdjęcie zostanie usunięte po zapisaniu zmian.
-                  </Typography>
+                  
+                  <Alert
+                  severity="warning"
+                  sx={{ width: "100%", textAlign: "center" }}
+                >
+                  Zdjęcie zostanie usunięte po zapisaniu zmian.
+                </Alert>
+              
                   <Button
                     onClick={handleRestoreRemovedAvatar}
                     sx={{backgroundColor: theme.palette.primary.dark, mt:1}}
+                    disabled={isSaving}
                   >
                     Cofnij
                   </Button>
@@ -1167,16 +1030,16 @@ export default function AccountPage() {
                   }}
                   fullWidth
                   onClick={handleCancelEditing}
-                  disabled={isSavingProfile}
+                  disabled={isSaving}
                 >
                   Anuluj
                 </Button>
                 <Button
                   fullWidth
                   onClick={handleSave}
-                  disabled={isSavingProfile || !hasPendingChanges}
+                  disabled={isSaving || !hasPendingChanges}
                 >
-                  {isSavingProfile ? "Zapisywanie..." : "Zapisz"}
+                  {isSaving ? "Zapisywanie..." : "Zapisz"}
                 </Button>
               </Box>
             ) : (
@@ -1255,7 +1118,7 @@ export default function AccountPage() {
               cropShape="round"
               showGrid={false}
               onCropChange={setCrop}
-              onZoomChange={(value) => setZoom(value as number)}
+              onZoomChange={setZoom}
               onCropComplete={handleAvatarCropComplete}
             />
           ) : (
@@ -1301,5 +1164,3 @@ export default function AccountPage() {
     </>
   );
 }
-
-
