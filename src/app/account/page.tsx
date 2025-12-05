@@ -475,7 +475,7 @@ export default function AccountPage() {
     if (shouldRemoveAvatar) {
       const deleteSuccess = await deleteProfilePicture(previousProfilePictureId);
       if (!deleteSuccess) {
-        setAvatarLocalError("Nie udało się usunąć zdjęcia profilowego.");
+        setErrorMessage("Nie udało zaktualizować zdjęcia profilowego.");
         return;
       }
     }
@@ -490,8 +490,8 @@ export default function AccountPage() {
       }
 
       if (!uploadResult?.success || !uploadResult.data) {
-        const message = uploadResult?.message ?? "Nie udało się przesłać zdjęcia profilowego.";
-        setAvatarLocalError(message);
+        const message = uploadResult?.message ?? "Nie udało zaktualizować zdjęcia profilowego.";
+        setErrorMessage(message);
         return;
       }
 

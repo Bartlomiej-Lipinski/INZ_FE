@@ -124,7 +124,6 @@ export const useProfilePicture = () => {
       }
 
       if (!response.ok || data?.success === false) {
-        console.error("Delete profile picture error:", data?.message ?? response.statusText);
         return false;
       }
 
