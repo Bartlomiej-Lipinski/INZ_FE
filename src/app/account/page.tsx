@@ -1317,7 +1317,7 @@ export default function AccountPage() {
           </Typography>
           <Slider
             value={zoom}
-            onChange={(_event, value) => setZoom(value)}
+            onChange={(_event, value) => setZoom(value as number)}
             min={1}
             max={3}
             step={0.1}
