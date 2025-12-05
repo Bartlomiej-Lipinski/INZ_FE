@@ -407,7 +407,7 @@ export default function AccountPage() {
     }
   };
 
-  const handleCropDialogClose = (_event: object, reason: "backdropClick" | "escapeKeyDown") => {
+  const handleCropDialogClose = () => {
     if (isPreparingCrop) {
       return;
     }
