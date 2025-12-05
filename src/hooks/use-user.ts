@@ -12,7 +12,7 @@ interface ApiResponse {
   message?: string;
 }
 
-interface ProfilePhotoResponse {
+export interface ProfilePhotoResponse {
   success: boolean;
   data?: ProfilePhotoResponseData;
   message?: string;
@@ -30,7 +30,7 @@ export interface ProfilePhotoResponseData {
 
 interface UserHookResult {
   updateProfile: (request: UserUpdate) => Promise<ApiResponse>;
-  uploadProfilePicture: (file: File) => Promise<ProfilePhotoResponseData | null>;
+  uploadProfilePicture: (file: File) => Promise<ProfilePhotoResponse>;
   fetchAuthenticatedUser: (userId?: string) => Promise<User | null>;
   isLoading: boolean;
   error: string | null;
@@ -110,7 +110,7 @@ export function useUser(): UserHookResult {
     }
   };
 
-  const uploadProfilePicture = useCallback(async (file: File): Promise<ProfilePhotoResponseData | null> => {
+  const uploadProfilePicture = useCallback(async (file: File): Promise<ProfilePhotoResponse> => {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -125,14 +125,15 @@ export function useUser(): UserHookResult {
       if (!response.ok || !data.success || !data.data) {
         const message = data?.message ?? 'Nie udało się przesłać zdjęcia profilowego.';
         setError(message);
-        return null;
+        return { success: false, message };
       }
 
-      return data.data;
+      return { success: true, data: data.data };
     } catch (error) {
       console.error('Profile photo upload error:', error);
-      setError('Wystąpił błąd podczas przesyłania zdjęcia.');
-      return null;
+      const message = 'Wystąpił błąd podczas przesyłania zdjęcia.';
+      setError(message);
+      return { success: false, message };
     }
   }, [setError]);
 

@@ -95,7 +95,7 @@ export const validateAvatarFile = (file: File): string | null => {
     }
 
     if (file.size > MAX_PROFILE_PHOTO_SIZE) {
-        return "Maksymalny rozmiar zdjęcia to 2 MB.";
+        return "Nie załadowano wybranego zdjęcia. Maksymalny rozmiar zdjęcia to 2 MB.";
     }
 
     return null;
