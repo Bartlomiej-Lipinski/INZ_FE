@@ -649,12 +649,7 @@ export default function AccountPage() {
               )}
               {isEditing && selectedAvatarFile && (
                 <Button
-                  onClick={() => {
-                    setSelectedAvatarFile(null);
-                    setSelectedAvatarPreview(null);
-                    setAvatarLocalError(null);
-                    setErrorMessage("");
-                  }}
+                  onClick={resetAvatarSelection}
                   sx={{mb: 1, backgroundColor: theme.palette.primary.dark}}
                   disabled={isSaving}
                 >
