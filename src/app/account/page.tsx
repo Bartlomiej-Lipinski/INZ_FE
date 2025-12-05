@@ -435,20 +435,6 @@ export default function AccountPage() {
       return;
     }
 
-    const validationErrors = Object.keys(validators).reduce((acc, key) => {
-      const field = key as keyof typeof validators;
-      acc[field] = validators[field](formValues[field]);
-      return acc;
-    }, {} as typeof errors);
-
-    setErrors(validationErrors);
-
-    const hasErrors = Object.values(validationErrors).some((err) => err !== "");
-    if (hasErrors) {
-      setErrorMessage("Popraw błędy w polach!");
-      return;
-    }
-
     const payload = {
       name: normalizedFormValues.name,
       surname: normalizedFormValues.surname,
@@ -463,6 +449,20 @@ export default function AccountPage() {
     setAvatarLocalError(null);
 
     if (shouldUpdateProfile) {
+      const validationErrors = Object.keys(validators).reduce((acc, key) => {
+        const field = key as keyof typeof validators;
+        acc[field] = validators[field](formValues[field]);
+        return acc;
+      }, {} as typeof errors);
+
+      setErrors(validationErrors);
+
+      const hasErrors = Object.values(validationErrors).some((err) => err !== "");
+      if (hasErrors) {
+        setErrorMessage("Popraw błędy w polach!");
+        return;
+      }
+
       const result = await updateProfile(payload);
       if (!result.success) {
         return;
