@@ -3,6 +3,7 @@
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
 import {useAuthContext} from "@/contexts/AuthContext";
 import {
+    Alert,
     Avatar,
     Box,
     Button,
@@ -31,7 +32,7 @@ import {
     ALLOWED_PROFILE_PHOTO_TYPES,
 } from "@/lib/constants";
 import {useUser} from "@/hooks/use-user";
-import {useImage, clearProfilePictureCache} from "@/hooks/use-image";
+import {useProfilePicture, clearProfilePictureCache} from "@/hooks/use-profile-picture";
 import {useAvatarManager} from "@/hooks/use-avatar-manager";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
@@ -48,7 +49,7 @@ export default function AccountPage() {
     error: updateError,
     setErrorMessage
   } = useUser();
-  const { deleteProfilePicture } = useImage();
+  const { deleteProfilePicture } = useProfilePicture();
   const {
     avatarSrc,
     isImageLoading: isAvatarImageLoading,
@@ -632,9 +633,13 @@ export default function AccountPage() {
               </Box>
               
               {avatarErrorMessage && (
-                <Typography color="error" textAlign="center" sx={{ mt: 1 }}>
+                <Alert
+                  severity="error"
+                  onClose={() => setAvatarLocalError(null)}
+                  sx={{ width: "100%", mt: 1, textAlign: "center" }}
+                >
                   {avatarErrorMessage}
-                </Typography>
+                </Alert>
               )}
               
               {isEditing && !pendingAvatarFile && !isCropperOpen && !selectedAvatarFile && !shouldRemoveAvatar && (
@@ -675,9 +680,14 @@ export default function AccountPage() {
                     gap: 0.5,
                   }}
                 >
-                  <Typography variant="caption" color="warning.light" textAlign="center">
-                    Zdjęcie zostanie usunięte po zapisaniu zmian.
-                  </Typography>
+                  
+                  <Alert
+                  severity="warning"
+                  sx={{ width: "100%", textAlign: "center" }}
+                >
+                  Zdjęcie zostanie usunięte po zapisaniu zmian.
+                </Alert>
+              
                   <Button
                     onClick={handleRestoreRemovedAvatar}
                     sx={{backgroundColor: theme.palette.primary.dark, mt:1}}

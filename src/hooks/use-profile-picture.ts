@@ -63,7 +63,7 @@ export const clearProfilePictureCache = (fileId?: string) => {
   profilePictureCache.clear();
 };
 
-export const useImage = () => {
+export const useProfilePicture = () => {
   const fetchProfilePicture = useCallback(async (fileId: string, signal?: AbortSignal): Promise<Blob | null> => {
     const normalizedFileId = normalizeFileId(fileId);
     if (!normalizedFileId) {

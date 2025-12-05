@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from "react";
 import { SAFE_AVATAR_URL_PATTERN } from "@/lib/constants";
-import { useImage } from "@/hooks/use-image";
+import { useProfilePicture } from "@/hooks/use-profile-picture";
 import type { User } from "@/lib/types/user";
 
 const getSafeProfilePictureUrl = (url?: string | null) =>
@@ -21,7 +21,7 @@ const revokeObjectUrl = (urlRef: MutableRefObject<string | null>) => {
 };
 
 export const useAvatarManager = (user: User | null): UseAvatarManagerResult => {
-  const { fetchProfilePicture, getProfilePictureFromCache } = useImage();
+  const { fetchProfilePicture, getProfilePictureFromCache } = useProfilePicture();
 
   const [avatarSrc, setAvatarSrc] = useState<string | null>(() =>
     getSafeProfilePictureUrl(user?.profilePicture?.url),
