@@ -55,15 +55,16 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
       })}
     >
       <Avatar
-        sx={{
+        sx={(theme) => ({
           width: {xs: 40, sm: 48},
           height: {xs: 40, sm: 48},
-          bgcolor: 'grey.700',
+          bgcolor: 'transparent',
+          border: `2px solid ${theme.palette.grey[600]}`,
           flexShrink: 0,
           fontSize: '18px',
           fontWeight: 600,
           color: 'text.primary',
-        }}
+        })}
       >
         {initials}
       </Avatar>
