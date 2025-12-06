@@ -137,7 +137,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                     maxHeight: 'calc(70vh - 170px)',
                     overflowY: 'auto',
                     overflowX: 'hidden',
-                    pr: 1,
+                    // pr: 1,
                     pt: 0.5,
                     '&::-webkit-scrollbar': {
                         width: '8px',
@@ -175,27 +175,27 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                 justifyItems: 'center',
                 maxWidth: '80%',
                 mx: 'auto',
-                mt: 1,
-                mb: 5,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: 'calc(70vh - 300px)',
-                '&::before': {
-                    content: '""',
-                    position: 'fixed',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: '90vh',
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                },
-                '& > *': {
-                    position: 'relative',
-                    zIndex: 1,
-                },
+                // mt: 1,
+                // mb: 5,
+                // display: 'flex',
+                // flexDirection: 'column',
+                // alignItems: 'center',
+                // justifyContent: 'center',
+                // minHeight: 'calc(70vh - 300px)',
+                // '&::before': {
+                //     content: '""',
+                //     position: 'fixed',
+                //     bottom: 0,
+                //     left: 0,
+                //     right: 0,
+                //     height: '90vh',
+                //     pointerEvents: 'none',
+                //     zIndex: 0,
+                // },
+                // '& > *': {
+                //     position: 'relative',
+                //     zIndex: 1,
+                // },
             }}
         >
             <Box
@@ -218,7 +218,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                         input: {
                             startAdornment: (
                                 <InputAdornment position="start">
-                                    <Search size={20} style={{color: 'inherit', opacity: 0.7}}/>
+                                    <Search size={20} style={{opacity: 0.7}}/>
                                 </InputAdornment>
                             ),
                             endAdornment: searchQuery ? (
