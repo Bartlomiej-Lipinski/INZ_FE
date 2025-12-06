@@ -1,21 +1,22 @@
 "use client";
 
-import {useEffect, useMemo, useState} from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     Box,
+    Button,
     CircularProgress,
     IconButton,
     InputAdornment,
     TextField,
     Typography,
 } from '@mui/material';
-import {Search, X} from 'lucide-react';
+import { Search, X } from 'lucide-react';
 
 import MemberItem from '@/components/common/Member-item';
-import {useMembers} from '@/hooks/use-members';
+import { useMembers } from '@/hooks/use-members';
 
-export default function MembersList({groupId, groupColor}: {groupId: string | null, groupColor: string}) {
-    const {members, isLoading, error, fetchGroupMembers} = useMembers();
+export default function MembersList({ groupId, groupColor }: { groupId: string | null, groupColor: string }) {
+    const { members, isLoading, error, fetchGroupMembers } = useMembers();
     const [searchQuery, setSearchQuery] = useState('');
 
 
@@ -58,7 +59,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                     minHeight: 'calc(70vh - 300px)',
                 }}
             >
-                <CircularProgress size={48}/>
+                <CircularProgress size={48} />
             </Box>
         );
     }
@@ -161,7 +162,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                             maxWidth: '100%',
                         }}
                     >
-                        <MemberItem member={member}/>
+                        <MemberItem member={member} />
                     </Box>
                 ))}
             </Box>
@@ -207,7 +208,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                     textAlign: 'center',
                 }}
             >
-                
+
 
                 <TextField
                     fullWidth
@@ -225,7 +226,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                         input: {
                             startAdornment: (
                                 <InputAdornment position="start">
-                                    <Search size={20} style={{opacity: 0.7}}/>
+                                    <Search size={20} style={{ opacity: 0.7 }} />
                                 </InputAdornment>
                             ),
                             endAdornment: searchQuery ? (
@@ -241,7 +242,7 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                                             },
                                         }}
                                     >
-                                        <X size={18}/>
+                                        <X size={18} />
                                     </IconButton>
                                 </InputAdornment>
                             ) : null,
@@ -250,12 +251,14 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                 />
             </Box>
 
+
+
             <Box
                 sx={(theme) => ({
                     width: '100%',
                     maxWidth: 900,
-                    px: {xs: 3, sm: 5},
-                    py: {xs: 3, sm: 4},
+                    px: { xs: 3, sm: 5 },
+                    py: { xs: 3, sm: 4 },
                     borderRadius: 4,
                     border: `1px solid ${groupColor ? groupColor : theme.palette.grey[700]}`,
                     boxShadow: '0 16px 45px rgba(0, 0, 0, 0.35)',
@@ -266,6 +269,34 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                     backdropFilter: 'blur(6px)',
                 })}
             >
+
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: 4,
+                        flexWrap: 'wrap',
+                        mb: 3,
+                    }}
+                >
+                    <Button
+                        sx={(theme) => ({
+                            backgroundColor: groupColor || theme.palette.primary.main,
+                            color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
+                        })}
+                    >
+                        Prośby o dołączenie
+                    </Button>
+                    <Button
+                        sx={(theme) => ({
+                            backgroundColor: groupColor || theme.palette.primary.main,
+                            color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
+                        })}
+                    >
+                        Zaproszenie do grupy
+                    </Button>
+                </Box>
                 {renderListContent()}
             </Box>
         </Box>
