@@ -22,6 +22,7 @@ import AddPostForm from '@/components/feed/addPostForm';
 import FeedList from '@/components/feed/feedlist';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {EntityType} from "@/lib/types/entityType";
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 const mapFeedItemType = (type: number | string): FeedItemType => {
     if (typeof type === 'string') return type as FeedItemType;
@@ -51,7 +52,8 @@ export default function GroupBoardPage() {
     const [editContent, setEditContent] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-
+    const [profilePictureId, setProfilePictureId] = useState<string | undefined>(undefined);
+    const avatarUrl = useImageUrl(profilePictureId);
 
 
     useEffect(() => {
@@ -62,14 +64,20 @@ export default function GroupBoardPage() {
                 setCurrentUser({
                     id: userData.id,
                     name: userData.name,
-                    avatar: 'https://i.pravatar.cc/150?img=1',
-                    // userData.ProfilePIcture.id ||
+                    avatar: ''
                 });
+                setProfilePictureId(userData.profilePicture?.id);
             } catch (error) {
                 console.error('Błąd parsowania danych użytkownika z localStorage:', error);
             }
         }
     }, []);
+
+    useEffect(() => {
+        if (avatarUrl && currentUser) {
+            setCurrentUser(prev => prev ? {...prev, avatar: avatarUrl} : null);
+        }
+    }, [avatarUrl]);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';

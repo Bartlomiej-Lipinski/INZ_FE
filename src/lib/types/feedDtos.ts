@@ -27,6 +27,7 @@ export interface GroupFeedItemResponseDto {
     userName?: string;
     userAvatarUrl?: string;
     storedFileId?: string;
+    temporaryImageUrl?: string;
     entityId?: string;
     comments: CommentResponseDto[];
     reactions: ReactionDto[];

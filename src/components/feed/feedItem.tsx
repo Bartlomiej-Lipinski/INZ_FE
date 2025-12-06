@@ -17,6 +17,7 @@ import {alpha} from '@mui/material/styles';
 import {Edit2, Heart, MessageCircle, MoreVertical, Send, Trash2} from 'lucide-react';
 import {FeedItemType} from '@/lib/types/FeedItemType';
 import {GroupFeedItemResponseDto} from '@/lib/types/feedDtos';
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 
 function getItemIcon(type: FeedItemType) {
@@ -101,10 +102,6 @@ const MOCK_USER = {
     avatar: 'https://i.pravatar.cc/150?img=1',
 };
 
-const getImageUrl = (storedFileId?: string) => {
-    if (!storedFileId) return null;
-    return 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=500';
-};
 
 export default function FeedItem({
                                      item,
@@ -123,7 +120,7 @@ export default function FeedItem({
                                      onDeletePost,
                                  }: FeedItemProps) {
     const ItemIcon = getItemIcon(item.type);
-    const imageUrl = getImageUrl(item.storedFileId);
+    const imageUrl = useImageUrl(item.storedFileId, item.temporaryImageUrl);
     const userLiked = Array.isArray(item.reactions)
         ? item.reactions.some(r => r.userId === userId && r.reactionType === 'Like')
         : false;
@@ -195,7 +192,7 @@ export default function FeedItem({
                         )}
                         <Box>
                             <Typography sx={{fontWeight: 600, fontSize: '1rem'}}>
-                                {item.userName || 'Nieznany użytkownik'}
+                                {item.userName || 'Grzegorz Brzęczyszczykiewicz'}
                             </Typography>
                             <Typography sx={{fontSize: '0.875rem', color: 'text.secondary'}}>
                                 {formatTimestamp(item.createdAt)}

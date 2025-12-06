@@ -13,7 +13,7 @@ interface AddPostFormProps {
     onAddPost: (newItem: GroupFeedItemResponseDto) => void;
 }
 
-export default function AddPostForm({user, groupId, groupColor, onAddPost}: AddPostFormProps) {
+export default function AddPostForm({user, groupId, groupColor, onAddPost}: Readonly<AddPostFormProps>) {
     const [newPostContent, setNewPostContent] = useState('');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -76,6 +76,7 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: AddP
                 description: newPostContent, // ✅ Zachowaj treść
                 title: undefined, // Opcjonalny tytuł
                 storedFileId: selectedFile ? result.data : undefined, // ✅ Zachowaj załącznik (jeśli był)
+                temporaryImageUrl: selectedFile ? previewUrl || undefined : undefined,
                 type: FeedItemType.POST,
                 userId: user.id,
                 userName: user.name,
