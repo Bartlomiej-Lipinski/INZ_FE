@@ -214,6 +214,13 @@ export default function MembersList({groupId, groupColor}: {groupId: string | nu
                     placeholder="Wyszukaj członka"
                     value={searchQuery}
                     onChange={handleSearchChange}
+                    sx={(theme) => ({
+                        '& .MuiOutlinedInput-root': {
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor || theme.palette.primary.main,
+                            },
+                        },
+                    })}
                     slotProps={{
                         input: {
                             startAdornment: (
