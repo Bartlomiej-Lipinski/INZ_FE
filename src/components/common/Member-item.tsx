@@ -38,7 +38,7 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
         alignItems: 'center',
         gap: 3.5,
         p: 2,
-        bgcolor: alpha(theme.palette.grey[700], 0.4),
+        bgcolor: alpha(theme.palette.grey[600], 0.4),
         borderRadius: 2,
         cursor: disabled ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
         transition: 'all 0.2s ease-in-out',

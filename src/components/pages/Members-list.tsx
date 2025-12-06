@@ -18,6 +18,7 @@ import { Search, X } from 'lucide-react';
 import MemberItem from '@/components/common/Member-item';
 import { useMembers } from '@/hooks/use-members';
 import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
+import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 
 export default function MembersList({ groupId, groupColor }: { groupId: string | null, groupColor: string }) {
     const { members, isLoading, error, fetchGroupMembers } = useMembers();
@@ -76,7 +77,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
         setGenerateError(null);
 
         try {
-            const response = await fetchWithAuth('http://localhost:3000/api/group/generateJoinCode', {
+            const response = await fetchWithAuth(API_ROUTES.GENERATE_JOIN_GROUP_CODE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
