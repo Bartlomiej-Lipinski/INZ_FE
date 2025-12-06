@@ -46,6 +46,8 @@ export default function GroupItem({ group, onClick, disabled = false }: GroupIte
           fontSize: '18px',
           fontWeight: 600,
           color: 'text.primary',
+          border: '2px solid transparent',
+          borderColor: group.color,
         }}
       >
         {group.name.charAt(0).toUpperCase()}

@@ -227,120 +227,148 @@ export default function GroupsList() {
                     />
                 </Box>
 
-                {groups.length === 0 ? (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            minHeight: '30vh',
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                color: 'text.secondary',
-                                fontSize: '20px',
-                                textAlign: 'center',
-                            }}
-                        >
-                            Brak grup. Dodaj pierwszą grupę, aby rozpocząć.
-                        </Typography>
-                    </Box>
-                ) : filteredGroups.length === 0 && searchQuery.trim() ? (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            minHeight: '30vh',
-                        }}
-                    >
-                        <Typography
-                            sx={{
-                                color: 'text.secondary',
-                                fontSize: '20px',
-                                textAlign: 'center',
-                            }}
-                        >
-                            Nie znaleziono grupy
-                        </Typography>
-                    </Box>
-                ) : (
+                <Box
+                    sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                    }}
+                >
                     <Box
                         sx={(theme) => ({
-                            display: 'grid',
-                            gridTemplateColumns:
-                                filteredGroups.length === 1
-                                    ? '1fr'
-                                    : {
-                                        xs: '1fr',
-                                        sm: 'repeat(2, 1fr)',
-                                    },
-                            gap: 3,
                             width: '100%',
-                            maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
-                            maxHeight: 'calc(70vh - 150px)',
-                            overflowY: 'auto',
-                            overflowX: 'hidden',
-                            pr: 1,
-                            pt: 0.5,
-                            '&::-webkit-scrollbar': {
-                                width: '8px',
-                            },
-                            '&::-webkit-scrollbar-track': {
-                                bgcolor: 'grey.700',
-                                borderRadius: '4px',
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                                backgroundColor: `${theme.palette.primary.main} !important`,
-                                borderRadius: '4px',
-                            },
+                            maxWidth: 900,
+                            px: {xs: 3, sm: 5},
+                            py: {xs: 3, sm: 4},
+                            bgcolor: 'rgba(125, 125, 125, 0.1)',
+                            borderRadius: 4,
+                            border: `1px solid ${theme.palette.grey[700]}`,
+                            boxShadow: '0 16px 45px rgba(0, 0, 0, 0.35)',
+                            color: theme.palette.text.primary,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 2.5,
+                            backdropFilter: 'blur(6px)',
                         })}
                     >
-                        {filteredGroups.map((group) => (
-                            <Box
-                                key={group.id}
-                                sx={{
-                                    minWidth: 0,
-                                    width: '100%',
-                                    maxWidth: '100%',
-                                }}
-                                onMouseEnter={() => handleGroupMouseEnter(group)}
-                                onMouseLeave={handleGroupMouseLeave}
+                        
+                        {/*buttons for adding and joining groups*/}
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            gap: 4,
+                            width: '80%',
+                            mb: 2,
+                        }}>
+                             <Button
+                             fullWidth
+                             onClick={() => setIsModalOpen(true)}
                             >
-                                <GroupItem group={group} onClick={() => handleGroupClick(group)}/>
+                                + Dodaj grupę
+                            </Button>
+                            
+                            <Button
+                            fullWidth
+                            onClick={() => setIsJoinModalOpen(true)}
+                            >
+                                Dołącz do grupy
+                            </Button>
+                        </Box>
+
+                        {groups.length === 0 ? (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    minHeight: '30vh',
+                                }}
+                            >
+                                <Typography
+                                    sx={{
+                                        color: 'text.secondary',
+                                        fontSize: '20px',
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    Brak grup. Dodaj pierwszą grupę, aby rozpocząć.
+                                </Typography>
                             </Box>
-                        ))}
+                        ) : filteredGroups.length === 0 && searchQuery.trim() ? (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    minHeight: '30vh',
+                                }}
+                            >
+                                <Typography
+                                    sx={{
+                                        color: 'text.secondary',
+                                        fontSize: '20px',
+                                        textAlign: 'center',
+                                    }}
+                                >
+                                    Nie znaleziono grupy
+                                </Typography>
+                            </Box>
+                        ) : (
+                            <Box
+                                sx={(theme) => ({
+                                    display: 'grid',
+                                    gridTemplateColumns:
+                                        filteredGroups.length === 1
+                                            ? '1fr'
+                                            : {
+                                                xs: '1fr',
+                                                sm: 'repeat(2, 1fr)',
+                                            },
+                                    gap: 3,
+                                    width: '100%',
+                                    maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
+                                    maxHeight: 'calc(70vh - 150px)',
+                                    overflowY: 'auto',
+                                    overflowX: 'hidden',
+                                    pr: 1,
+                                    pt: 0.5,
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                    },
+                                    '&::-webkit-scrollbar-track': {
+                                        bgcolor: 'grey.700',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        backgroundColor: `${theme.palette.primary.main} !important`,
+                                        borderRadius: '4px',
+                                    },
+                                })}
+                            >
+                                {filteredGroups.map((group) => (
+                                    <Box
+                                        key={group.id}
+                                        sx={{
+                                            minWidth: 0,
+                                            width: '100%',
+                                            maxWidth: '100%',
+                                        }}
+                                        onMouseEnter={() => handleGroupMouseEnter(group)}
+                                        onMouseLeave={handleGroupMouseLeave}
+                                    >
+                                        <GroupItem group={group} onClick={() => handleGroupClick(group)}/>
+                                    </Box>
+                                ))}
+                            </Box>
+                        )}
                     </Box>
-                )}
+                </Box>
 
-                <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => setIsModalOpen(true)}
-                    sx={{
-                        mt: 3,
-                        maxWidth: '400px',
-                        borderStyle: 'dashed',
-                        color: 'text.primary',
-                        borderWidth: 2,
-                    }}
-                >
-                    + Dodaj grupę
-                </Button>
-
-                <Button
-                    fullWidth
-                    variant="contained"
-                    onClick={() => setIsJoinModalOpen(true)}
-                    sx={{
-                        mt: 1,
-                        maxWidth: '400px',
-                        textTransform: 'none',
-                    }}
-                >
-                    Dołącz do grupy
-                </Button>
+               
 
                 <AddGroupModal
                     isOpen={isModalOpen}
