@@ -14,7 +14,6 @@ export interface User {
   role?: 'Member' | 'Admin';
 }
 
-
 export interface UserCreate{
   name: string;
   surname: string;
@@ -23,7 +22,6 @@ export interface UserCreate{
   birthDate: string;
   password: string;
 }
-
 
 
 export interface UserUpdate{
@@ -36,3 +34,15 @@ export interface UserUpdate{
   profilePictureId?: string | null;
 }
 
+
+export interface GroupMember {
+  id: string;
+  email: string;
+  username: string;
+  name: string;
+  surname: string;
+  birthDate: Date;
+  status: string | null;
+  description: string | null;
+  profilePicture: ProfilePicture | null;
+}

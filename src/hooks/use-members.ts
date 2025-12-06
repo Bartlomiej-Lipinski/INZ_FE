@@ -3,20 +3,7 @@
  import {useCallback, useState} from "react";
  import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
  import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import { ProfilePicture } from "@/lib/types/profile-picture";
-
-
- export interface GroupMember {
-     id: string;
-     email: string;
-     username: string;
-     name: string;
-     surname: string;
-     birthDate: string;
-     status: string | null;
-     description: string | null;
-     profilePicture: ProfilePicture | null;
- }
+ import { GroupMember } from "@/lib/types/user";
 
  export interface GroupMembersResponse {
      success: boolean;
