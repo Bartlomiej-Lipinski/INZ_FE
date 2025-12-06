@@ -6,14 +6,31 @@ import {alpha} from '@mui/material/styles';
 import {ChevronRight} from 'lucide-react';
 
 import {GroupMember} from '@/lib/types/user';
+import {STORAGE_KEYS} from '@/lib/constants';
 
 interface MemberItemProps {
   member: GroupMember;
   onClick?: () => void;
-  disabled?: boolean;
 }
 
-export default function MemberItem({member, onClick, disabled = false}: MemberItemProps) {
+export default function MemberItem({member, onClick}: MemberItemProps) {
+  const storeMemberSelection = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const payload = {
+        ...member,
+        birthDate: member.birthDate instanceof Date ? member.birthDate.toISOString() : member.birthDate,
+      };
+
+      localStorage.setItem(STORAGE_KEYS.SELECTED_GROUP_MEMBER, JSON.stringify(payload));
+    } catch (error) {
+      console.error('Member selection storage error:', error);
+    }
+  };
+
   const initials = useMemo(() => {
     const first = member.name?.charAt(0) ?? '';
     const last = member.surname?.charAt(0) ?? '';
@@ -21,18 +38,16 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
     return (first + last || fallback).toUpperCase();
   }, [member.name, member.surname, member.username]);
 
-  const isClickable = Boolean(onClick) && !disabled;
-
   const handleClick = () => {
-    if (!isClickable || !onClick) {
-      return;
-    }
-    onClick();
+    storeMemberSelection();
+    onClick?.();
   };
 
   return (
     <Box
-      onClick={isClickable ? handleClick : undefined}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
       sx={(theme) => ({
         display: 'flex',
         alignItems: 'center',
@@ -40,17 +55,15 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
         p: 2,
         bgcolor: alpha(theme.palette.grey[600], 0.4),
         borderRadius: 2,
-        cursor: disabled ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
+        cursor: 'pointer',
         transition: 'all 0.2s ease-in-out',
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
-        border: '2px solid transparent',
-        opacity: disabled ? 0.5 : 1,
-        '&:hover': (!isClickable) ? {} : {
-          bgcolor: alpha(theme.palette.grey[600], 0.7),
+        opacity: 1,
+        '&:hover': {
+          bgcolor: alpha(theme.palette.grey[600], 0.6),
           transform: 'translateY(-1px)',
-          borderColor: theme.palette.primary.main,
         },
       })}
     >
@@ -59,9 +72,9 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
           width: {xs: 40, sm: 48},
           height: {xs: 40, sm: 48},
           bgcolor: 'transparent',
-          border: `2px solid ${theme.palette.grey[600]}`,
+          border: `2px solid ${theme.palette.grey[400]}`,
           flexShrink: 0,
-          fontSize: '18px',
+          fontSize: {xs: '14px', sm: '18px'},
           fontWeight: 600,
           color: 'text.primary',
         })}
@@ -75,7 +88,6 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
           minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
-          gap: 0.5,
         }}
       >
         <Typography
@@ -106,18 +118,19 @@ export default function MemberItem({member, onClick, disabled = false}: MemberIt
         </Typography>
       </Box>
 
-      {onClick && (
-        <IconButton
-          size="small"
-          sx={{
-            color: 'text.primary',
-            p: 0.5,
-          }}
-          disableRipple
-        >
-          <ChevronRight size={24} strokeWidth={1.5} />
-        </IconButton>
-      )}
+      <IconButton
+        size="small"
+        sx={(theme) => ({
+          color: 'text.primary',
+          p: 0.5,
+          transition: 'color 0.2s ease-in-out',
+        })}
+        disableRipple
+        tabIndex={-1}
+        aria-hidden={false}
+      >
+        <ChevronRight size={24} strokeWidth={1.5} />
+      </IconButton>
     </Box>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import {
     Box,
     Button,
@@ -19,6 +19,7 @@ import MemberItem from '@/components/common/Member-item';
 import { useMembers } from '@/hooks/use-members';
 import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
+import { useRouter } from 'next/navigation';
 
 export default function MembersList({ groupId, groupColor }: { groupId: string | null, groupColor: string }) {
     const { members, isLoading, error, fetchGroupMembers } = useMembers();
@@ -28,6 +29,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     const [inviteCode, setInviteCode] = useState<string | null>(null);
     const [generateError, setGenerateError] = useState<string | null>(null);
     const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const router = useRouter();
 
 
     useEffect(() => {
@@ -114,6 +116,10 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
             setIsGeneratingInvite(false);
         }
     };
+
+    const handleMemberClick = useCallback(() => {
+        router.push('/group-menu/members/profile');
+    }, []);
 
     const handleCloseDialog = () => {
         setInviteDialogOpen(false);
@@ -255,7 +261,10 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                             maxWidth: '100%',
                         }}
                     >
-                        <MemberItem member={member} />
+                        <MemberItem
+                            member={member}
+                            onClick={handleMemberClick}
+                        />
                     </Box>
                 ))}
             </Box>
@@ -348,7 +357,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        gap: 4,
+                        gap: 2,
                         flexWrap: 'wrap',
                         mb: 3,
                     }}
@@ -357,6 +366,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         sx={(theme) => ({
                             backgroundColor: groupColor || theme.palette.primary.main,
                             color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
+                            minWidth: 220,
                         })}
                     >
                         Prośby o dołączenie

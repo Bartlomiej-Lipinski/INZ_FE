@@ -257,20 +257,21 @@ export default function GroupsList() {
                         <Box
                         sx={{
                             display: 'flex',
-                            flexDirection: 'row',
-                            gap: 4,
-                            width: '80%',
+                            flexWrap: 'wrap',
+                            justifyContent: 'center',
+                            gap: 3,
+                            width: '100%',
                             mb: 2,
                         }}>
                              <Button
-                             fullWidth
+                             sx={{ minWidth: 220 }}
                              onClick={() => setIsModalOpen(true)}
                             >
                                 + Dodaj grupę
                             </Button>
                             
                             <Button
-                            fullWidth
+                            sx={{ minWidth: 220 }}
                             onClick={() => setIsJoinModalOpen(true)}
                             >
                                 Dołącz do grupy
