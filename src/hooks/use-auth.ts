@@ -2,9 +2,8 @@
 
 import { useState } from 'react';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
-import { User, UserCreate } from '@/lib/types/user';
-import { useAuthContext } from '@/contexts/AuthContext';
-import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
+import { UserCreate } from '@/lib/types/user';
+import { useUser } from '@/hooks/use-user';
 
 interface LoginRequest {
   email: string;
@@ -29,7 +28,7 @@ interface AuthHookResult {
 export function useAuth(): AuthHookResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { setUser } = useAuthContext();
+  const { fetchAuthenticatedUser } = useUser();
 
   const login =async (request: LoginRequest): Promise<ApiResponse> => {
     setIsLoading(true);
@@ -58,21 +57,7 @@ export function useAuth(): AuthHookResult {
 
       if (response.ok && data.success) {
         if (data.data) {
-          try {
-            const userResponse = await fetchWithAuth(`${API_ROUTES.USER_BY_ID}/${data.data}`, {
-              method: 'GET',
-            });
-            const userData = await userResponse.json();
-            
-            if (userData.success && userData.data) {
-              console.log('User data:', userData);
-              setUser(userData.data as User);
-         
-            }
-          } catch (userError) {
-
-            console.error('Error fetching user data:', userError);
-          }
+          await fetchAuthenticatedUser(data.data);
         }
         
         return data;

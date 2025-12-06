@@ -127,22 +127,22 @@ const theme = createTheme({
                     shrink: true,
                 },
             },
+        },
+        MuiOutlinedInput: {
             styleOverrides: {
                 root: {
-                    '& .MuiOutlinedInput-root': {
-                        borderRadius: 30,
-                        backgroundColor: 'rgba(125, 125, 125, 0.5)',
-                        color: customColors.text.primary,
-                        paddingRight: '20px',
-                        paddingLeft: '10px',
-                        fontSize: '15px',
-                        '& fieldset': {
-                            borderColor: 'transparent',
-                        },
-                        '&.Mui-focused fieldset': {
-                            borderColor: customColors.primary.main,
-                            borderWidth: 2,
-                        },
+                    borderRadius: 30,
+                    backgroundColor: 'rgba(125, 125, 125, 0.5)',
+                    color: customColors.text.primary,
+                    paddingRight: '20px',
+                    paddingLeft: '10px',
+                    fontSize: '15px',
+                    '& fieldset': {
+                        borderColor: 'transparent',
+                    },
+                    '&.Mui-focused fieldset': {
+                        borderColor: customColors.primary.main,
+                        borderWidth: 2,
                     },
                     '& .MuiInputLabel-root': {
                         color: customColors.text.primary,
@@ -181,6 +181,13 @@ const theme = createTheme({
         MuiInputLabel: {
             styleOverrides: {
                 root: {
+                    color: customColors.text.primary,
+                    fontWeight: 600,
+                    fontSize: '17px',
+                    transform: 'translate(14px, -9px) scale(0.75)',
+                    '&.MuiInputLabel-shrink': {
+                        transform: 'translate(14px, -9px) scale(0.75)',
+                    },
                     '&.Mui-focused': {
                         color: customColors.text.primary,
                     },
@@ -211,6 +218,32 @@ const theme = createTheme({
                         opacity: 0.5,
                         cursor: 'not-allowed',
                     },
+                },
+            },
+        },
+        MuiDialog: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: customColors.grey[800],
+                    border: `3px solid ${customColors.grey[600]}`,
+                    backgroundImage: 'none',
+                    padding: '0px 20px 25px 20px',
+                },
+            },
+        },
+        MuiDialogActions: {
+            styleOverrides: {
+                root: {
+                    justifyContent: 'center',
+                    gap: 10,
+                },
+            },
+        },
+        MuiDialogTitle: {
+            styleOverrides: {
+                root: {
+                    fontSize: '18px',
+                    textAlign: 'center',
                 },
             },
         },

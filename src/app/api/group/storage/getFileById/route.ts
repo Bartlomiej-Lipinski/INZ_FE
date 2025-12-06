@@ -1,21 +1,22 @@
 import {NextRequest, NextResponse} from "next/server";
-import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
 const GET_FILE_BY_ID = process.env.GET_FILE_BY_ID;
 
 export async function GET(request: NextRequest) {
     try {
-        const fileId = request.nextUrl.searchParams.get('fileId');
-        if (!fileId) {
+        const id = request.nextUrl.searchParams.get('id');
+        if (!id) {
             return NextResponse.json(
                 {success: false, message: 'Brak wymaganych parametrów'},
                 {status: 400}
             );
         }
-        const endpoint = GET_FILE_BY_ID?.replace('{id}', fileId);
+
+        const endpoint = GET_FILE_BY_ID?.replace('{id}', id);
+
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
             method: 'GET',
             headers: {
                 'Cookie': cookieHeader,
@@ -24,24 +25,39 @@ export async function GET(request: NextRequest) {
             credentials: 'include',
         });
 
-        if (!response.ok) {
+        const headers = new Headers();
+        const contentType = response.headers.get('content-type');
+        if (contentType) {
+            headers.set('Content-Type', contentType);
+        }
+        const contentDisposition = response.headers.get('content-disposition');
+        if (contentDisposition) {
+            headers.set('Content-Disposition', contentDisposition);
+        }
+        const contentLength = response.headers.get('content-length');
+        if (contentLength) {
+            headers.set('Content-Length', contentLength);
+        }
+
+        const upstreamBody: BodyInit | null = response.body;
+        if (!upstreamBody) {
             return NextResponse.json(
-                {success: false, message: 'Nie udało się pobrać pliku'},
-                {status: response.status}
+                {success: false, message: 'Nie można pobrać pliku (brak strumienia danych)'},
+                {status: 502},
             );
         }
 
-        // Pobierz plik jako blob i przekaż dalej
-        const blob = await response.blob();
-        const contentType = response.headers.get('content-type') || 'application/octet-stream';
-
-        return new NextResponse(blob, {
-            status: 200,
-            headers: {
-                'Content-Type': contentType,
-                'Cache-Control': 'public, max-age=31536000, immutable',
-            },
+        const nextResponse = new NextResponse(upstreamBody, {
+            status: response.status,
+            headers,
         });
+
+        const setCookieHeaders = response.headers.getSetCookie();
+        setCookieHeaders.forEach((cookie) => {
+            nextResponse.headers.append('Set-Cookie', cookie);
+        });
+
+        return nextResponse;
     } catch (error) {
         console.error('File retrieval API error:', error);
         return NextResponse.json(

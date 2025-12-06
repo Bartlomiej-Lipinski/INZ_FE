@@ -9,6 +9,19 @@ export async function PUT(request: NextRequest) {
     
     const cookieHeader = request.headers.get('cookie') ?? '';
 
+    const upstreamPayload: Record<string, unknown> = {
+      Name: body.name,
+      Surname: body.surname,
+      BirthDate: body.birthDate,
+      Status: body.status,
+      Username: body.username,
+      Description: body.description,
+    };
+
+    if (Object.prototype.hasOwnProperty.call(body, 'profilePictureId')) {
+      upstreamPayload.ProfilePictureId = body.profilePictureId;
+    }
+
     const response = await fetch(`${BASE_URL}${UPDATE_USER}`, {
       method: 'PUT',
       headers: {
@@ -16,14 +29,7 @@ export async function PUT(request: NextRequest) {
         'Cookie': cookieHeader,
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        Name: body.name,
-        Surname: body.surname,
-        BirthDate: body.birthDate,
-        Status: body.status,
-        Username: body.username,
-        Description: body.description
-      }),
+      body: JSON.stringify(upstreamPayload),
       credentials: 'include'
     });
 
