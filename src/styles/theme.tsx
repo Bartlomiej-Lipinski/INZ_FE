@@ -210,8 +210,9 @@ const theme = createTheme({
                 paper: {
                     backgroundColor: customColors.grey[800],
                     border: `3px solid ${customColors.grey[600]}`,
-                    backgroundImage: 'none',
+                    // backgroundImage: 'none',
                     padding: '0px 20px 25px 20px',
+                    borderRadius: 30,
                 },
             },
         },

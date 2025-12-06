@@ -5,6 +5,9 @@ import {
     Box,
     Button,
     CircularProgress,
+    Dialog,
+    DialogContent,
+    DialogTitle,
     IconButton,
     InputAdornment,
     TextField,
@@ -14,10 +17,16 @@ import { Search, X } from 'lucide-react';
 
 import MemberItem from '@/components/common/Member-item';
 import { useMembers } from '@/hooks/use-members';
+import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 
 export default function MembersList({ groupId, groupColor }: { groupId: string | null, groupColor: string }) {
     const { members, isLoading, error, fetchGroupMembers } = useMembers();
     const [searchQuery, setSearchQuery] = useState('');
+    const [isGeneratingInvite, setIsGeneratingInvite] = useState(false);
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+    const [inviteCode, setInviteCode] = useState<string | null>(null);
+    const [generateError, setGenerateError] = useState<string | null>(null);
+    const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
 
     useEffect(() => {
@@ -47,6 +56,90 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
 
     const handleClearSearch = () => {
         setSearchQuery('');
+    };
+
+    const extractInviteCode = (rawValue: unknown): string | null => {
+        if (typeof rawValue !== 'string') {
+            return null;
+        }
+
+        const match = rawValue.match(/\b(\d{5})\b/);
+        return match?.[1] ?? null;
+    };
+
+    const handleGenerateInvite = async () => {
+        if (!groupId || isGeneratingInvite) {
+            return;
+        }
+
+        setIsGeneratingInvite(true);
+        setGenerateError(null);
+
+        try {
+            const response = await fetchWithAuth('http://localhost:3000/api/group/generateJoinCode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ groupId }),
+            });
+
+            type GenerateCodeResponse = {
+                success?: boolean,
+                data?: unknown,
+                message?: string,
+            };
+
+            const payload: GenerateCodeResponse = await response.json().catch(() => ({} as GenerateCodeResponse));
+
+            if (!response.ok || !payload?.success) {
+                throw new Error(payload?.message ?? 'Nie udało się wygenerować kodu zaproszenia');
+            }
+
+
+            const derivedCode = extractInviteCode(payload.data);
+
+            if (!derivedCode) {
+                throw new Error('Nie udało się odczytać wygenerowanego kodu');
+            }
+
+            setInviteCode(derivedCode);
+            setInviteDialogOpen(true);
+            setCopyStatus('idle');
+        } catch (err) {
+            const message = err instanceof Error ? err.message : 'Wystąpił nieoczekiwany błąd';
+            setGenerateError(message);
+        } finally {
+            setIsGeneratingInvite(false);
+        }
+    };
+
+    const handleCloseDialog = () => {
+        setInviteDialogOpen(false);
+        setCopyStatus('idle');
+    };
+
+    const handleCopyInviteCode = async () => {
+        if (!inviteCode) {
+            return;
+        }
+
+        try {
+            if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(inviteCode);
+            } else {
+                const tempInput = document.createElement('input');
+                tempInput.value = inviteCode;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+            }
+            setCopyStatus('success');
+            setTimeout(() => setCopyStatus('idle'), 2000);
+        } catch {
+            setCopyStatus('error');
+        }
     };
 
     if (isLoading && members.length === 0) {
@@ -138,7 +231,6 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                     maxHeight: 'calc(70vh - 170px)',
                     overflowY: 'auto',
                     overflowX: 'hidden',
-                    // pr: 1,
                     pt: 0.5,
                     '&::-webkit-scrollbar': {
                         width: '8px',
@@ -170,33 +262,13 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     };
 
     return (
-        <Box
+        <>
+            <Box
             sx={{
                 position: 'relative',
                 justifyItems: 'center',
                 maxWidth: '80%',
                 mx: 'auto',
-                // mt: 1,
-                // mb: 5,
-                // display: 'flex',
-                // flexDirection: 'column',
-                // alignItems: 'center',
-                // justifyContent: 'center',
-                // minHeight: 'calc(70vh - 300px)',
-                // '&::before': {
-                //     content: '""',
-                //     position: 'fixed',
-                //     bottom: 0,
-                //     left: 0,
-                //     right: 0,
-                //     height: '90vh',
-                //     pointerEvents: 'none',
-                //     zIndex: 0,
-                // },
-                // '& > *': {
-                //     position: 'relative',
-                //     zIndex: 1,
-                // },
             }}
         >
             <Box
@@ -289,17 +361,95 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         Prośby o dołączenie
                     </Button>
                     <Button
+                        onClick={handleGenerateInvite}
+                        disabled={!groupId || isGeneratingInvite}
                         sx={(theme) => ({
+                            backgroundColor: groupColor || theme.palette.primary.main,
+                            color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
+                            minWidth: 220,
+                            '&:disabled': {
+                                backgroundColor: theme.palette.action.disabledBackground,
+                                color: theme.palette.text.disabled,
+                            },
+                        })}
+                    >
+                        {isGeneratingInvite ? 'Generuję kod...' : 'Zaproszenie do grupy'}
+                    </Button>
+                </Box>
+                {generateError && (
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            color: 'error.main',
+                            textAlign: 'center',
+                            mb: 1,
+                        }}
+                    >
+                        {generateError}
+                    </Typography>
+                )}
+                {renderListContent()}
+            </Box>
+        </Box>
+            <Dialog
+                open={inviteDialogOpen}
+                onClose={handleCloseDialog}
+                fullWidth
+                maxWidth="xs"
+            >
+                <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Skopiuj zaproszenie</DialogTitle>
+                <DialogContent
+                    sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2,
+                        pb: 1,
+                    }}
+                >
+                    <Typography variant="body1" color="text.secondary">
+                        Kod zaproszeniowy - ważny przez 5 minut
+                    </Typography>
+                    <Box
+                        sx={(theme) => ({
+                            width: '60%',
+                            borderRadius: 30,
+                            backgroundColor: 'transparent',
+                            textAlign: 'center',
+                            px: 2,
+                            py: 1.5,
+                            fontWeight: 600,
+                            letterSpacing: 8,
+                            border: '2px solid',
+                            borderColor: groupColor || theme.palette.primary.main,
+                        })}
+                    >
+                        {inviteCode}
+                    </Box>
+                    <Button
+                        onClick={handleCopyInviteCode}
+                        disabled={!inviteCode}
+                        sx={(theme) => (    {
+                            mt: 1,
+                            minWidth: 140,
                             backgroundColor: groupColor || theme.palette.primary.main,
                             color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
                         })}
                     >
-                        Zaproszenie do grupy
+                        {copyStatus === 'success'
+                            ? 'Skopiowano!'
+                            : copyStatus === 'error'
+                                ? 'Spróbuj ponownie'
+                                : 'Kopiuj'}
                     </Button>
-                </Box>
-                {renderListContent()}
-            </Box>
-        </Box>
+                    {copyStatus === 'error' && (
+                        <Typography variant="caption" color="error.main">
+                            Nie udało się skopiować kodu.
+                        </Typography>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
 
