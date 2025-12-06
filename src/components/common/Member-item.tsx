@@ -7,6 +7,7 @@ import {ChevronRight} from 'lucide-react';
 
 import {GroupMember} from '@/lib/types/user';
 import {STORAGE_KEYS} from '@/lib/constants';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 interface MemberItemProps {
   member: GroupMember;
@@ -14,6 +15,7 @@ interface MemberItemProps {
 }
 
 export default function MemberItem({member, onClick}: MemberItemProps) {
+  const { user } = useAuthContext();
   const storeMemberSelection = () => {
     if (typeof window === 'undefined') {
       return;
@@ -117,6 +119,12 @@ export default function MemberItem({member, onClick}: MemberItemProps) {
           {member.username ? `@${member.username}` : 'Brak nazwy użytkownika'}
         </Typography>
       </Box>
+
+      {member.id === user?.id && (
+       <Typography>
+        Ja
+       </Typography>
+      )}
 
       <IconButton
         size="small"

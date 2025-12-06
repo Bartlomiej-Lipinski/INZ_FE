@@ -5,6 +5,7 @@ import {
   Alert,
   Avatar,
   Box,
+  Button,
   CircularProgress,
   Divider,
   Typography,
@@ -15,9 +16,11 @@ import type { GroupMember } from "@/lib/types/user";
 import { formatDate } from "@/lib/utils/date";
 import { getStatusLabel, STORAGE_KEYS } from "@/lib/constants";
 import { Group } from "@/lib/types/group";
+import { useAuthContext } from "@/contexts/AuthContext";
 
 export default function MemberProfilePage() {
   const theme = useTheme();
+  const { user } = useAuthContext();
 
   const [groupContext, setGroupContext] = useState<Group>({
     id: "",
@@ -95,17 +98,9 @@ useEffect(() => {
     };
   }, [storedMember]);
 
-  const initials = useMemo(() => {
-    if (!normalizedMember) {
-      return "?";
-    }
 
-    const first = normalizedMember.name.charAt(0);
-    const last = normalizedMember.surname.charAt(0);
-    const fallback = normalizedMember.username.charAt(0) || "?";
-    const combined = `${first}${last}`.trim() || fallback;
-    return combined.toUpperCase();
-  }, [normalizedMember]);
+  const canManageMember = user?.role === "Admin" && Boolean(normalizedMember) && normalizedMember?.id !== user?.id;
+
 
   const renderLoader = () => (
     <Box
@@ -139,29 +134,16 @@ useEffect(() => {
             width: "100%",
           }}
         >
-          <Avatar
-            alt={`${normalizedMember.name} ${normalizedMember.surname}`.trim() || undefined}
-            src={normalizedMember.profilePictureUrl ?? undefined}
-            sx={{
-              width: { xs: 80, sm: 90 },
-              height: { xs: 80, sm: 90 },
-              bgcolor: theme.palette.grey[700],
-              border: `3px solid ${groupContext.color || theme.palette.primary.main}`,
-              color: theme.palette.primary.contrastText,
-              fontSize: { xs: 24, sm: 28 },
-              fontWeight: 600,
-            }}
-          >
-            {!normalizedMember.profilePictureUrl && initials}
-          </Avatar>
 
           <Box textAlign="center" width="100%">
-            <Typography variant="h5" fontWeight={700} mt={1.5}>
+            <Typography variant="h3" fontWeight={700} >
               {`${normalizedMember.name} ${normalizedMember.surname}`.trim() || "Nieznany członek"}
             </Typography>
-            <Typography color="grey.400" mt={1.5}>
+
+            <Typography variant="h5" color="grey.500" mt={1.5}>
               {normalizedMember.username ? `@${normalizedMember.username}` : "Brak pseudonimu"}
             </Typography>
+            
             {groupContext.name && (
               <Typography color="text.secondary" mt={2}>
                 Członek grupy{" "}
@@ -310,6 +292,45 @@ useEffect(() => {
     return renderMemberDetails();
   };
 
+  const renderAdminActions = () => {
+    if (!canManageMember) {
+      return null;
+    }
+
+    return (
+      <Box
+        width="100%"
+        mt={2}
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        gap={3}
+      >
+        <Divider
+          sx={{
+            width: "100%",
+            borderColor: "rgba(255,255,255,0.2)",
+          }}
+        />
+
+        <Button sx={{ width: "80%", backgroundColor: groupContext.color || theme.palette.primary.light }}>
+          Nadaj prawa administratora grupy
+        </Button>
+
+        <Divider
+          sx={{
+            width: "100%",
+            borderColor: "rgba(255,255,255,0.2)",
+          }}
+        />
+
+        <Button  sx={{ width: "60%", backgroundColor: theme.palette.error.main }}>
+          Usuń członka z grupy
+        </Button>
+      </Box>
+    );
+  };
+
   return (
     <Box
       component="section"
@@ -340,6 +361,7 @@ useEffect(() => {
         }}
       >
         {renderContent()}
+        {renderAdminActions()}
       </Box>
     </Box>
   );
