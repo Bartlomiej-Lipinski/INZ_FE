@@ -15,7 +15,7 @@ export interface User {
         url: string;
       } | null;
   isTwoFactorEnabled: boolean;
-  role?: 'Member';
+  role?: 'Member' | 'Admin';
 }
 
 

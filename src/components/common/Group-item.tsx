@@ -1,9 +1,11 @@
 "use client";
 
-import { Box, Typography, IconButton, Avatar } from '@mui/material';
-import { alpha } from '@mui/material/styles';
-import { ChevronRight } from 'lucide-react';
-import { Group } from '@/lib/types/group';
+import {useCallback} from 'react';
+import {Avatar, Box, CircularProgress, IconButton, Typography} from '@mui/material';
+import {alpha} from '@mui/material/styles';
+import {ChevronRight} from 'lucide-react';
+import {Group} from '@/lib/types/group';
+import {useIsAdmin} from '@/hooks/use-isAdmin';
 
 interface GroupItemProps {
   group: Group;
@@ -12,9 +14,26 @@ interface GroupItemProps {
 }
 
 export default function GroupItem({ group, onClick, disabled = false }: GroupItemProps) {
+  const { verifyIsUserAdmin, isLoading } = useIsAdmin();
+
+  const handleClick = useCallback(async () => {
+    if (!onClick) {
+      return;
+    }
+
+    try {
+      await verifyIsUserAdmin(group.id);
+    } finally {
+      onClick();
+    }
+  }, [group.id, onClick, verifyIsUserAdmin]);
+
+  const isClickable = Boolean(onClick) && !disabled && !isLoading;
+  const showDisabledState = disabled || isLoading;
+
   return (
     <Box
-      onClick={disabled ? undefined : onClick}
+      onClick={isClickable ? handleClick : undefined}
       sx={(theme) => ({
         display: 'flex',
         alignItems: 'center',
@@ -22,14 +41,14 @@ export default function GroupItem({ group, onClick, disabled = false }: GroupIte
         p: 2,
         bgcolor: alpha(theme.palette.grey[700], 0.6),
         borderRadius: 2,
-        cursor: disabled ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
+        cursor: showDisabledState ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
         transition: 'all 0.2s ease-in-out',
         width: '100%',
         maxWidth: '100%',
         boxSizing: 'border-box',
         border: '2px solid transparent',
-        opacity: disabled ? 0.5 : 1,
-        '&:hover': disabled ? {} : {
+        opacity: showDisabledState ? 0.5 : 1,
+        '&:hover': (!isClickable) ? {} : {
           bgcolor: alpha(theme.palette.grey[600], 0.7),
           transform: 'translateY(-1px)',
           borderColor: group.color,
@@ -78,7 +97,11 @@ export default function GroupItem({ group, onClick, disabled = false }: GroupIte
         }}
         disableRipple
       >
-        <ChevronRight size={24} strokeWidth={1.5} />
+        {isLoading ? (
+          <CircularProgress size={20} sx={{color: 'text.primary'}} />
+        ) : (
+          <ChevronRight size={24} strokeWidth={1.5} />
+        )}
       </IconButton>
     </Box>
   );
