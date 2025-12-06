@@ -128,13 +128,9 @@ export default function MemberItem({member, onClick}: MemberItemProps) {
 
       <IconButton
         size="small"
-        sx={(theme) => ({
+        sx={{
           color: 'text.primary',
-          p: 0.5,
-          transition: 'color 0.2s ease-in-out',
-        })}
-        disableRipple
-        tabIndex={-1}
+        }}
         aria-hidden={false}
       >
         <ChevronRight size={24} strokeWidth={1.5} />

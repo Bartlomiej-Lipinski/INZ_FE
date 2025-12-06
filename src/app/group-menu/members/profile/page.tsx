@@ -338,10 +338,11 @@ useEffect(() => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        justifyContent: "center",
         gap: 4,
         width: "100%",
-        pb: 3,
-        pt: 10,
+        minHeight: "60vh",
+        py: 3,
       }}
     >
       <Box
