@@ -1,3 +1,5 @@
+import { ProfilePicture } from "./profile-picture";
+
 export interface User {
   id: string;
   username: string | null;
@@ -7,13 +9,7 @@ export interface User {
   birthDate: Date;
   status: string | null;
   description: string | null;
-  profilePicture: {
-        id: string;
-        fileName: string;
-        contentType: string;
-        size: number;
-        url: string;
-      } | null;
+  profilePicture: ProfilePicture | null;
   isTwoFactorEnabled: boolean;
   role?: 'Member' | 'Admin';
 }
