@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Avatar,
@@ -27,35 +27,54 @@ export default function MemberProfilePage() {
   const [storedMember, setStoredMember] = useState<GroupMember | null>(null);
   const [memberLoadError, setMemberLoadError] = useState<string | null>(null);
   const [isMemberLoaded, setIsMemberLoaded] = useState(false);
+  const hasSkippedStrictCleanupRef = useRef(false);
 
-  useEffect(() => {
+useEffect(() => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  setGroupContext({
+    id: localStorage.getItem("groupId") ?? "",
+    name: localStorage.getItem("groupName") ?? "",
+    color: localStorage.getItem("groupColor") ?? "",
+  });
+
+  try {
+    const rawMember = localStorage.getItem(STORAGE_KEYS.SELECTED_GROUP_MEMBER);
+    if (rawMember) {
+      const parsedMember = JSON.parse(rawMember) as GroupMember;
+      setStoredMember(parsedMember);
+    } else {
+      setStoredMember(null);
+    }
+    setMemberLoadError(null);
+  } catch (storageError) {
+    console.error("Nie udało się odczytać członka grupy:", storageError);
+    setStoredMember(null);
+    setMemberLoadError("Nie udało się odczytać danych członka. Wróć do listy członków i wybierz osobę ponownie.");
+  } finally {
+    setIsMemberLoaded(true);
+  }
+
+  return () => {
     if (typeof window === "undefined") {
       return;
     }
 
-    setGroupContext({
-      id: localStorage.getItem("groupId") ?? "",
-      name: localStorage.getItem("groupName") ?? "",
-      color: localStorage.getItem("groupColor") ?? "",
-    });
+    const isDev = process.env.NODE_ENV !== "production";
+    if (isDev && !hasSkippedStrictCleanupRef.current) {
+      hasSkippedStrictCleanupRef.current = true;
+      return;
+    }
 
     try {
-      const rawMember = localStorage.getItem(STORAGE_KEYS.SELECTED_GROUP_MEMBER);
-      if (rawMember) {
-        const parsedMember = JSON.parse(rawMember) as GroupMember;
-        setStoredMember(parsedMember);
-      } else {
-        setStoredMember(null);
-      }
-      setMemberLoadError(null);
+      localStorage.removeItem(STORAGE_KEYS.SELECTED_GROUP_MEMBER);
     } catch (storageError) {
-      console.error("Nie udało się odczytać członka grupy:", storageError);
-      setStoredMember(null);
-      setMemberLoadError("Nie udało się odczytać danych członka. Wróć do listy członków i wybierz osobę ponownie.");
-    } finally {
-      setIsMemberLoaded(true);
+      console.error("Nie udało się usunąć danych członka z localStorage:", storageError);
     }
-  }, []);
+  };
+}, []);
 
   const normalizedMember = useMemo(() => {
     if (!storedMember) {
