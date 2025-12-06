@@ -14,25 +14,10 @@ import {Search, X} from 'lucide-react';
 import MemberItem from '@/components/common/Member-item';
 import {useMembers} from '@/hooks/use-members';
 
-export default function MembersList() {
+export default function MembersList({groupId, groupColor}: {groupId: string | null, groupColor: string}) {
     const {members, isLoading, error, fetchGroupMembers} = useMembers();
     const [searchQuery, setSearchQuery] = useState('');
-    const [groupId, setGroupId] = useState<string | null>(null);
-    const [groupName, setGroupName] = useState<string>('');
-    const [groupColor, setGroupColor] = useState<string>('');
 
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-        const storedGroupId = localStorage.getItem('groupId');
-        const storedGroupName = localStorage.getItem('groupName') ?? '';
-        const storedGroupColor = localStorage.getItem('groupColor') ?? '';
-
-        setGroupId(storedGroupId);
-        setGroupName(storedGroupName);
-        setGroupColor(storedGroupColor);
-    }, []);
 
     useEffect(() => {
         if (!groupId) {
@@ -62,8 +47,6 @@ export default function MembersList() {
     const handleClearSearch = () => {
         setSearchQuery('');
     };
-
-    const accentColor = groupColor || '#7C3AED';
 
     if (isLoading && members.length === 0) {
         return (
@@ -127,7 +110,7 @@ export default function MembersList() {
             return (
                 <Typography
                     sx={{
-                        color: 'text.secondary',
+                        color: 'grey.300',
                         fontSize: '20px',
                         textAlign: 'center',
                     }}
@@ -206,10 +189,8 @@ export default function MembersList() {
                     left: 0,
                     right: 0,
                     height: '90vh',
-                    background: `radial-gradient(ellipse 150% 100% at bottom center, ${accentColor}80 0%, ${accentColor}30 40%, transparent 70%)`,
                     pointerEvents: 'none',
                     zIndex: 0,
-                    transition: 'background 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
                 },
                 '& > *': {
                     position: 'relative',
@@ -226,15 +207,8 @@ export default function MembersList() {
                     textAlign: 'center',
                 }}
             >
-                <Typography
-                    sx={{
-                        color: 'text.secondary',
-                        fontSize: '18px',
-                        mb: 1,
-                    }}
-                >
-                    {groupName ? `Członkowie grupy ${groupName}` : 'Lista członków'}
-                </Typography>
+                
+
                 <TextField
                     fullWidth
                     placeholder="Wyszukaj członka"
@@ -276,9 +250,8 @@ export default function MembersList() {
                     px: {xs: 3, sm: 5},
                     py: {xs: 3, sm: 4},
                     borderRadius: 4,
-                    border: `1px solid ${theme.palette.grey[700]}`,
+                    border: `1px solid ${groupColor ? groupColor : theme.palette.grey[700]}`,
                     boxShadow: '0 16px 45px rgba(0, 0, 0, 0.35)',
-                    color: theme.palette.text.primary,
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
