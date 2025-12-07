@@ -221,7 +221,7 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                         minHeight: 180,
                     }}
                 >
-                    <CircularProgress size={36} />
+                    <CircularProgress size={36} sx={{ color: "white"}} />
                     <Typography color="text.secondary">
                         Ładuję prośby o dołączenie...
                     </Typography>
@@ -677,7 +677,7 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                                         Prośby o dołączenie
                                     </Typography>
                                     {shouldShowJoinRequestsSpinner ? (
-                                        <CircularProgress size={18} />
+                                        <CircularProgress size={18} sx={{ color: "white", ml: 1}} />
                                     ) : (
                                         <Box
                                             sx={{
