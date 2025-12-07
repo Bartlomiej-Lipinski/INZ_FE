@@ -4,20 +4,36 @@ import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 const BASE_URL = process.env.BASE_URL;
 const REMOVE_GROUP_MEMBER = process.env.REMOVE_GROUP_MEMBER;
 
-export async function POST(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
     try {
+        const {groupId, userId} = await request.json();
+
+        if (!groupId || !userId) {
+            return NextResponse.json(
+                {success: false, message: 'Brakuje identyfikatora grupy lub użytkownika.'},
+                {status: 400},
+            );
+        }
+
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${REMOVE_GROUP_MEMBER}`, {
-            method: 'POST',
+        const baseUrl = (BASE_URL ?? '').replace(/\/$/, '');
+        const removeRouteTemplate = REMOVE_GROUP_MEMBER ?? '';
+        const removeRoute = removeRouteTemplate
+            .replace('{groupId}', encodeURIComponent(groupId))
+            .replace('{userId}', encodeURIComponent(userId));
+        const targetUrl = `${baseUrl}${removeRoute}`;
+
+        const response = await fetch(targetUrl, {
+            method: 'DELETE',
             headers: {
                 'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
+                'Accept': 'application/json',
             },
             credentials: 'include',
         });
 
-        const data = await response.json();
-
+        const textBody = await response.text();
+        const data = textBody ? JSON.parse(textBody) : {};
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {

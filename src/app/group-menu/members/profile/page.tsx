@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     Alert,
     Avatar,
@@ -17,6 +17,7 @@ import { formatDate } from "@/lib/utils/date";
 import { getStatusLabel, STORAGE_KEYS } from "@/lib/constants";
 import { Group } from "@/lib/types/group";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useMembers } from "@/hooks/use-members";
 import { useSearchParams } from "next/navigation";
 
 export default function MemberProfilePage() {
@@ -39,6 +40,15 @@ export default function MemberProfilePage() {
     const [memberLoadError, setMemberLoadError] = useState<string | null>(null);
     const [isMemberLoaded, setIsMemberLoaded] = useState(false);
     const hasSkippedStrictCleanupRef = useRef(false);
+    const {
+        grantAdminPrivileges,
+        removeGroupMember,
+        error: membersError,
+        setErrorMessage,
+    } = useMembers();
+    const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+    const [isGrantingAdmin, setIsGrantingAdmin] = useState(false);
+    const [isRemovingMember, setIsRemovingMember] = useState(false);
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -103,6 +113,60 @@ export default function MemberProfilePage() {
 
 
     const canManageMember = user?.role === "Admin" && Boolean(normalizedMember) && normalizedMember?.id !== user?.id;
+
+    const handleGrantAdmin = useCallback(async () => {
+        if (!groupContext.id || !normalizedMember?.id) {
+            setErrorMessage("Brak danych grupy lub użytkownika potrzebnych do wykonania akcji.");
+            return;
+        }
+
+        setIsGrantingAdmin(true);
+        setActionSuccess(null);
+        setErrorMessage(null);
+
+        try {
+            const response = await grantAdminPrivileges(groupContext.id, normalizedMember.id);
+            if (response.success) {
+                setActionSuccess("Uprawnienia administratora zostały nadane.");
+            }
+        } catch (error) {
+            console.error("Grant admin privileges action error:", error);
+        } finally {
+            setIsGrantingAdmin(false);
+        }
+    }, [
+        grantAdminPrivileges,
+        groupContext.id,
+        normalizedMember?.id,
+        setErrorMessage,
+    ]);
+
+    const handleRemoveMember = useCallback(async () => {
+        if (!groupContext.id || !normalizedMember?.id) {
+            setErrorMessage("Brak danych grupy lub użytkownika potrzebnych do wykonania akcji.");
+            return;
+        }
+
+        setIsRemovingMember(true);
+        setActionSuccess(null);
+        setErrorMessage(null);
+
+        try {
+            const response = await removeGroupMember(groupContext.id, normalizedMember.id);
+            if (response.success) {
+                setActionSuccess("Użytkownik został usunięty z grupy.");
+            }
+        } catch (error) {
+            console.error("Remove group member action error:", error);
+        } finally {
+            setIsRemovingMember(false);
+        }
+    }, [
+        groupContext.id,
+        normalizedMember?.id,
+        removeGroupMember,
+        setErrorMessage,
+    ]);
 
 
     const renderLoader = () => (
@@ -325,6 +389,15 @@ export default function MemberProfilePage() {
                     </Alert>
                 )}
 
+                {(membersError || actionSuccess) && (
+                    <Alert
+                        severity={membersError ? "error" : "success"}
+                        sx={{ width: "100%" }}
+                    >
+                        {membersError ?? actionSuccess}
+                    </Alert>
+                )}
+
                 <Divider
                     sx={{
                         width: "100%",
@@ -332,12 +405,20 @@ export default function MemberProfilePage() {
                     }}
                 />
 
-                <Button sx={{
-                    width: "80%",
-                    backgroundColor: groupContext.color || theme.palette.primary.light,
-                    color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.light)
-                }}
-                    disabled={isAwaitingApproval}
+
+                <Button
+                    sx={{
+                        width: "80%",
+                        backgroundColor: groupContext.color || theme.palette.primary.light,
+                        color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.light),
+                    }}
+                    disabled={isAwaitingApproval || isGrantingAdmin}
+                    onClick={handleGrantAdmin}
+                    startIcon={
+                        isGrantingAdmin ? (
+                            <CircularProgress size={20} color="inherit" />
+                        ) : undefined
+                    }
                 >
                     Nadaj prawa administratora grupy
                 </Button>
@@ -351,7 +432,13 @@ export default function MemberProfilePage() {
 
                 <Button
                     sx={{ width: "60%", backgroundColor: theme.palette.error.main }}
-                    disabled={isAwaitingApproval}
+                    disabled={isAwaitingApproval || isRemovingMember}
+                    onClick={handleRemoveMember}
+                    startIcon={
+                        isRemovingMember ? (
+                            <CircularProgress size={20} color="inherit" />
+                        ) : undefined
+                    }
                 >
                     Usuń członka z grupy
                 </Button>
