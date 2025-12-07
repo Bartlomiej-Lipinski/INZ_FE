@@ -5,9 +5,10 @@ import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {FeedItemType} from "@/lib/types/FeedItemType";
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 interface AddPostFormProps {
-    user: { id: string; name: string; avatar: string };
+    user: { id: string; name: string; surname: string; username: string; profilePicture: { id: string } };
     groupColor: string;
     groupId: string;
     onAddPost: (newItem: GroupFeedItemResponseDto) => void;
@@ -18,6 +19,7 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: Read
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const avatarUrl = useImageUrl(user.profilePicture.id);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -72,19 +74,28 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: Read
 
             const result = await response.json();
             onAddPost({
-                id: result.data, // ID z backendu
-                description: newPostContent, // ✅ Zachowaj treść
-                title: undefined, // Opcjonalny tytuł
-                storedFileId: selectedFile ? result.data : undefined, // ✅ Zachowaj załącznik (jeśli był)
+                id: result.data,
+                description: newPostContent,
+                title: undefined,
+                storedFileId: selectedFile ? result.data : undefined,
                 temporaryImageUrl: selectedFile ? previewUrl || undefined : undefined,
                 type: FeedItemType.POST,
-                userId: user.id,
-                userName: user.name,
-                userAvatarUrl: user.avatar,
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    surname: user.surname,
+                    username: user.username,
+                    profilePicture: user.profilePicture?.id ? {
+                        id: user.profilePicture.id,
+                        fileName: '',
+                        contentType: '',
+                        size: 0
+                    } : undefined,
+                },
                 reactions: [],
                 comments: [],
                 createdAt: new Date().toISOString(),
-            } as GroupFeedItemResponseDto);
+            });
 
             setNewPostContent('');
             setSelectedFile(null);
@@ -101,7 +112,12 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: Read
             <form onSubmit={handleSubmit}>
                 <CardContent sx={{pb: 1}}>
                     <Box sx={{display: 'flex', gap: 2, mb: 2}}>
-                        <Avatar src={user.avatar} sx={{width: 40, height: 40}}/>
+                        <Avatar
+                            src={avatarUrl || undefined}
+                            sx={{bgcolor: groupColor, width: 44, height: 44}}
+                        >
+                            {user.name?.[0]?.toUpperCase() || '?'}
+                        </Avatar>
                         <TextField
                             fullWidth
                             multiline

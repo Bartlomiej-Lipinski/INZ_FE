@@ -16,7 +16,7 @@ import {
 import {alpha} from '@mui/material/styles';
 import {Edit2, Heart, MessageCircle, MoreVertical, Send, Trash2} from 'lucide-react';
 import {FeedItemType} from '@/lib/types/FeedItemType';
-import {GroupFeedItemResponseDto} from '@/lib/types/feedDtos';
+import {CommentResponseDto, GroupFeedItemResponseDto, UserResponseDto} from '@/lib/types/feedDtos';
 import {useImageUrl} from "@/hooks/useImageUrl";
 
 
@@ -79,9 +79,29 @@ function formatTimestamp(dateString: string): string {
     return date.toLocaleDateString('pl-PL');
 }
 
+function UserAvatar({user, size, groupColor}: { user: UserResponseDto; size: number; groupColor?: string }) {
+    const avatarUrl = useImageUrl(user.profilePicture?.id);
+    const displayName = `${user.name} ${user.surname}`.trim() || user.username;
+
+    return (
+        <Avatar
+            src={avatarUrl || undefined}
+            title={displayName}
+            sx={{
+                width: size,
+                height: size,
+                bgcolor: groupColor || 'grey.500'
+            }}
+        >
+            {user.name?.[0]?.toUpperCase() || '?'}
+        </Avatar>
+    );
+}
+
 interface FeedItemProps {
     item: GroupFeedItemResponseDto;
     userId: string;
+    currentUser?: UserResponseDto;
     groupColor: string;
     expanded: boolean;
     newComment: string;
@@ -96,16 +116,10 @@ interface FeedItemProps {
     onDeletePost: () => void;
 }
 
-const MOCK_USER = {
-    id: 'user-1',
-    name: 'Ja',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-};
-
-
 export default function FeedItem({
                                      item,
                                      userId,
+                                     currentUser,
                                      groupColor,
                                      expanded,
                                      newComment,
@@ -121,18 +135,17 @@ export default function FeedItem({
                                  }: FeedItemProps) {
     const ItemIcon = getItemIcon(item.type);
     const imageUrl = useImageUrl(item.storedFileId, item.temporaryImageUrl);
+
     const userLiked = Array.isArray(item.reactions)
-        ? item.reactions.some(r => r.userId === userId && r.reactionType === 'Like')
+        ? item.reactions.some(r => r.id === userId)
         : false;
-    const isUserPost = item.userId === userId;
+    const isUserPost = item.user.id === userId;
+
     const avatarsToShow = Array.isArray(item.reactions)
-        ? item.reactions.slice(0, 3).map((r) => ({
-            id: r.userId,
-            name: r.userName,
-            picture: `https://i.pravatar.cc/150?u=${r.userId}`,
-        }))
+        ? item.reactions.slice(0, 3)
         : [];
 
+    const displayName = `${item.user.name} ${item.user.surname}`.trim() || item.user.username || 'Nieznany użytkownik';
 
     return (
         <Card sx={{bgcolor: 'background.paper', borderRadius: 3, position: 'relative'}}>
@@ -170,29 +183,10 @@ export default function FeedItem({
                 {/* Nagłówek posta */}
                 <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2}}>
                     <Box sx={{display: 'flex', gap: 1.5, flex: 1}}>
-                        {item.userAvatarUrl ? (
-                            <Avatar src={item.userAvatarUrl} sx={{width: 44, height: 44}}/>
-                        ) : (
-                            <Box
-                                sx={{
-                                    width: 44,
-                                    height: 44,
-                                    borderRadius: '50%',
-                                    bgcolor: groupColor,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                }}
-                            >
-                                <Typography sx={{fontWeight: 600, fontSize: '1.25rem', color: 'white'}}>
-                                    {item.userName?.[0]?.toUpperCase() || '?'}
-                                </Typography>
-                            </Box>
-
-                        )}
+                        <UserAvatar user={item.user} size={44} groupColor={groupColor}/>
                         <Box>
                             <Typography sx={{fontWeight: 600, fontSize: '1rem'}}>
-                                {item.userName || 'Grzegorz Brzęczyszczykiewicz'}
+                                {displayName}
                             </Typography>
                             <Typography sx={{fontSize: '0.875rem', color: 'text.secondary'}}>
                                 {formatTimestamp(item.createdAt)}
@@ -270,21 +264,8 @@ export default function FeedItem({
                     {/* Overlapping avatars */}
                     {avatarsToShow.length > 0 && (
                         <Box sx={{display: 'flex', alignItems: 'center', ml: 1}}>
-                            {avatarsToShow.map((a, i) => (
-                                <Avatar
-                                    key={a.id}
-                                    src={a.picture}
-                                    title={a.name}
-                                    sx={{
-                                        width: 28,
-                                        height: 28,
-                                        border: '2px solid',
-                                        borderColor: 'background.paper',
-                                        ml: i === 0 ? 0 : -1.1,
-                                        zIndex: 10 - i,
-                                        boxShadow: 1,
-                                    }}
-                                />
+                            {avatarsToShow.map((user, i) => (
+                                <ReactionAvatar key={user.id} user={user} index={i}/>
                             ))}
                         </Box>
                     )}
@@ -312,29 +293,12 @@ export default function FeedItem({
                     <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 2}}>
                         {/* Lista komentarzy */}
                         {item.comments.map(comment => (
-                            <Box key={comment.id} sx={{display: 'flex', gap: 1.5, mb: 2}}>
-                                <Avatar src={comment.userAvatarUrl} sx={{width: 32, height: 32}}>
-                                    {comment.userName?.[0]?.toUpperCase() || '?'}
-                                </Avatar>
-                                <Box sx={{flex: 1}}>
-                                    <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 1.5}}>
-                                        <Typography sx={{fontWeight: 600, fontSize: '0.875rem', mb: 0.5}}>
-                                            {comment.userName || 'Nieznany użytkownik'}
-                                        </Typography>
-                                        <Typography sx={{fontSize: '0.875rem'}}>{comment.content}</Typography>
-                                    </Box>
-                                    <Typography sx={{fontSize: '0.75rem', color: 'text.secondary', mt: 0.5, ml: 1.5}}>
-                                        {formatTimestamp(comment.createdAt)}
-                                    </Typography>
-                                </Box>
-                            </Box>
+                            <CommentItem key={comment.id} comment={comment}/>
                         ))}
 
                         {/* Dodawanie komentarza */}
                         <Box sx={{display: 'flex', gap: 1.5, mt: item.comments.length > 0 ? 2 : 0}}>
-                            <Avatar src={MOCK_USER.avatar} sx={{width: 32, height: 32}}>
-                                {MOCK_USER.name[0]}
-                            </Avatar>
+                            {currentUser && <UserAvatar user={currentUser} size={32} groupColor={groupColor}/>}
                             <TextField
                                 fullWidth
                                 size="small"
@@ -396,5 +360,54 @@ export default function FeedItem({
                 </MenuItem>
             </Menu>
         </Card>
+    );
+}
+
+
+function ReactionAvatar({user, index}: { user: UserResponseDto; index: number }) {
+    const avatarUrl = useImageUrl(user.profilePicture?.id);
+    const displayName = `${user.name} ${user.surname}`.trim() || user.username;
+
+    return (
+        <Avatar
+            src={avatarUrl || undefined}
+            title={displayName}
+            sx={{
+                width: 28,
+                height: 28,
+                border: '2px solid',
+                borderColor: 'background.paper',
+                ml: index === 0 ? 0 : -1.1,
+                zIndex: 10 - index,
+                boxShadow: 1,
+            }}
+        >
+            {user.name?.[0]?.toUpperCase() || '?'}
+        </Avatar>
+    );
+}
+
+
+function CommentItem({comment}: { comment: CommentResponseDto }) {
+    const avatarUrl = useImageUrl(comment.user.profilePicture?.id);
+    const displayName = `${comment.user.name} ${comment.user.surname}`.trim() || comment.user.username || 'Nieznany użytkownik';
+
+    return (
+        <Box sx={{display: 'flex', gap: 1.5, mb: 2}}>
+            <Avatar src={avatarUrl || undefined} sx={{width: 32, height: 32}}>
+                {comment.user.name?.[0]?.toUpperCase() || '?'}
+            </Avatar>
+            <Box sx={{flex: 1}}>
+                <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 1.5}}>
+                    <Typography sx={{fontWeight: 600, fontSize: '0.875rem', mb: 0.5}}>
+                        {displayName}
+                    </Typography>
+                    <Typography sx={{fontSize: '0.875rem'}}>{comment.content}</Typography>
+                </Box>
+                <Typography sx={{fontSize: '0.75rem', color: 'text.secondary', mt: 0.5, ml: 1.5}}>
+                    {formatTimestamp(comment.createdAt)}
+                </Typography>
+            </Box>
+        </Box>
     );
 }

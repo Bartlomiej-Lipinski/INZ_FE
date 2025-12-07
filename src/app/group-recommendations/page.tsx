@@ -17,7 +17,6 @@ import {
     DialogContent,
     DialogTitle,
     FormControl,
-    Grid,
     IconButton,
     InputLabel,
     Link as MuiLink,
@@ -27,14 +26,13 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import {alpha} from '@mui/material/styles';
 import {
-    ArrowLeft,
     Edit2,
     ExternalLink,
     Heart,
     Image as ImageIcon,
-    Link as LinkIcon,
     Menu as MenuIcon,
     MessageCircle,
     MoreVertical,
@@ -47,35 +45,8 @@ import GroupMenu from "@/components/common/GroupMenu";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {EntityType} from "@/lib/types/entityType";
-
-// Typy danych
-interface ReactionDto {
-    userId: string;
-}
-
-interface CommentResponseDto {
-    id: string;
-    userId: string;
-    userName?: string;
-    userAvatarUrl?: string;
-    content: string;
-    createdAt: string;
-}
-
-interface RecommendationResponseDto {
-    id: string;
-    title: string;
-    content: string;
-    category?: string;
-    imageUrl?: string;
-    linkUrl?: string;
-    createdAt: string;
-    userId: string;
-    comments: CommentResponseDto[];
-    reactions: ReactionDto[];
-}
-
-// Mock data
+import {CommentResponseDto, RecommendationResponseDto, UserResponseDto} from "@/lib/types/recommendationDtos";
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 const CATEGORIES = [
     'Książki',
@@ -115,6 +86,76 @@ function getCategoryColor(category?: string): string {
     return colors[category || ''] || '#757575';
 }
 
+function UserAvatar({user, size, groupColor}: { user?: UserResponseDto; size: number; groupColor?: string }) {
+    const avatarUrl = useImageUrl(user?.profilePicture?.id);
+    const displayName = user
+        ? `${user.name} ${user.surname}`.trim() || user.username
+        : 'Nieznany';
+
+    return (
+        <Avatar
+            src={avatarUrl || undefined}
+            title={displayName}
+            sx={{
+                width: size,
+                height: size,
+                bgcolor: groupColor || 'grey.500'
+            }}
+        >
+            {user?.name?.[0]?.toUpperCase() || '?'}
+        </Avatar>
+    );
+}
+
+function ReactionAvatar({user, index}: { user: UserResponseDto; index: number }) {
+    const avatarUrl = useImageUrl(user.profilePicture?.id);
+    const displayName = `${user.name} ${user.surname}`.trim() || user.username;
+
+    return (
+        <Avatar
+            src={avatarUrl || undefined}
+            title={displayName}
+            sx={{
+                width: 28,
+                height: 28,
+                border: '2px solid',
+                borderColor: 'background.paper',
+                ml: index === 0 ? 0 : -1.1,
+                zIndex: 10 - index,
+                boxShadow: 1,
+            }}
+        >
+            {user.name?.[0]?.toUpperCase() || '?'}
+        </Avatar>
+    );
+}
+
+function CommentItem({comment}: { comment: CommentResponseDto }) {
+    const avatarUrl = useImageUrl(comment.user?.profilePicture?.id);
+    const displayName = comment.user
+        ? `${comment.user.name} ${comment.user.surname}`.trim() || comment.user.username
+        : 'Nieznany użytkownik';
+
+    return (
+        <Box sx={{display: 'flex', gap: 1.5, mb: 2}}>
+            <Avatar src={avatarUrl || undefined} sx={{width: 32, height: 32}}>
+                {comment.user?.name?.[0]?.toUpperCase() || '?'}
+            </Avatar>
+            <Box sx={{flex: 1}}>
+                <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 1.5}}>
+                    <Typography sx={{fontWeight: 600, fontSize: '0.875rem', mb: 0.5}}>
+                        {displayName}
+                    </Typography>
+                    <Typography sx={{fontSize: '0.875rem'}}>{comment.content}</Typography>
+                </Box>
+                <Typography sx={{fontSize: '0.75rem', color: 'text.secondary', mt: 0.5, ml: 1.5}}>
+                    {formatTimestamp(comment.createdAt)}
+                </Typography>
+            </Box>
+        </Box>
+    );
+}
+
 export default function RecommendationsPage() {
     const searchParams = useSearchParams();
     const [recommendations, setRecommendations] = useState<RecommendationResponseDto[]>([]);
@@ -130,7 +171,25 @@ export default function RecommendationsPage() {
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-    const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatar: string } | null>(null);
+
+    const [currentUser, setCurrentUser] = useState<{
+        id: string;
+        email: string;
+        username: string;
+        name: string;
+        surname: string;
+        birthDate?: string;
+        status?: string;
+        description?: string;
+        profilePicture?: {
+            id: string;
+            fileName?: string;
+            contentType?: string;
+            size?: number;
+            url?: string;
+        };
+        isTwoFactorEnabled?: boolean;
+    } | null>(null);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
@@ -150,12 +209,18 @@ export default function RecommendationsPage() {
                 const userData = JSON.parse(userAuth);
                 setCurrentUser({
                     id: userData.id,
+                    email: userData.email,
+                    username: userData.username,
                     name: userData.name,
-                    avatar: 'https://i.pravatar.cc/150?img=1',
-                    // userData.ProfilePIcture.id ||
+                    surname: userData.surname,
+                    birthDate: userData.birthDate,
+                    status: userData.status,
+                    description: userData.description,
+                    profilePicture: userData.profilePicture,
+                    isTwoFactorEnabled: userData.isTwoFactorEnabled,
                 });
             } catch (error) {
-                console.error('Błąd parsowania danych użytkownika z localStorage:', error);
+                console.error('Błąd parsowania danych użytkownika:', error);
             }
         }
     }, []);
@@ -167,10 +232,7 @@ export default function RecommendationsPage() {
             try {
                 const response = await fetchWithAuth(
                     `${API_ROUTES.GET_RECOMMENDATIONS}?groupId=${groupData.id}`,
-                    {
-                        method: 'GET',
-                        headers: {'Content-Type': 'application/json'},
-                    }
+                    {method: 'GET', credentials: 'include'}
                 );
 
                 if (response.ok) {
@@ -190,7 +252,6 @@ export default function RecommendationsPage() {
         fetchRecommendations();
     }, [groupData.id]);
 
-    // Form state
     const [formData, setFormData] = useState({
         title: '',
         content: '',
@@ -205,6 +266,14 @@ export default function RecommendationsPage() {
         setPreviewUrl(null);
         setAddDialogOpen(true);
     };
+
+    const availableCategories = useMemo(() => {
+        const cats = new Set<string>();
+        recommendations.forEach(rec => {
+            if (rec.category) cats.add(rec.category);
+        });
+        return Array.from(cats);
+    }, [recommendations]);
 
     const handleOpenEditDialog = (rec: RecommendationResponseDto) => {
         setEditingRecommendation(rec);
@@ -233,6 +302,7 @@ export default function RecommendationsPage() {
         }
     };
 
+    const handleCloseMenu = () => setMenuAnchor(null);
 
     const handleAddRecommendation = async () => {
         if (!currentUser || !formData.title.trim() || !formData.content.trim()) return;
@@ -246,7 +316,18 @@ export default function RecommendationsPage() {
             imageUrl: previewUrl || formData.imageUrl || undefined,
             linkUrl: formData.linkUrl || undefined,
             createdAt: new Date().toISOString(),
-            userId: currentUser.id,
+            user: {
+                id: currentUser.id,
+                name: currentUser.name,
+                surname: currentUser.surname,
+                username: currentUser.username,
+                profilePicture: currentUser.profilePicture ? {
+                    id: currentUser.profilePicture.id,
+                    fileName: currentUser.profilePicture.fileName || '',
+                    contentType: currentUser.profilePicture.contentType || '',
+                    size: currentUser.profilePicture.size || 0,
+                } : undefined,
+            },
             comments: [],
             reactions: [],
         };
@@ -262,26 +343,26 @@ export default function RecommendationsPage() {
         setSelectedFile(null);
 
         try {
-            const formData = new FormData();
-            formData.append('title', savedFormData.title);
-            formData.append('content', savedFormData.content);
+            const formDataToSend = new FormData();
+            formDataToSend.append('title', savedFormData.title);
+            formDataToSend.append('content', savedFormData.content);
             if (savedFormData.category) {
-                formData.append('category', savedFormData.category);
+                formDataToSend.append('category', savedFormData.category);
             }
             if (savedFormData.linkUrl) {
-                formData.append('linkUrl', savedFormData.linkUrl);
+                formDataToSend.append('linkUrl', savedFormData.linkUrl);
             }
             if (savedSelectedFile) {
-                formData.append('file', savedSelectedFile);
+                formDataToSend.append('file', savedSelectedFile);
             } else if (savedFormData.imageUrl) {
-                formData.append('imageUrl', savedFormData.imageUrl);
+                formDataToSend.append('imageUrl', savedFormData.imageUrl);
             }
 
             const response = await fetchWithAuth(`${API_ROUTES.POST_RECOMMENDATIONS}?groupId=${groupData.id}`,
                 {
                     method: 'POST',
+                    body: formDataToSend,
                     credentials: 'include',
-                    body: formData,
                 }
             );
 
@@ -293,7 +374,7 @@ export default function RecommendationsPage() {
 
             setRecommendations(prevRecs =>
                 prevRecs.map(rec =>
-                    rec.id === tempId ? {...rec, id: result.data} : rec
+                    rec.id === tempId ? result : rec
                 )
             );
         } catch (error) {
@@ -301,7 +382,6 @@ export default function RecommendationsPage() {
             setRecommendations(prevRecs => prevRecs.filter(rec => rec.id !== tempId));
         }
     };
-
 
     const handleEditRecommendation = async () => {
         if (!editingRecommendation || !formData.title.trim() || !formData.content.trim()) return;
@@ -358,8 +438,8 @@ export default function RecommendationsPage() {
                 `${API_ROUTES.PUT_RECOMMENDATIONS}?groupId=${groupData.id}&recommendationId=${recId}`,
                 {
                     method: 'PUT',
-                    credentials: 'include',
                     body: formDataToSend,
+                    credentials: 'include',
                 }
             );
 
@@ -380,7 +460,6 @@ export default function RecommendationsPage() {
         }
     };
 
-
     const handleDeleteRecommendation = async () => {
         if (!menuAnchor) return;
 
@@ -389,10 +468,8 @@ export default function RecommendationsPage() {
 
         const previousRecommendations = [...recommendations];
 
-        // Optymistyczna aktualizacja - usuń z listy
         setRecommendations(prevRecs => prevRecs.filter(rec => rec.id !== recId));
 
-        // Jeśli usuwamy aktualnie wybraną rekomendację, wróć do listy
         if (isDetailView && selectedRecommendation?.id === recId) {
             setIsDetailView(false);
             setSelectedRecommendation(null);
@@ -415,14 +492,13 @@ export default function RecommendationsPage() {
         }
     };
 
-
     const handleToggleLike = async (recId: string) => {
         if (!currentUser) return;
 
         const rec = recommendations.find(r => r.id === recId);
         if (!rec) return;
 
-        const userReaction = rec.reactions.find(r => r.userId === currentUser.id);
+        const userReaction = rec.reactions.find(r => r.id === currentUser.id);
         const isRemoving = !!userReaction;
 
         const previousRecommendations = [...recommendations];
@@ -434,12 +510,25 @@ export default function RecommendationsPage() {
                         if (isRemoving) {
                             return {
                                 ...r,
-                                reactions: r.reactions.filter(reaction => reaction.userId !== currentUser.id)
+                                reactions: r.reactions.filter(reaction => reaction.id !== currentUser.id)
                             };
                         } else {
                             return {
                                 ...r,
-                                reactions: [...r.reactions, {userId: currentUser.id}],
+                                reactions: [...r.reactions,
+                                    {
+                                        id: currentUser.id,
+                                        name: currentUser.name,
+                                        surname: currentUser.surname,
+                                        username: currentUser.username,
+                                        profilePicture: currentUser.profilePicture ? {
+                                            id: currentUser.profilePicture.id,
+                                            fileName: currentUser.profilePicture.fileName || '',
+                                            contentType: currentUser.profilePicture.contentType || '',
+                                            size: currentUser.profilePicture.size || 0,
+                                        } : undefined,
+                                    },
+                                ],
                             };
                         }
                     }
@@ -465,7 +554,6 @@ export default function RecommendationsPage() {
         }
     };
 
-
     const handleAddComment = async (recId: string) => {
         if (!currentUser) return;
         const content = newComment[recId]?.trim();
@@ -473,17 +561,33 @@ export default function RecommendationsPage() {
 
         const tempComment: CommentResponseDto = {
             id: `temp-${Date.now()}`,
-            userId: currentUser.id,
-            userName: currentUser.name,
-            userAvatarUrl: currentUser.avatar,
+            user: {
+                id: currentUser.id,
+                name: currentUser.name,
+                surname: currentUser.surname,
+                username: currentUser.username,
+                profilePicture: currentUser.profilePicture?.id
+                    ? {
+                        id: currentUser.profilePicture.id,
+                        fileName: currentUser.profilePicture.fileName || '',
+                        contentType: currentUser.profilePicture.contentType || '',
+                        size: currentUser.profilePicture.size || 0,
+                    }
+                    : undefined,
+            },
             content,
             createdAt: new Date().toISOString(),
         };
 
+
         setRecommendations(prevRecs =>
             prevRecs.map(rec =>
                 rec.id === recId
-                    ? {...rec, comments: [...rec.comments, tempComment]}
+                    ? {
+                        ...rec,
+                        reactions: Array.isArray(rec.reactions) ? rec.reactions : [],
+                        comments: Array.isArray(rec.comments) ? [...rec.comments, tempComment] : [tempComment]
+                    }
                     : rec
             )
         );
@@ -496,8 +600,8 @@ export default function RecommendationsPage() {
                 {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    credentials: 'include',
                     body: JSON.stringify({content, entityType: "Recommendation"}),
+                    credentials: 'include',
                 }
             );
 
@@ -507,14 +611,18 @@ export default function RecommendationsPage() {
 
             const result = await response.json();
 
+            const savedComment: CommentResponseDto = {
+                ...tempComment,
+                id: result.data,
+            };
+
             setRecommendations(prevRecs =>
                 prevRecs.map(rec =>
                     rec.id === recId
                         ? {
                             ...rec,
-                            comments: rec.comments.map(c =>
-                                c.id === tempComment.id ? {...c, id: result.data} : c
-                            ),
+                            reactions: Array.isArray(rec.reactions) ? rec.reactions : [],
+                            comments: Array.isArray(rec.comments) ? rec.comments.map((c) => c.id == tempComment.id ? savedComment : c) : [savedComment]
                         }
                         : rec
                 )
@@ -528,31 +636,42 @@ export default function RecommendationsPage() {
                         : rec
                 )
             );
-            setNewComment(prev => ({...prev, [recId]: content}));
+        }
+    };
+
+    const handleDeleteComment = async (recId: string, commentId: string) => {
+        const previousRecommendations = [...recommendations];
+
+        // Usuń komentarz lokalnie
+        setRecommendations(prevRecs =>
+            prevRecs.map(rec =>
+                rec.id === recId
+                    ? {...rec, comments: rec.comments.filter(c => c.id !== commentId)}
+                    : rec
+            )
+        );
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.DELETE_COMMENT}?groupId=${groupData.id}&targetId=${recId}&commentId=${commentId}`,
+                {
+                    method: 'DELETE',
+                    credentials: 'include',
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas usuwania komentarza');
+            }
+        } catch (error) {
+            console.error('Błąd podczas usuwania komentarza:', error);
+            setRecommendations(previousRecommendations);
         }
     };
 
 
-    const handleDeleteComment = (recId: string, commentId: string) => {
-        setRecommendations(
-            recommendations.map((rec) =>
-                rec.id === recId
-                    ? {...rec, comments: rec.comments.filter((c) => c.id !== commentId)}
-                    : rec
-            )
-        );
-    };
-
-    const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, id: string) => {
-        setMenuAnchor({el: event.currentTarget, id});
-    };
-
-    const handleCloseMenu = () => {
-        setMenuAnchor(null);
-    };
-
     const toggleComments = (recId: string) => {
-        setExpandedComments((prev) => {
+        setExpandedComments(prev => {
             const next = new Set(prev);
             if (next.has(recId)) {
                 next.delete(recId);
@@ -563,486 +682,393 @@ export default function RecommendationsPage() {
         });
     };
 
-    const handleViewDetails = (rec: RecommendationResponseDto) => {
-        setSelectedRecommendation(rec);
-        setIsDetailView(true);
-    };
-
-    const handleBackToList = () => {
-        setIsDetailView(false);
-        setSelectedRecommendation(null);
-    };
-
-    // Synchronizuj selectedRecommendation z listą
-    useEffect(() => {
-        if (selectedRecommendation) {
-            const updated = recommendations.find((r) => r.id === selectedRecommendation.id);
-            if (updated) {
-                setSelectedRecommendation(updated);
-            }
-        }
-    }, [recommendations]);
-
     const hasUserLiked = (rec: RecommendationResponseDto) =>
-        rec.reactions.some((r) => r.userId === currentUser?.id);
+        rec.reactions.some((r) => r.id === currentUser?.id);
 
-    const isUserRecommendation = (rec: RecommendationResponseDto) => rec.userId === currentUser?.id;
+    const isUserRecommendation = (rec: RecommendationResponseDto) => rec.user.id === currentUser?.id;
 
-    // Filtrowanie rekomendacji
     const filteredRecommendations = selectedCategory === 'all'
         ? recommendations
         : recommendations.filter(rec => rec.category === selectedCategory);
 
-    // Lista rekomendacji
-    if (!isDetailView) {
+    const currentUserDto: UserResponseDto | undefined = currentUser ? {
+        id: currentUser.id,
+        name: currentUser.name,
+        surname: currentUser.surname,
+        username: currentUser.username,
+        profilePicture: currentUser.profilePicture ? {
+            id: currentUser.profilePicture.id,
+            fileName: currentUser.profilePicture.fileName || '',
+            contentType: currentUser.profilePicture.contentType || '',
+            size: currentUser.profilePicture.size || 0,
+        } : undefined,
+    } : undefined;
+
+    const renderRecommendationCard = (rec: RecommendationResponseDto) => {
+        const userLiked = hasUserLiked(rec);
+        const isOwner = isUserRecommendation(rec);
+        const isExpanded = expandedComments.has(rec.id);
+        const avatarsToShow = rec.reactions.slice(0, 3);
+        const displayName = rec.user
+            ? `${rec.user.name} ${rec.user.surname}`.trim() || rec.user.username
+            : 'Nieznany użytkownik';
+
         return (
-            <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
-                <Box sx={{maxWidth: 1200, mx: 'auto'}}>
-                    {/* Nagłówek z wysuwanym menu */}
-                    <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                        <IconButton
-                            onClick={() => setDrawerOpen(true)}
-                            sx={{
-                                bgcolor: '#8D8C8C',
-                                '&:hover': {bgcolor: '#666666'},
-                                mr: 1,
-                            }}
-                        >
-                            <MenuIcon/>
-                        </IconButton>
+            <Card key={rec.id} sx={{bgcolor: 'background.paper', borderRadius: 3, position: 'relative'}}>
+                {rec.imageUrl && (
+                    <CardMedia
+                        component="img"
+                        height="200"
+                        image={rec.imageUrl}
+                        alt={rec.title}
+                        sx={{objectFit: 'cover'}}
+                    />
+                )}
 
-                        <Typography
-                            variant="h4"
-                            sx={{
-                                textAlign: 'center',
-                                flex: 1,
-                                fontWeight: 600,
-                                fontSize: {xs: '1.75rem', sm: '2rem'},
-                            }}
-                        >
-                            Rekomendacje
-                        </Typography>
-                    </Box>
-
-                    <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
-                               groupName={groupData.name} groupColor={groupData.color}/>
-
-                    <Button
-                        variant="contained"
-                        startIcon={<Plus size={20}/>}
-                        onClick={handleOpenAddDialog}
-                        fullWidth
-                        sx={{
-                            bgcolor: groupData.color || 'primary.main',
-                            py: 1.5,
-                            mb: 3,
-                            '&:hover': {
-                                bgcolor: groupData.color || 'primary.dark',
-                                opacity: 0.9,
-                            },
-                        }}
-                    >
-                        Dodaj rekomendację
-                    </Button>
-
-                    {/* Filtrowanie po kategoriach */}
-                    <Box sx={{mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center'}}>
-                        <Typography variant="body2" sx={{fontWeight: 600, mr: 1}}>
-                            Kategorie:
-                        </Typography>
-                        <Chip
-                            label="Wszystkie"
-                            onClick={() => setSelectedCategory('all')}
-                            color={selectedCategory === 'all' ? 'primary' : 'default'}
-                            sx={{bgcolor: groupData.color, fontWeight: selectedCategory === 'all' ? 600 : 400}}
-                        />
-                        {CATEGORIES.map((cat) => {
-                            const count = recommendations.filter(r => r.category === cat).length;
-                            if (count === 0) return null;
-
-                            return (
-                                <Chip
-                                    key={cat}
-                                    label={`${cat} (${count})`}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    sx={{
-                                        bgcolor: selectedCategory === cat ? alpha(getCategoryColor(cat), 0.2) : undefined,
-                                        color: selectedCategory === cat ? getCategoryColor(cat) : undefined,
-                                        fontWeight: selectedCategory === cat ? 600 : 400,
-                                        borderColor: selectedCategory === cat ? getCategoryColor(cat) : undefined,
-                                    }}
-                                    variant={selectedCategory === cat ? 'filled' : 'outlined'}
-                                />
-                            );
-                        })}
-                    </Box>
-
-                    {filteredRecommendations.length === 0 ? (
-                        <Box sx={{textAlign: 'center', py: 8}}>
-                            <Typography variant="h6" color="text.secondary">
-                                Brak rekomendacji w tej kategorii
-                            </Typography>
+                <CardContent sx={{p: 3}}>
+                    <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2}}>
+                        <Box sx={{display: 'flex', gap: 1.5, flex: 1}}>
+                            <UserAvatar user={rec.user} size={44} groupColor={groupData.color}/>
+                            <Box>
+                                <Typography sx={{fontWeight: 600, fontSize: '1rem'}}>
+                                    {displayName}
+                                </Typography>
+                                <Typography sx={{fontSize: '0.875rem', color: 'text.secondary'}}>
+                                    {formatTimestamp(rec.createdAt)}
+                                </Typography>
+                            </Box>
                         </Box>
-                    ) : (
-                        <Grid container spacing={3}>
-                            {filteredRecommendations.map((rec) => {
-                                const userLiked = hasUserLiked(rec);
-                                const isOwner = isUserRecommendation(rec);
-                                return (
-                                    <Grid size={{xs: 12, sm: 6, md: 4}} key={rec.id}>
-                                        <Card
-                                            sx={{
-                                                height: '100%',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                borderRadius: 3,
-                                                position: 'relative',
-                                                cursor: 'pointer',
-                                                transition: 'transform 0.2s, box-shadow 0.2s',
-                                                '&:hover': {
-                                                    transform: 'translateY(-4px)',
-                                                    boxShadow: 6,
-                                                },
-                                            }}
-                                            onClick={() => handleViewDetails(rec)}
-                                        >
-                                            {rec.imageUrl && (
-                                                <CardMedia
-                                                    component="img"
-                                                    height="180"
-                                                    image={rec.imageUrl}
-                                                    alt={rec.title}
-                                                    sx={{objectFit: 'cover'}}
-                                                />
-                                            )}
+                        {isOwner && (
+                            <IconButton
+                                size="small"
+                                onClick={(e) => setMenuAnchor({el: e.currentTarget, id: rec.id})}
+                                sx={{alignSelf: 'flex-start'}}
+                            >
+                                <MoreVertical/>
+                            </IconButton>
+                        )}
+                    </Box>
 
-                                            {isOwner && (
-                                                <IconButton
-                                                    size="small"
-                                                    sx={{
-                                                        position: 'absolute',
-                                                        top: 8,
-                                                        right: 8,
-                                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                                        '&:hover': {bgcolor: 'rgba(0,0,0,0.8)'},
-                                                    }}
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleOpenMenu(e, rec.id);
-                                                    }}
-                                                >
-                                                    <MoreVertical size={18} color="white"/>
-                                                </IconButton>
-                                            )}
-
-                                            <CardContent sx={{flexGrow: 1}}>
-                                                {rec.category && (
-                                                    <Chip
-                                                        label={rec.category}
-                                                        size="small"
-                                                        sx={{
-                                                            mb: 1,
-                                                            bgcolor: alpha(getCategoryColor(rec.category), 0.2),
-                                                            color: getCategoryColor(rec.category),
-                                                            fontWeight: 600,
-                                                        }}
-                                                    />
-                                                )}
-
-                                                <Typography variant="h6" sx={{mb: 1, fontWeight: 600}}>
-                                                    {rec.title}
-                                                </Typography>
-
-                                                <Typography
-                                                    variant="body2"
-                                                    color="text.secondary"
-                                                    sx={{
-                                                        overflow: 'hidden',
-                                                        textOverflow: 'ellipsis',
-                                                        display: '-webkit-box',
-                                                        WebkitLineClamp: 3,
-                                                        WebkitBoxOrient: 'vertical',
-                                                        mb: 1,
-                                                    }}
-                                                >
-                                                    {rec.content}
-                                                </Typography>
-
-                                                <Typography variant="caption" color="text.secondary">
-                                                    {formatTimestamp(rec.createdAt)}
-                                                </Typography>
-                                            </CardContent>
-
-                                            <CardActions sx={{px: 2, pb: 2}}>
-                                                <Button
-                                                    size="small"
-                                                    startIcon={
-                                                        <Heart
-                                                            size={18}
-                                                            style={{
-                                                                fill: userLiked ? '#e91e63' : 'none',
-                                                                color: userLiked ? '#e91e63' : undefined,
-                                                            }}
-                                                        />
-                                                    }
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleToggleLike(rec.id);
-                                                    }}
-                                                    sx={{color: userLiked ? '#e91e63' : 'text.secondary'}}
-                                                >
-                                                    {rec.reactions.length}
-                                                </Button>
-
-                                                <Button
-                                                    size="small"
-                                                    startIcon={<MessageCircle size={18}/>}
-                                                    sx={{color: 'text.secondary'}}
-                                                >
-                                                    {rec.comments.length}
-                                                </Button>
-                                            </CardActions>
-                                        </Card>
-                                    </Grid>
-                                );
-                            })}
-                        </Grid>
+                    {rec.category && (
+                        <Chip
+                            label={rec.category}
+                            size="small"
+                            sx={{
+                                mb: 2,
+                                bgcolor: alpha(getCategoryColor(rec.category), 0.2),
+                                color: getCategoryColor(rec.category),
+                                fontWeight: 600,
+                            }}
+                        />
                     )}
 
-                    {/* Dialog dodawania */}
-                    <Dialog
-                        open={addDialogOpen}
-                        onClose={() => setAddDialogOpen(false)}
-                        maxWidth="sm"
-                        fullWidth
-                    >
-                        <DialogTitle>Dodaj rekomendację</DialogTitle>
-                        <DialogContent>
-                            <TextField
-                                fullWidth
-                                label="Tytuł"
-                                value={formData.title}
-                                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                sx={{mt: 2, mb: 2}}
-                            />
-
-                            <TextField
-                                fullWidth
-                                label="Treść"
-                                multiline
-                                rows={4}
-                                value={formData.content}
-                                onChange={(e) => setFormData({...formData, content: e.target.value})}
-                                sx={{mb: 2}}
-                            />
-
-                            <FormControl fullWidth sx={{mb: 2}}>
-                                <InputLabel>Kategoria</InputLabel>
-                                <Select
-                                    value={formData.category}
-                                    label="Kategoria"
-                                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                >
-                                    <MenuItem value="">Brak</MenuItem>
-                                    {CATEGORIES.map((cat) => (
-                                        <MenuItem key={cat} value={cat}>
-                                            {cat}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-
-                            <TextField
-                                fullWidth
-                                label="Link"
-                                placeholder="https://..."
-                                value={formData.linkUrl}
-                                onChange={(e) => setFormData({...formData, linkUrl: e.target.value})}
-                                sx={{mb: 2}}
-                                InputProps={{
-                                    startAdornment: <LinkIcon size={18} style={{marginRight: 8}}/>,
-                                }}
-                            />
-
-                            <Box sx={{mb: 2}}>
-                                <Button
-                                    variant="outlined"
-                                    component="label"
-                                    startIcon={<ImageIcon/>}
-                                    fullWidth
-                                >
-                                    Dodaj zdjęcie
-                                    <input
-                                        type="file"
-                                        hidden
-                                        accept="image/*"
-                                        onChange={handleFileSelect}
-                                    />
-                                </Button>
-                            </Box>
-
-                            {previewUrl && (
-                                <Box sx={{position: 'relative', mb: 2}}>
-                                    <img
-                                        src={previewUrl}
-                                        alt="Preview"
-                                        style={{
-                                            width: '100%',
-                                            maxHeight: 300,
-                                            objectFit: 'cover',
-                                            borderRadius: 8,
-                                        }}
-                                    />
-                                    <IconButton
-                                        size="small"
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 8,
-                                            right: 8,
-                                            bgcolor: 'rgba(0,0,0,0.6)',
-                                            '&:hover': {bgcolor: 'rgba(0,0,0,0.8)'},
-                                        }}
-                                        onClick={() => {
-                                            setPreviewUrl(null);
-                                        }}
-                                    >
-                                        <X size={20} color="white"/>
-                                    </IconButton>
-                                </Box>
-                            )}
-                        </DialogContent>
-                        <DialogActions sx={{px: 3, pb: 2}}>
-                            <Button onClick={() => setAddDialogOpen(false)}>Anuluj</Button>
-                            <Button
-                                variant="contained"
-                                onClick={handleAddRecommendation}
-                                disabled={!formData.title.trim() || !formData.content.trim()}
-                            >
-                                Dodaj
-                            </Button>
-                        </DialogActions>
-                    </Dialog>
-                </Box>
-
-                {/* Menu opcji */}
-                <Menu
-                    anchorEl={menuAnchor?.el}
-                    open={Boolean(menuAnchor)}
-                    onClose={handleCloseMenu}
-                >
-                    <MenuItem
-                        onClick={() => {
-                            const rec = recommendations.find((r) => r.id === menuAnchor?.id);
-                            if (rec) handleOpenEditDialog(rec);
+                    <Typography
+                        sx={{
+                            fontSize: '1.25rem',
+                            fontWeight: 600,
+                            mb: 1,
                         }}
                     >
-                        <Edit2 size={18} style={{marginRight: 8}}/>
-                        Edytuj
+                        {rec.title}
+                    </Typography>
+
+                    <Typography sx={{mb: 2, whiteSpace: 'pre-wrap'}}>
+                        {rec.content}
+                    </Typography>
+
+                    {rec.linkUrl && (
+                        <MuiLink
+                            href={rec.linkUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                color: groupData.color,
+                            }}
+                        >
+                            <ExternalLink size={16}/>
+                            Link
+                        </MuiLink>
+                    )}
+                </CardContent>
+
+                <CardActions sx={{px: 3, pb: 2, gap: 2, alignItems: 'center'}}>
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                        <Button
+                            size="small"
+                            startIcon={
+                                <Heart
+                                    size={18}
+                                    style={{
+                                        fill: userLiked ? 'white' : 'none',
+                                        color: userLiked ? 'white' : 'rgba(255, 255, 255, 0.5)'
+                                    }}
+                                />
+                            }
+                            onClick={() => handleToggleLike(rec.id)}
+                            sx={{
+                                bgcolor: groupData.color,
+                                color: 'white',
+                                textTransform: 'none',
+                                '&:hover': {
+                                    bgcolor: groupData.color,
+                                    opacity: 0.9,
+                                }
+                            }}
+                        >
+                            {rec.reactions.length}
+                        </Button>
+
+                        {avatarsToShow.length > 0 && (
+                            <Box sx={{display: 'flex', alignItems: 'center', ml: 1}}>
+                                {avatarsToShow.map((user, i) => (
+                                    <ReactionAvatar key={user.id} user={user} index={i}/>
+                                ))}
+                            </Box>
+                        )}
+                    </Box>
+
+                    <Button
+                        size="small"
+                        startIcon={<MessageCircle size={18} style={{color: 'rgba(255, 255, 255, 0.7)'}}/>}
+                        onClick={() => toggleComments(rec.id)}
+                        sx={{
+                            bgcolor: groupData.color,
+                            color: 'white',
+                            textTransform: 'none',
+                            '&:hover': {
+                                bgcolor: groupData.color,
+                                opacity: 0.9,
+                            }
+                        }}
+                    >
+                        {rec.comments.length}
+                    </Button>
+                </CardActions>
+
+                <Collapse in={isExpanded}>
+                    <Box sx={{px: 3, pb: 3}}>
+                        <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 2}}>
+                            {rec.comments.map(comment => (
+                                <Box key={comment.id} sx={{position: 'relative'}}>
+                                    <CommentItem comment={comment}/>
+                                    {comment.user?.id === currentUser?.id && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => handleDeleteComment(rec.id, comment.id)}
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                right: 0,
+                                                color: 'error.main',
+                                            }}
+                                        >
+                                            <Trash2 size={14}/>
+                                        </IconButton>
+                                    )}
+                                </Box>
+                            ))}
+                            <Box sx={{display: 'flex', gap: 1.5, mt: rec.comments.length > 0 ? 2 : 0}}>
+                                {currentUserDto && (
+                                    <UserAvatar user={currentUserDto} size={32} groupColor={groupData.color}/>
+                                )}
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    placeholder="Dodaj komentarz..."
+                                    value={newComment[rec.id] || ''}
+                                    onChange={(e) => setNewComment(prev => ({...prev, [rec.id]: e.target.value}))}
+                                    onKeyPress={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleAddComment(rec.id);
+                                        }
+                                    }}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupData.color,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupData.color,
+                                            },
+                                        }
+                                    }}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleAddComment(rec.id)}
+                                                disabled={!newComment[rec.id]?.trim()}
+                                                sx={{
+                                                    color: groupData.color,
+                                                    '&:hover': {
+                                                        bgcolor: `${groupData.color}15`,
+                                                    }
+                                                }}
+                                            >
+                                                <Send/>
+                                            </IconButton>
+                                        ),
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+                    </Box>
+                </Collapse>
+            </Card>
+        );
+    };
+
+    return (
+        <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
+            <Box sx={{maxWidth: 1200, mx: 'auto'}}>
+                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
+                    <IconButton onClick={() => setDrawerOpen(true)}>
+                        <MenuIcon/>
+                    </IconButton>
+                    <Typography variant="h4" sx={{fontWeight: 700, ml: 2}}>
+                        Rekomendacje
+                    </Typography>
+                </Box>
+
+                <GroupMenu
+                    open={drawerOpen}
+                    onClose={() => setDrawerOpen(false)}
+                    groupId={groupData.id}
+                    groupName={groupData.name}
+                    groupColor={groupData.color}
+                />
+
+                <Button
+                    variant="contained"
+                    startIcon={<Plus size={20}/>}
+                    onClick={handleOpenAddDialog}
+                    fullWidth
+                    sx={{mb: 3, bgcolor: groupData.color}}
+                >
+                    Dodaj rekomendację
+                </Button>
+
+                <Box sx={{mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap'}}>
+                    <Chip
+                        label="Wszystkie"
+                        onClick={() => setSelectedCategory('all')}
+                        color={selectedCategory === 'all' ? 'primary' : 'default'}
+                    />
+                    {availableCategories.map(cat => (
+                        <Chip
+                            key={cat}
+                            label={cat}
+                            onClick={() => setSelectedCategory(cat)}
+                            sx={{
+                                bgcolor: selectedCategory === cat
+                                    ? alpha(getCategoryColor(cat), 0.3)
+                                    : 'transparent',
+                                color: getCategoryColor(cat),
+                                borderColor: getCategoryColor(cat),
+                                border: '1px solid',
+                            }}
+                        />
+                    ))}
+                </Box>
+
+                <Grid container spacing={3}>
+                    {filteredRecommendations.map(rec => (
+                        <Grid item xs={12} md={6} key={rec.id}>
+                            {renderRecommendationCard(rec)}
+                        </Grid>
+                    ))}
+                </Grid>
+
+                <Menu anchorEl={menuAnchor?.el} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
+                    <MenuItem onClick={() => {
+                        const rec = recommendations.find(r => r.id === menuAnchor?.id);
+                        if (rec) handleOpenEditDialog(rec);
+                    }}>
+                        <Edit2 size={18} style={{marginRight: 8}}/> Edytuj
                     </MenuItem>
                     <MenuItem onClick={handleDeleteRecommendation} sx={{color: 'error.main'}}>
-                        <Trash2 size={18} style={{marginRight: 8}}/>
-                        Usuń
+                        <Trash2 size={18} style={{marginRight: 8}}/> Usuń
                     </MenuItem>
                 </Menu>
 
                 {/* Dialog dodawania */}
-                <Dialog
-                    open={addDialogOpen}
-                    onClose={() => setAddDialogOpen(false)}
-                    maxWidth="sm"
-                    fullWidth
-                >
+                <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} maxWidth="sm" fullWidth>
                     <DialogTitle>Dodaj rekomendację</DialogTitle>
                     <DialogContent>
                         <TextField
                             fullWidth
                             label="Tytuł"
                             value={formData.title}
-                            onChange={(e) => setFormData({...formData, title: e.target.value})}
-                            sx={{mt: 2, mb: 2}}
+                            onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
+                            sx={{mb: 2, mt: 1}}
                         />
-
                         <TextField
                             fullWidth
                             label="Treść"
                             multiline
                             rows={4}
                             value={formData.content}
-                            onChange={(e) => setFormData({...formData, content: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, content: e.target.value}))}
                             sx={{mb: 2}}
                         />
-
                         <FormControl fullWidth sx={{mb: 2}}>
                             <InputLabel>Kategoria</InputLabel>
                             <Select
                                 value={formData.category}
                                 label="Kategoria"
-                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
                             >
-                                <MenuItem value="">Brak</MenuItem>
-                                {CATEGORIES.map((cat) => (
-                                    <MenuItem key={cat} value={cat}>
-                                        {cat}
-                                    </MenuItem>
+                                {CATEGORIES.map(cat => (
+                                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
-
                         <TextField
                             fullWidth
-                            label="Link"
-                            placeholder="https://..."
+                            label="Link (opcjonalnie)"
                             value={formData.linkUrl}
-                            onChange={(e) => setFormData({...formData, linkUrl: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, linkUrl: e.target.value}))}
                             sx={{mb: 2}}
-                            InputProps={{
-                                startAdornment: <LinkIcon size={18} style={{marginRight: 8}}/>,
-                            }}
                         />
-
                         <Box sx={{mb: 2}}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                startIcon={<ImageIcon/>}
-                                fullWidth
-                            >
-                                Dodaj zdjęcie
-                                <input
-                                    type="file"
-                                    hidden
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                />
-                            </Button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                id="image-upload"
+                                style={{display: 'none'}}
+                                onChange={handleFileSelect}
+                            />
+                            <label htmlFor="image-upload">
+                                <Button
+                                    component="span"
+                                    variant="outlined"
+                                    startIcon={<ImageIcon size={18}/>}
+                                >
+                                    Dodaj zdjęcie
+                                </Button>
+                            </label>
                         </Box>
-
                         {previewUrl && (
                             <Box sx={{position: 'relative', mb: 2}}>
                                 <img
                                     src={previewUrl}
                                     alt="Preview"
-                                    style={{
-                                        width: '100%',
-                                        maxHeight: 300,
-                                        objectFit: 'cover',
-                                        borderRadius: 8,
-                                    }}
+                                    style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}
                                 />
                                 <IconButton
                                     size="small"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                        '&:hover': {bgcolor: 'rgba(0,0,0,0.8)'},
-                                    }}
                                     onClick={() => {
                                         setPreviewUrl(null);
+                                        setSelectedFile(null);
                                     }}
+                                    sx={{position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper'}}
                                 >
-                                    <X size={20} color="white"/>
+                                    <X size={16}/>
                                 </IconButton>
                             </Box>
                         )}
@@ -1053,6 +1079,7 @@ export default function RecommendationsPage() {
                             variant="contained"
                             onClick={handleAddRecommendation}
                             disabled={!formData.title.trim() || !formData.content.trim()}
+                            sx={{bgcolor: groupData.color}}
                         >
                             Dodaj
                         </Button>
@@ -1060,103 +1087,78 @@ export default function RecommendationsPage() {
                 </Dialog>
 
                 {/* Dialog edycji */}
-                <Dialog
-                    open={editDialogOpen}
-                    onClose={() => setEditDialogOpen(false)}
-                    maxWidth="sm"
-                    fullWidth
-                >
+                <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
                     <DialogTitle>Edytuj rekomendację</DialogTitle>
                     <DialogContent>
                         <TextField
                             fullWidth
                             label="Tytuł"
                             value={formData.title}
-                            onChange={(e) => setFormData({...formData, title: e.target.value})}
-                            sx={{mt: 2, mb: 2}}
+                            onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
+                            sx={{mb: 2, mt: 1}}
                         />
-
                         <TextField
                             fullWidth
                             label="Treść"
                             multiline
                             rows={4}
                             value={formData.content}
-                            onChange={(e) => setFormData({...formData, content: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, content: e.target.value}))}
                             sx={{mb: 2}}
                         />
-
                         <FormControl fullWidth sx={{mb: 2}}>
                             <InputLabel>Kategoria</InputLabel>
                             <Select
                                 value={formData.category}
                                 label="Kategoria"
-                                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                                onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
                             >
-                                <MenuItem value="">Brak</MenuItem>
-                                {CATEGORIES.map((cat) => (
-                                    <MenuItem key={cat} value={cat}>
-                                        {cat}
-                                    </MenuItem>
+                                {CATEGORIES.map(cat => (
+                                    <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
-
                         <TextField
                             fullWidth
-                            label="Link"
-                            placeholder="https://..."
+                            label="Link (opcjonalnie)"
                             value={formData.linkUrl}
-                            onChange={(e) => setFormData({...formData, linkUrl: e.target.value})}
+                            onChange={(e) => setFormData(prev => ({...prev, linkUrl: e.target.value}))}
                             sx={{mb: 2}}
-                            InputProps={{
-                                startAdornment: <LinkIcon size={18} style={{marginRight: 8}}/>,
-                            }}
                         />
-
                         <Box sx={{mb: 2}}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                startIcon={<ImageIcon/>}
-                                fullWidth
-                            >
-                                Zmień zdjęcie
-                                <input
-                                    type="file"
-                                    hidden
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                />
-                            </Button>
+                            <input
+                                type="file"
+                                accept="image/*"
+                                id="image-upload-edit"
+                                style={{display: 'none'}}
+                                onChange={handleFileSelect}
+                            />
+                            <label htmlFor="image-upload-edit">
+                                <Button
+                                    component="span"
+                                    variant="outlined"
+                                    startIcon={<ImageIcon size={18}/>}
+                                >
+                                    Zmień zdjęcie
+                                </Button>
+                            </label>
                         </Box>
-
                         {previewUrl && (
                             <Box sx={{position: 'relative', mb: 2}}>
                                 <img
                                     src={previewUrl}
                                     alt="Preview"
-                                    style={{
-                                        width: '100%',
-                                        maxHeight: 300,
-                                        objectFit: 'cover',
-                                        borderRadius: 8,
-                                    }}
+                                    style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}
                                 />
                                 <IconButton
                                     size="small"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                        '&:hover': {bgcolor: 'rgba(0,0,0,0.8)'},
-                                    }}
                                     onClick={() => {
                                         setPreviewUrl(null);
+                                        setSelectedFile(null);
                                     }}
+                                    sx={{position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper'}}
                                 >
-                                    <X size={20} color="white"/>
+                                    <X size={16}/>
                                 </IconButton>
                             </Box>
                         )}
@@ -1167,336 +1169,7 @@ export default function RecommendationsPage() {
                             variant="contained"
                             onClick={handleEditRecommendation}
                             disabled={!formData.title.trim() || !formData.content.trim()}
-                        >
-                            Zapisz
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </Box>
-        );
-    }
-
-    // Widok szczegółów rekomendacji
-    const rec = selectedRecommendation!;
-    const userLiked = hasUserLiked(rec);
-    const isOwner = isUserRecommendation(rec);
-    const isExpanded = expandedComments.has(rec.id);
-
-    return (
-        <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
-            <Box sx={{maxWidth: 800, mx: 'auto'}}>
-                {/* Nagłówek z przyciskiem powrotu i menu */}
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 3, gap: 1}}>
-                    <IconButton
-                        onClick={() => setDrawerOpen(true)}
-                        sx={{
-                            bgcolor: '#8D8C8C',
-                            '&:hover': {bgcolor: '#666666'},
-                        }}
-                    >
-                        <MenuIcon/>
-                    </IconButton>
-
-                    <Button
-                        startIcon={<ArrowLeft/>}
-                        onClick={handleBackToList}
-                    >
-                        Powrót do listy
-                    </Button>
-                </Box>
-
-
-                <Card sx={{borderRadius: 3}}>
-                    {rec.imageUrl && (
-                        <CardMedia
-                            component="img"
-                            height="400"
-                            image={rec.imageUrl}
-                            alt={rec.title}
-                            sx={{objectFit: 'cover'}}
-                        />
-                    )}
-
-                    <CardContent sx={{p: 3}}>
-                        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2}}>
-                            <Box sx={{flex: 1}}>
-                                {rec.category && (
-                                    <Chip
-                                        label={rec.category}
-                                        sx={{
-                                            mb: 2,
-                                            bgcolor: alpha(getCategoryColor(rec.category), 0.2),
-                                            color: getCategoryColor(rec.category),
-                                            fontWeight: 600,
-                                        }}
-                                    />
-                                )}
-
-                                <Typography variant="h4" sx={{mb: 1, fontWeight: 600}}>
-                                    {rec.title}
-                                </Typography>
-
-                                <Typography variant="caption" color="text.secondary">
-                                    {formatTimestamp(rec.createdAt)}
-                                </Typography>
-                            </Box>
-
-                            {isOwner && (
-                                <IconButton onClick={(e) => handleOpenMenu(e, rec.id)}>
-                                    <MoreVertical/>
-                                </IconButton>
-                            )}
-                        </Box>
-
-                        <Typography variant="body1" sx={{whiteSpace: 'pre-wrap', mb: 3}}>
-                            {rec.content}
-                        </Typography>
-
-                        {rec.linkUrl && (
-                            <MuiLink
-                                href={rec.linkUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                sx={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 0.5,
-                                    mb: 2,
-                                }}
-                            >
-                                <ExternalLink size={16}/>
-                                Otwórz link
-                            </MuiLink>
-                        )}
-                    </CardContent>
-
-                    <CardActions sx={{px: 3, pb: 2, gap: 2}}>
-                        <Button
-                            startIcon={
-                                <Heart
-                                    size={20}
-                                    style={{
-                                        fill: userLiked ? '#e91e63' : 'none',
-                                        color: userLiked ? '#e91e63' : undefined,
-                                    }}
-                                />
-                            }
-                            onClick={() => handleToggleLike(rec.id)}
-                            sx={{color: userLiked ? '#e91e63' : 'text.secondary'}}
-                        >
-                            {rec.reactions.length}
-                        </Button>
-
-                        <Button
-                            startIcon={<MessageCircle size={20}/>}
-                            onClick={() => toggleComments(rec.id)}
-                            sx={{color: 'text.secondary'}}
-                        >
-                            {rec.comments.length}
-                        </Button>
-                    </CardActions>
-
-                    {/* Sekcja komentarzy */}
-                    <Collapse in={isExpanded}>
-                        <Box sx={{px: 3, pb: 3}}>
-                            <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 2}}>
-                                {rec.comments.map((comment) => (
-                                    <Box key={comment.id} sx={{mb: 2}}>
-                                        <Box
-                                            sx={{
-                                                bgcolor: alpha('#fff', 0.05),
-                                                borderRadius: 2,
-                                                p: 2,
-                                            }}
-                                        >
-                                            <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 1}}>
-                                                <Typography sx={{fontWeight: 600, fontSize: '0.875rem'}}>
-                                                    {comment.userId === currentUser?.id ? 'Ty' : `Użytkownik ${comment.userId}`}
-                                                </Typography>
-                                                {(comment.userId === currentUser?.id || isOwner) && (
-                                                    <IconButton
-                                                        size="small"
-                                                        onClick={() => handleDeleteComment(rec.id, comment.id)}
-                                                    >
-                                                        <Trash2 size={16}/>
-                                                    </IconButton>
-                                                )}
-                                            </Box>
-                                            <Typography sx={{fontSize: '0.875rem', mb: 0.5}}>
-                                                {comment.content}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                {formatTimestamp(comment.createdAt)}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                ))}
-
-                                <Box sx={{display: 'flex', gap: 1.5, mt: rec.comments.length > 0 ? 2 : 0}}>
-                                    <Avatar sx={{width: 32, height: 32}}>U</Avatar>
-                                    <TextField
-                                        fullWidth
-                                        size="small"
-                                        placeholder="Dodaj komentarz..."
-                                        value={newComment[rec.id] || ''}
-                                        onChange={(e) => setNewComment({...newComment, [rec.id]: e.target.value})}
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleAddComment(rec.id);
-                                            }
-                                        }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                borderRadius: 3,
-                                            },
-                                        }}
-                                        InputProps={{
-                                            endAdornment: (
-                                                <IconButton
-                                                    size="small"
-                                                    onClick={() => handleAddComment(rec.id)}
-                                                    disabled={!newComment[rec.id]?.trim()}
-                                                >
-                                                    <Send/>
-                                                </IconButton>
-                                            ),
-                                        }}
-                                    />
-                                </Box>
-                            </Box>
-                        </Box>
-                    </Collapse>
-                </Card>
-
-                {/* Menu opcji w widoku szczegółów */}
-                <Menu
-                    anchorEl={menuAnchor?.el}
-                    open={Boolean(menuAnchor)}
-                    onClose={handleCloseMenu}
-                >
-                    <MenuItem
-                        onClick={() => {
-                            handleOpenEditDialog(rec);
-                        }}
-                    >
-                        <Edit2 size={18} style={{marginRight: 8}}/>
-                        Edytuj
-                    </MenuItem>
-                    <MenuItem onClick={handleDeleteRecommendation} sx={{color: 'error.main'}}>
-                        <Trash2 size={18} style={{marginRight: 8}}/>
-                        Usuń
-                    </MenuItem>
-                </Menu>
-
-                {/* Dialog edycji w widoku szczegółów */}
-                <Dialog
-                    open={editDialogOpen}
-                    onClose={() => setEditDialogOpen(false)}
-                    maxWidth="sm"
-                    fullWidth
-                >
-                    <DialogTitle>Edytuj rekomendację</DialogTitle>
-                    <DialogContent>
-                        <TextField
-                            fullWidth
-                            label="Tytuł"
-                            value={formData.title}
-                            onChange={(e) => setFormData({...formData, title: e.target.value})}
-                            sx={{mt: 2, mb: 2}}
-                        />
-
-                        <TextField
-                            fullWidth
-                            label="Treść"
-                            multiline
-                            rows={4}
-                            value={formData.content}
-                            onChange={(e) => setFormData({...formData, content: e.target.value})}
-                            sx={{mb: 2}}
-                        />
-
-                        <FormControl fullWidth sx={{mb: 2}}>
-                            <InputLabel>Kategoria</InputLabel>
-                            <Select
-                                value={formData.category}
-                                label="Kategoria"
-                                onChange={(e) => setFormData({...formData, category: e.target.value})}
-                            >
-                                <MenuItem value="">Brak</MenuItem>
-                                {CATEGORIES.map((cat) => (
-                                    <MenuItem key={cat} value={cat}>
-                                        {cat}
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <TextField
-                            fullWidth
-                            label="Link"
-                            placeholder="https://..."
-                            value={formData.linkUrl}
-                            onChange={(e) => setFormData({...formData, linkUrl: e.target.value})}
-                            sx={{mb: 2}}
-                            InputProps={{
-                                startAdornment: <LinkIcon size={18} style={{marginRight: 8}}/>,
-                            }}
-                        />
-
-                        <Box sx={{mb: 2}}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                startIcon={<ImageIcon/>}
-                                fullWidth
-                            >
-                                Zmień zdjęcie
-                                <input
-                                    type="file"
-                                    hidden
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                />
-                            </Button>
-                        </Box>
-
-                        {previewUrl && (
-                            <Box sx={{position: 'relative', mb: 2}}>
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    style={{
-                                        width: '100%',
-                                        maxHeight: 300,
-                                        objectFit: 'cover',
-                                        borderRadius: 8,
-                                    }}
-                                />
-                                <IconButton
-                                    size="small"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                        '&:hover': {bgcolor: 'rgba(0,0,0,0.8)'},
-                                    }}
-                                    onClick={() => {
-                                        setPreviewUrl(null);
-                                    }}
-                                >
-                                    <X size={20} color="white"/>
-                                </IconButton>
-                            </Box>
-                        )}
-                    </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
-                        <Button onClick={() => setEditDialogOpen(false)}>Anuluj</Button>
-                        <Button
-                            variant="contained"
-                            onClick={handleEditRecommendation}
-                            disabled={!formData.title.trim() || !formData.content.trim()}
+                            sx={{bgcolor: groupData.color}}
                         >
                             Zapisz
                         </Button>

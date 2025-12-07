@@ -45,7 +45,24 @@ export default function GroupBoardPage() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [page] = useState(0);
     const [pageSize] = useState(10);
-    const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatar: string } | null>(null);
+    const [currentUser, setCurrentUser] = useState<{
+        id: string;
+        email: string;
+        username: string;
+        name: string;
+        surname: string;
+        birthDate?: string;
+        status?: string;
+        description?: string;
+        profilePicture?: {
+            id: string;
+            fileName?: string;
+            contentType?: string;
+            size?: number;
+            url?: string;
+        };
+        isTwoFactorEnabled?: boolean;
+    } | null>(null);
     const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<GroupFeedItemResponseDto | null>(null);
@@ -63,15 +80,23 @@ export default function GroupBoardPage() {
                 const userData = JSON.parse(userAuth);
                 setCurrentUser({
                     id: userData.id,
+                    email: userData.email,
+                    username: userData.username,
                     name: userData.name,
-                    avatar: ''
+                    surname: userData.surname,
+                    birthDate: userData.birthDate,
+                    status: userData.status,
+                    description: userData.description,
+                    profilePicture: userData.profilePicture,
+                    isTwoFactorEnabled: userData.isTwoFactorEnabled,
                 });
                 setProfilePictureId(userData.profilePicture?.id);
             } catch (error) {
-                console.error('Błąd parsowania danych użytkownika z localStorage:', error);
+                console.error('Błąd parsowania danych użytkownika:', error);
             }
         }
     }, []);
+
 
     useEffect(() => {
         if (avatarUrl && currentUser) {
@@ -105,7 +130,6 @@ export default function GroupBoardPage() {
                 if (response.ok) {
                     const data = await response.json();
                     const payload = data.data as GroupFeedItemResponseDto[];
-                    // const enrichedItems = await enrichItemsWithUserData(payload);
                     const mappedItems = payload.map(item => ({
                         ...item,
                         type: mapFeedItemType(item.type),
@@ -132,7 +156,7 @@ export default function GroupBoardPage() {
         const item = items.find(i => i.id === itemId);
         if (!item) return;
 
-        const userReaction = item.reactions.find((r) => r.userId === currentUser.id);
+        const userReaction = item.reactions.find((r) => r.id === currentUser.id);
         const isRemoving = !!userReaction;
 
         const previousItems = [...items];
@@ -142,18 +166,23 @@ export default function GroupBoardPage() {
                 items.map((item) => {
                     if (item.id === itemId) {
                         if (isRemoving) {
-                            return {...item, reactions: item.reactions.filter((r) => r.userId !== currentUser.id)};
+                            return {...item, reactions: item.reactions.filter((r) => r.id !== currentUser.id)};
                         } else {
                             return {
                                 ...item,
                                 reactions: [
                                     ...item.reactions,
                                     {
-                                        id: `temp-${Date.now()}`,
-                                        userId: currentUser.id,
-                                        userName: currentUser.name,
-                                        reactionType: 'Like' as const,
-                                        createdAt: new Date().toISOString()
+                                        id: currentUser.id,
+                                        name: currentUser.name,
+                                        surname: currentUser.surname,
+                                        username: currentUser.username,
+                                        profilePicture: currentUser.profilePicture ? {
+                                            id: currentUser.profilePicture.id,
+                                            fileName: currentUser.profilePicture.fileName || '',
+                                            contentType: currentUser.profilePicture.contentType || '',
+                                            size: currentUser.profilePicture.size || 0,
+                                        } : undefined,
                                     },
                                 ],
                             };
@@ -170,11 +199,10 @@ export default function GroupBoardPage() {
             });
 
             if (!response.ok) {
-                throw new Error('Błąd podczas zapisywania reakcji');
+                throw new Error('Błąd reakcji');
             }
-
         } catch (error) {
-            console.error('Błąd podczas zapisywania reakcji:', error);
+            console.error('Błąd:', error);
             setItems(previousItems);
         }
     };
@@ -198,11 +226,20 @@ export default function GroupBoardPage() {
 
         const tempComment: CommentResponseDto = {
             id: `temp-${Date.now()}`,
+            user: {
+                id: currentUser.id,
+                name: currentUser.name,
+                surname: currentUser.surname,
+                username: currentUser.username,
+                profilePicture: currentUser.profilePicture ? {
+                    id: currentUser.profilePicture.id,
+                    fileName: currentUser.profilePicture.fileName || '',
+                    contentType: currentUser.profilePicture.contentType || '',
+                    size: currentUser.profilePicture.size || 0,
+                } : undefined,
+            },
             content,
             createdAt: new Date().toISOString(),
-            userId: currentUser.id,
-            userName: currentUser.name,
-            userAvatarUrl: currentUser.avatar,
         };
 
         setItems((prevItems) =>
@@ -429,9 +466,18 @@ export default function GroupBoardPage() {
                         const tempPost: GroupFeedItemResponseDto = {
                             ...newItem,
                             id: newItem.id || `temp-${Date.now()}`,
-                            userId: currentUser.id,
-                            userName: currentUser.name,
-                            userAvatarUrl: currentUser.avatar,
+                            user: {
+                                id: currentUser.id,
+                                name: currentUser.name,
+                                surname: currentUser.surname,
+                                username: currentUser.username,
+                                profilePicture: currentUser.profilePicture ? {
+                                    id: currentUser.profilePicture.id,
+                                    fileName: currentUser.profilePicture.fileName || '',
+                                    contentType: currentUser.profilePicture.contentType || '',
+                                    size: currentUser.profilePicture.size || 0,
+                                } : undefined,
+                            },
                             reactions: [],
                             comments: [],
                             createdAt: new Date().toISOString(),

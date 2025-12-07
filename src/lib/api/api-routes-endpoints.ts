@@ -40,6 +40,7 @@ export const API_ROUTES = {
     PUT_FEED_ITEM: '/api/group/feed/putDeleteFeed',
     POST_COMMENT: '/api/comments/GetPostComment',
     GET_COMMENTS: '/api/comments/GetCommentComment',
+    DELETE_COMMENT: '/api/comments/DeleteUpdateComment',
     GET_RECOMMENDATIONS: '/api/group/recommendations/getPost',
     POST_RECOMMENDATIONS: '/api/group/recommendations/getPost',
     DELETE_RECOMMENDATIONS: '/api/group/recommendations/deleteGetPut',
