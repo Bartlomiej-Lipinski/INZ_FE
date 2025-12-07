@@ -13,7 +13,7 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { Search, X } from 'lucide-react';
+import { Search, X, UserPlus, Send } from 'lucide-react';
 
 import MemberItem from '@/components/common/Member-item';
 import { useMembers } from '@/hooks/use-members';
@@ -247,7 +247,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         borderRadius: '4px',
                     },
                     '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: `${theme.palette.primary.main} !important`,
+                        backgroundColor: `${groupColor ? groupColor : theme.palette.primary.main} !important`,
                         borderRadius: '4px',
                     },
                 })}
@@ -363,6 +363,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                     }}
                 >
                     <Button
+                        startIcon={<UserPlus size={20} style={{ marginRight: 4 }} />}
                         sx={(theme) => ({
                             backgroundColor: groupColor || theme.palette.primary.main,
                             color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
@@ -372,6 +373,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         Prośby o dołączenie
                     </Button>
                     <Button
+                        startIcon={<Send size={20} style={{ marginRight: 4 }} />}
                         onClick={handleGenerateInvite}
                         disabled={!groupId || isGeneratingInvite}
                         sx={(theme) => ({
