@@ -33,7 +33,18 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const {groupId, targetId, commentId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const targetId = request.nextUrl.searchParams.get('targetId');
+        const commentId = request.nextUrl.searchParams.get('commentId');
+        if (!DELETE_UPDATE_COMMENTS) {
+            return NextResponse.json({success: false, message: 'Konfiguracja serwera niepełna'}, {status: 500});
+        }
+        if (!groupId || !targetId || !commentId) {
+            return NextResponse.json({
+                success: false,
+                message: 'Brak wymaganych parametrów: groupId, targetId lub commentId'
+            }, {status: 400});
+        }
         const endpoint = DELETE_UPDATE_COMMENTS?.replace('{groupId}', groupId)
             .replace('{targetId}', targetId)
             .replace('{commentId}', commentId);

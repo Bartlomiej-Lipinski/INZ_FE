@@ -47,12 +47,6 @@ export default function GroupsList() {
 
     useEffect(() => {
         loadGroups();
-        if (typeof window !== 'undefined') {
-            localStorage.removeItem('currentGroupColor');
-            localStorage.removeItem('groupColor');
-            localStorage.removeItem('groupId');
-            localStorage.removeItem('groupName');
-        }
     }, [loadGroups]);
 
     const filteredGroups = useMemo(() => {
@@ -135,10 +129,13 @@ export default function GroupsList() {
     }
 
     const handleGroupClick = (group: Group) => {
-        localStorage.setItem('groupId', group.id)
-        localStorage.setItem('groupName', group.name)
-        localStorage.setItem('groupColor', group.color)
-        router.push(`/group-menu`);
+        const params = new URLSearchParams({
+            groupId: group.id,
+            groupName: encodeURIComponent(group.name),
+            groupColor: encodeURIComponent(group.color),
+        });
+
+        router.push(`/group-menu?${params.toString()}`);
     };
 
     const handleGroupMouseEnter = (group: Group) => {

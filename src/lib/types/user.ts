@@ -2,7 +2,7 @@ import { ProfilePicture } from "./profile-picture";
 
 export interface User {
   id: string;
-  username: string | null;
+  username: string;
   email: string;
   name: string;
   surname: string;

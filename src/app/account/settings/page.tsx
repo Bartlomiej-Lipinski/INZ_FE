@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import { Box, Button, Divider, IconButton, Typography, Switch, FormControlLabel, Alert, CircularProgress } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-import { ChevronLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import {useState} from "react";
+import {
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Divider,
+    FormControlLabel,
+    IconButton,
+    Switch,
+    Typography
+} from "@mui/material";
+import {useTheme} from "@mui/material/styles";
+import {ChevronLeft} from "lucide-react";
+import {useRouter} from "next/navigation";
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
-import { use2FA } from "@/hooks/use-2FA";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
+import {use2FA} from "@/hooks/use-2FA";
+import {useAuthContext} from "@/contexts/AuthContext";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 export default function AccountSettingsPage() {
   const theme = useTheme();
@@ -63,6 +74,24 @@ export default function AccountSettingsPage() {
       setIsResetLinkLoading(false);
     }
   };
+
+    const handeDeleteAccount = async () => {
+        try {
+            const response = await fetchWithAuth(API_ROUTES.DELETE_USER, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            });
+            if (response.status === 200) {
+                localStorage.removeItem("auth:user");
+                router.push("/");
+            }
+        } catch (error) {
+            console.error("Delete account error:", error);
+        }
+    }
 
   return (
     <Box
@@ -264,6 +293,7 @@ export default function AccountSettingsPage() {
                     backgroundColor: theme.palette.grey[800],
                   }}
                   onClick={() => {
+                      handeDeleteAccount()
                     console.log("usunięcia konta - logika do zaimplementowania.");
                   }}
                 >

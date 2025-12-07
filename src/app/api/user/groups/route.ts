@@ -9,9 +9,7 @@ export async function GET(request: NextRequest) {
     try {
 
         const backendUrl = `${BASE_URL}${GET_USER_GROUPS}`;
-
         const cookieHeader = request.headers.get('cookie') ?? '';
-
         const response = await fetchWithAuth(backendUrl, {
             method: 'GET',
             headers: {
