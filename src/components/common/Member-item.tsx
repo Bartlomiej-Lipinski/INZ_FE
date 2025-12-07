@@ -55,7 +55,7 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
       sx={(theme) => ({
         display: 'flex',
         alignItems: 'center',
-        gap: 3.5,
+        gap: 2.5,
         p: 2,
         bgcolor: alpha(theme.palette.grey[600], 0.4),
         borderRadius: 2,
@@ -77,7 +77,6 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
           height: { xs: 40, sm: 48 },
           bgcolor: 'transparent',
           border: `2px solid ${theme.palette.grey[400]}`,
-          flexShrink: 0,
           fontSize: { xs: '14px', sm: '18px' },
           fontWeight: 600,
           color: 'text.primary',

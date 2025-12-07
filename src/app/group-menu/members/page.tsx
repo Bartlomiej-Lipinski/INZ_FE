@@ -18,7 +18,7 @@ export default function MembersPage() {
     const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : theme.palette.primary.main;
 
     return (
-        <Box sx={{ width: '100%', minHeight: '100vh' }}>
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
             <GroupMenuHeader
                 title={
                     <>
@@ -29,7 +29,7 @@ export default function MembersPage() {
                 leftIcon={<Users size={35} color="white" />}
             />
 
-            <Box sx={{ maxWidth: 900, width: '100%', mx: 'auto', px: 2, pb: 6 }}>
+            <Box sx={{ maxWidth: 1000, width: '100%'}}>
                 <MembersList groupId={groupId} groupName={groupName} groupColor={groupColor} />
             </Box>
         </Box>
