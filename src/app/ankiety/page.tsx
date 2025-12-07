@@ -13,13 +13,13 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import {Menu as MenuIcon, PieChart, Plus, X} from 'lucide-react';
+import {PieChart, Plus, X} from 'lucide-react';
 import {PollResponseDto} from "@/lib/types/ankiety";
 import {PollCreate} from "@/lib/types/poll";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import PollCard from '@/components/ankiety/PollCard';
-import GroupMenu from '@/components/common/GroupMenu';
+import GroupMenuHeader from '@/components/layout/Group-menu-header';
 
 export default function PollsPage() {
     const searchParams = useSearchParams();
@@ -33,7 +33,6 @@ export default function PollsPage() {
         open: false,
         pollId: null,
     });
-    const [drawerOpen, setDrawerOpen] = useState(false);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
@@ -200,44 +199,19 @@ export default function PollsPage() {
         <Box
             sx={{
                 width: '100%',
-                minHeight: '100vh',
+                // minHeight: '100vh',
                 display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
                 justifyContent: 'center',
-                px: {xs: 2, sm: 3},
-                py: {xs: 3, sm: 4},
             }}
         >
-            <Box sx={{width: '100%', maxWidth: 800}}>
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                    <IconButton
-                        onClick={() => setDrawerOpen(true)}
-                        sx={{
-                            bgcolor: '#8D8C8C',
-                            '&:hover': {bgcolor: '#666666'},
-                            mr: 2,
-                        }}
-                    >
-                        <MenuIcon/>
-                    </IconButton>
-                    <Typography
-                        variant="h2"
-                        sx={{
-                            flex: 1,
-                            textAlign: 'center',
-                            color: 'text.primary',
-                            fontSize: {xs: '1.75rem', sm: '2rem'},
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 2,
-                        }}
-                    >
-                        <PieChart size={32}/>
-                        Ankiety
-                    </Typography>
-                </Box>
+            <GroupMenuHeader
+                title="Ankiety"
+                leftIcon={<PieChart size={32}/>}
+            />
 
+            <Box sx={{width: '90%', maxWidth: 800}}>
                 <Button
                     variant="contained"
                     startIcon={<Plus size={20}/>}
@@ -256,13 +230,6 @@ export default function PollsPage() {
                     Nowa ankieta
                 </Button>
 
-                <GroupMenu
-                    open={drawerOpen}
-                    onClose={() => setDrawerOpen(false)}
-                    groupId={groupData.id}
-                    groupName={groupData.name}
-                    groupColor={groupData.color}
-                />
 
                 <Box sx={{display: 'flex', flexDirection: 'column', gap: 3}}>
                     {polls.map((poll) => (

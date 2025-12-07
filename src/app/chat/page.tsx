@@ -4,6 +4,8 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {HubConnection, HubConnectionBuilder, LogLevel} from '@microsoft/signalr';
 import {Box, Button, List, ListItem, ListItemText, Paper, TextField, Typography} from '@mui/material';
 import {useSearchParams} from 'next/navigation';
+import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import {MessageCircle} from 'lucide-react';
 
 type ChatMessage = {
     id: string;
@@ -21,6 +23,7 @@ export default function ChatPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [message, setMessage] = useState('');
     const [userName] = useState(() => `user-${Math.floor(Math.random() * 10000)}`);
+
 
     useEffect(() => {
         if (!HUB_URL) {
@@ -73,44 +76,53 @@ export default function ChatPage() {
     };
 
     return (
-        <Box sx={{maxWidth: 600, mx: 'auto', mt: 4, display: 'flex', flexDirection: 'column', gap: 2}}>
-            <Typography variant="h5" textAlign="center">
-                chat grupowy
-            </Typography>
+        <Box sx={{width: '100%', minHeight: '100vh'}}>
+            <GroupMenuHeader
+                title={
+                    <>
+                        Czat grupowy
+                    </>
+                }
+                leftIcon={<MessageCircle size={35} color="white" />}
+            />
 
-            <Paper sx={{flex: 1, maxHeight: 480, overflowY: 'auto', p: 2}}>
-                {sortedMessages.length === 0 ? (
-                    <Typography variant="body2" color="text.secondary" textAlign="center">
-                        Brak wiadomości.
-                    </Typography>
-                ) : (
-                    <List dense>
-                        {sortedMessages.map((msg) => (
-                            <ListItem key={msg.id}>
-                                <ListItemText
-                                    primary={`${msg.user}: ${msg.content}`}
-                                    secondary={new Date(msg.timestamp).toLocaleTimeString()}
-                                />
-                            </ListItem>
-                        ))}
-                    </List>
-                )}
-            </Paper>
+            <Box sx={{maxWidth: 900, width: '100%', mx: 'auto', px: 2, pb: 6}}>
+                <Box sx={{maxWidth: 600, mx: 'auto', mt: 4, display: 'flex', flexDirection: 'column', gap: 2}}>
+                    <Paper sx={{flex: 1, maxHeight: 480, overflowY: 'auto', p: 2}}>
+                        {sortedMessages.length === 0 ? (
+                            <Typography variant="body2" color="text.secondary" textAlign="center">
+                                Brak wiadomości.
+                            </Typography>
+                        ) : (
+                            <List dense>
+                                {sortedMessages.map((msg) => (
+                                    <ListItem key={msg.id}>
+                                        <ListItemText
+                                            primary={`${msg.user}: ${msg.content}`}
+                                            secondary={new Date(msg.timestamp).toLocaleTimeString()}
+                                        />
+                                    </ListItem>
+                                ))}
+                            </List>
+                        )}
+                    </Paper>
 
-            <Box component="form" onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
-            }} sx={{display: 'flex', gap: 2}}>
-                <TextField
-                    fullWidth
-                    placeholder="Wpisz wiadomość..."
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    disabled={!connection}
-                />
-                <Button variant="contained" onClick={handleSend} disabled={!connection || !message.trim()}>
-                    Wyślij
-                </Button>
+                    <Box component="form" onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSend();
+                    }} sx={{display: 'flex', gap: 2}}>
+                        <TextField
+                            fullWidth
+                            placeholder="Wpisz wiadomość..."
+                            value={message}
+                            onChange={(e) => setMessage(e.target.value)}
+                            disabled={!connection}
+                        />
+                        <Button variant="contained" onClick={handleSend} disabled={!connection || !message.trim()}>
+                            Wyślij
+                        </Button>
+                    </Box>
+                </Box>
             </Box>
         </Box>
     );

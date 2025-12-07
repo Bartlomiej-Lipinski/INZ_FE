@@ -33,15 +33,15 @@ import {
     ExternalLink,
     Heart,
     Image as ImageIcon,
-    Menu as MenuIcon,
     MessageCircle,
     MoreVertical,
     Plus,
     Send,
+    Star,
     Trash2,
     X,
 } from 'lucide-react';
-import GroupMenu from "@/components/common/GroupMenu";
+import GroupMenuHeader from '@/components/layout/Group-menu-header';
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {EntityType} from "@/lib/types/entityType";
@@ -194,7 +194,6 @@ export default function RecommendationsPage() {
     const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; id: string } | null>(null);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [newComment, setNewComment] = useState<Record<string, string>>({});
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -960,25 +959,14 @@ export default function RecommendationsPage() {
     };
 
     return (
-        <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
-            <Box sx={{maxWidth: 1200, mx: 'auto'}}>
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                    <IconButton onClick={() => setDrawerOpen(true)}>
-                        <MenuIcon/>
-                    </IconButton>
-                    <Typography variant="h4" sx={{fontWeight: 700, ml: 2}}>
-                        Rekomendacje
-                    </Typography>
-                </Box>
-
-                <GroupMenu
-                    open={drawerOpen}
-                    onClose={() => setDrawerOpen(false)}
-                    groupId={groupData.id}
-                    groupName={groupData.name}
-                    groupColor={groupData.color}
+        <Box sx={{width: '100%', minHeight: '100vh', }}>
+            <GroupMenuHeader
+                    title="Rekomendacje"
+                    leftIcon={<Star size={35} color="white" />}
                 />
-
+            
+            <Box sx={{maxWidth: 1200, width: '90%', mx: 'auto'}}>
+            
                 <Button
                     variant="contained"
                     startIcon={<Plus size={20}/>}

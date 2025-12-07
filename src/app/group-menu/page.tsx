@@ -1,7 +1,7 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
-import {useSearchParams} from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     Box,
     Button,
@@ -13,16 +13,15 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import {Menu as MenuIcon} from 'lucide-react';
-import {FeedItemType} from "@/lib/types/FeedItemType";
-import {CommentResponseDto, GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
-import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-import GroupMenu from '@/components/common/GroupMenu';
+import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import { FeedItemType } from "@/lib/types/FeedItemType";
+import { CommentResponseDto, GroupFeedItemResponseDto } from "@/lib/types/feedDtos";
+import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import AddPostForm from '@/components/feed/addPostForm';
 import FeedList from '@/components/feed/feedlist';
-import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {EntityType} from "@/lib/types/entityType";
-import {User} from "@/lib/types/user";
+import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
+import { EntityType } from "@/lib/types/entityType";
+import { User } from "@/lib/types/user";
 
 const mapFeedItemType = (type: number | string): FeedItemType => {
     if (typeof type === 'string') return type as FeedItemType;
@@ -83,7 +82,6 @@ export default function GroupBoardPage() {
     const [items, setItems] = useState<GroupFeedItemResponseDto[]>([]);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [newComment, setNewComment] = useState<Record<string, string>>({});
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [page] = useState(0);
     const [pageSize] = useState(10);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -132,7 +130,7 @@ export default function GroupBoardPage() {
                     `${API_ROUTES.GET_FEED_ITEMS}?groupId=${groupData.id}&page=${page}&pageSize=${pageSize}`,
                     {
                         method: 'GET',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: { 'Content-Type': 'application/json' },
                     }
                 );
 
@@ -175,7 +173,7 @@ export default function GroupBoardPage() {
                 items.map((item) => {
                     if (item.id === itemId) {
                         if (isRemoving) {
-                            return {...item, reactions: item.reactions.filter((r) => r.id !== currentUser.id)};
+                            return { ...item, reactions: item.reactions.filter((r) => r.id !== currentUser.id) };
                         } else {
                             return {
                                 ...item,
@@ -203,7 +201,7 @@ export default function GroupBoardPage() {
 
             const response = await fetchWithAuth(`${API_ROUTES.REACTION_POST}?groupId=${groupData.id}&targetId=${itemId}&entityType=${EntityType.GroupFeedItem}`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
             });
 
@@ -265,16 +263,16 @@ export default function GroupBoardPage() {
             )
         );
 
-        setNewComment((prev) => ({...prev, [itemId]: ''}));
+        setNewComment((prev) => ({ ...prev, [itemId]: '' }));
 
         try {
             const response = await fetchWithAuth(
                 `${API_ROUTES.POST_COMMENT}?groupId=${groupData.id}&targetId=${itemId}`,
                 {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({content, entityType: "GroupFeedItem"}),
+                    body: JSON.stringify({ content, entityType: "GroupFeedItem" }),
                 }
             );
 
@@ -319,13 +317,13 @@ export default function GroupBoardPage() {
                 )
             );
 
-            setNewComment((prev) => ({...prev, [itemId]: content}));
+            setNewComment((prev) => ({ ...prev, [itemId]: content }));
         }
     };
 
 
     const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, itemId: string) => {
-        setMenuAnchor({el: event.currentTarget, itemId});
+        setMenuAnchor({ el: event.currentTarget, itemId });
     };
 
     const handleCloseMenu = () => {
@@ -362,7 +360,7 @@ export default function GroupBoardPage() {
         setItems(prevItems =>
             prevItems.map(item =>
                 item.id === editingPost.id
-                    ? {...item, description: editContent, title: editTitle || undefined}
+                    ? { ...item, description: editContent, title: editTitle || undefined }
                     : item
             )
         );
@@ -372,7 +370,7 @@ export default function GroupBoardPage() {
                 `${API_ROUTES.PUT_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${editingPost.id}`,
                 {
                     method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({
                         description: editContent,
@@ -409,7 +407,7 @@ export default function GroupBoardPage() {
                 `${API_ROUTES.DELETE_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${itemId}`,
                 {
                     method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                 }
             );
@@ -433,40 +431,26 @@ export default function GroupBoardPage() {
                 justifyContent: "center",
                 alignItems: "center"
             }}>
-                <Typography>Ładowanie danych użytkownika...</Typography>
+                <Typography>Ładowanie danych...</Typography>
             </Box>
         );
     }
 
     return (
-        <Box sx={{
-            width: "100%",
-            minHeight: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            px: {xs: 2, sm: 3},
-            py: {xs: 3, sm: 4}
-        }}>
-            <Box sx={{width: "100%", maxWidth: 700}}>
-                <Box sx={{display: "flex", alignItems: "center", mb: 4}}>
-                    <IconButton onClick={() => setDrawerOpen(true)}
-                                sx={{bgcolor: "#8D8C8C", "&:hover": {bgcolor: "#666666"}, mr: 1}}>
-                        <MenuIcon/>
-                    </IconButton>
+        <Box
+            sx={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+            }}
+        >
+            <GroupMenuHeader
+                title={groupData?.name?.trim() || "Tablica grupy"}
+            />
 
-                    <Typography variant="h2" sx={{
-                        textAlign: "center",
-                        color: "text.primary",
-                        flex: 1,
-                        fontSize: {xs: "1.75rem", sm: "2rem"}
-                    }}>
-                        {groupData?.name || "Tablica grupy"}
-                    </Typography>
-                </Box>
-
-                <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
-                           groupName={groupData.name} groupColor={groupData.color}/>
-
+            <Box sx={{ width: "90%", maxWidth: 700 }}>
                 <AddPostForm
                     user={currentUser}
                     groupColor={groupColor}
@@ -510,7 +494,7 @@ export default function GroupBoardPage() {
                     onToggleComments={toggleComments}
                     onOpenMenu={handleOpenMenu}
                     newComment={newComment}
-                    onCommentChange={(id, value) => setNewComment({...newComment, [id]: value})}
+                    onCommentChange={(id, value) => setNewComment({ ...newComment, [id]: value })}
                     onAddComment={handleAddComment}
                     menuAnchor={menuAnchor}
                     onCloseMenu={handleCloseMenu}
@@ -554,7 +538,7 @@ export default function GroupBoardPage() {
                         onClick={handleEditSubmit}
                         variant="contained"
                         disabled={!editContent.trim() || isEditing}
-                        sx={{bgcolor: groupColor}}
+                        sx={{ bgcolor: groupColor }}
                     >
                         {isEditing ? 'Zapisywanie...' : 'Zapisz'}
                     </Button>

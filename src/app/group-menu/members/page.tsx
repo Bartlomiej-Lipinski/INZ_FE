@@ -1,6 +1,6 @@
 "use client";
 import MembersList from '@/components/pages/Members-list';
-import { Box, IconButton } from '@mui/material';
+import { Box } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from '@mui/material/styles';
 import GroupMenuHeader from '@/components/layout/Group-menu-header';
@@ -26,16 +26,11 @@ export default function MembersPage() {
                         <span style={{ color: groupColor || 'white', fontWeight: 700 }}>{groupName}</span>
                     </>
                 }
-                groupId={groupId}
-                groupName={groupName}
-                groupColor={groupColor}
-                leftIcon={<IconButton>
-                    <Users size={35} color="white" />
-                </IconButton>}
+                leftIcon={<Users size={35} color="white" />}
             />
 
             <Box sx={{ maxWidth: 900, width: '100%', mx: 'auto', px: 2, pb: 6 }}>
-                <MembersList groupId={groupId || null} groupName={groupName} groupColor={groupColor} />
+                <MembersList groupId={groupId} groupName={groupName} groupColor={groupColor} />
             </Box>
         </Box>
     );

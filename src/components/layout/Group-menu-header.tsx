@@ -5,12 +5,11 @@ import GroupMenu from '@/components/common/GroupMenu';
 import { Box, IconButton, Typography } from '@mui/material';
 import { SxProps, Theme } from '@mui/material/styles';
 import { Menu as MenuIcon } from 'lucide-react';
-
+import { useSearchParams } from 'next/navigation';
+import { useTheme } from '@mui/material/styles';
+    
 type GroupMenuHeaderProps = {
     title: ReactNode;
-    groupId: string;
-    groupName: string;
-    groupColor: string;
     wrapperSx?: SxProps<Theme>;
     titleSx?: SxProps<Theme>;
     iconButtonSx?: SxProps<Theme>;
@@ -20,9 +19,6 @@ type GroupMenuHeaderProps = {
 
 export default function GroupMenuHeader({
     title,
-    groupId,
-    groupName,
-    groupColor,
     wrapperSx,
     titleSx,
     iconButtonSx,
@@ -30,6 +26,13 @@ export default function GroupMenuHeader({
     leftIconWrapperSx,
 }: GroupMenuHeaderProps) {
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const theme = useTheme();
+    const searchParams = useSearchParams();
+    const groupId = searchParams?.get('groupId') ?? '';
+    const groupNameParam = searchParams?.get('groupName') ?? '';
+    const groupColorParam = searchParams?.get('groupColor') ?? '';
+    const groupName = groupNameParam ? decodeURIComponent(groupNameParam) : '';
+    const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : theme.palette.primary.main;
 
     return (
         <Box
@@ -103,7 +106,7 @@ export default function GroupMenuHeader({
             <GroupMenu
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
-                groupId={groupId}
+                groupId={groupId || ''}
                 groupName={groupName}
                 groupColor={groupColor}
             />
