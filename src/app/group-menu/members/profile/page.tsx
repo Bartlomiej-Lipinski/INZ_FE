@@ -49,6 +49,8 @@ export default function MemberProfilePage() {
     const [actionSuccess, setActionSuccess] = useState<string | null>(null);
     const [isGrantingAdmin, setIsGrantingAdmin] = useState(false);
     const [isRemovingMember, setIsRemovingMember] = useState(false);
+    const [showGrantAdminConfirm, setShowGrantAdminConfirm] = useState(false);
+    const [showRemoveMemberConfirm, setShowRemoveMemberConfirm] = useState(false);
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -405,23 +407,86 @@ export default function MemberProfilePage() {
                     }}
                 />
 
+                <Box width="100%" display="flex" flexDirection="column" alignItems="center" gap={2}>
+                    {!showGrantAdminConfirm && (
+                        <Button
+                            sx={{
+                                width: "80%",
+                                backgroundColor: groupContext.color || theme.palette.primary.main,
+                                color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.main),
+                            }}
+                            disabled={isAwaitingApproval || isGrantingAdmin}
+                            onClick={() => setShowGrantAdminConfirm(true)}
+                            startIcon={
+                                isGrantingAdmin ? (
+                                    <CircularProgress size={20} color="inherit" />
+                                ) : undefined
+                            }
+                        >
+                            Nadaj prawa administratora grupy
+                        </Button>
+                    )}
 
-                <Button
-                    sx={{
-                        width: "80%",
-                        backgroundColor: groupContext.color || theme.palette.primary.light,
-                        color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.light),
-                    }}
-                    disabled={isAwaitingApproval || isGrantingAdmin}
-                    onClick={handleGrantAdmin}
-                    startIcon={
-                        isGrantingAdmin ? (
-                            <CircularProgress size={20} color="inherit" />
-                        ) : undefined
-                    }
-                >
-                    Nadaj prawa administratora grupy
-                </Button>
+                    {showGrantAdminConfirm && (
+                        <Box
+                            sx={{
+                                width: "100%",
+                                maxWidth: "90%",
+                                boxSizing: "border-box",
+                                p: { xs: 2.5, sm: 3 },
+                                borderRadius: 2,
+                                border: `1px solid ${groupContext.color || theme.palette.primary.light}`,
+                                bgcolor: "rgba(255, 255, 255, 0.05)",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1.5,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Typography fontWeight={600} textAlign="center" mb={1.5}>
+                                Czy na pewno chcesz nadać temu użytkownikowi prawa administratora?
+                            </Typography>
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: { xs: "column", sm: "row" },
+                                    justifyContent: "center",
+                                    alignItems: "stretch",
+                                    gap: { xs: 1.5, sm: 3 },
+                                    width: "100%",
+                                }}
+                            >
+                                <Button
+                                    fullWidth
+                                    sx={{
+                                        minWidth: { xs: "auto", sm: 120 },
+                                        backgroundColor: theme.palette.grey[800],
+                                    }}
+                                    disabled={isGrantingAdmin}
+                                    onClick={async () => {
+                                        setShowGrantAdminConfirm(false);
+                                        await handleGrantAdmin();
+                                    }}
+                                >
+                                    {isGrantingAdmin ? (
+                                        <CircularProgress size={18} />
+                                    ) : (
+                                        "Tak"
+                                    )}
+                                </Button>
+
+                                <Button
+                                    fullWidth
+                                    sx={{ minWidth: { xs: "auto", sm: 120 }, backgroundColor: groupContext.color || theme.palette.primary.main, color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.main) }}
+                                    onClick={() => setShowGrantAdminConfirm(false)}
+                                >
+                                    Nie
+                                </Button>
+                            </Box>
+                        </Box>
+                    )}
+                </Box>
 
                 <Divider
                     sx={{
@@ -430,18 +495,82 @@ export default function MemberProfilePage() {
                     }}
                 />
 
-                <Button
-                    sx={{ width: "60%", backgroundColor: theme.palette.error.main }}
-                    disabled={isAwaitingApproval || isRemovingMember}
-                    onClick={handleRemoveMember}
-                    startIcon={
-                        isRemovingMember ? (
-                            <CircularProgress size={20} color="inherit" />
-                        ) : undefined
-                    }
-                >
-                    Usuń członka z grupy
-                </Button>
+                <Box width="100%" display="flex" flexDirection="column" alignItems="center" gap={2}>
+                    {!showRemoveMemberConfirm && (
+                        <Button
+                            sx={{ width: "60%", backgroundColor: theme.palette.error.main }}
+                            disabled={isAwaitingApproval || isRemovingMember}
+                            onClick={() => setShowRemoveMemberConfirm(true)}
+                            startIcon={
+                                isRemovingMember ? (
+                                    <CircularProgress size={20} />
+                                ) : undefined
+                            }
+                        >
+                            Usuń członka z grupy
+                        </Button>
+                    )}
+
+                    {showRemoveMemberConfirm && (
+                        <Box
+                            sx={{
+                                width: "100%",
+                                maxWidth: "90%",
+                                boxSizing: "border-box",
+                                p: { xs: 2.5, sm: 3 },
+                                borderRadius: 2,
+                                border: `1px solid ${theme.palette.error.main}`,
+                                bgcolor: "rgba(255, 0, 0, 0.08)",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1.5,
+                                alignItems: "center",
+                            }}
+                        >
+                            <Typography fontWeight={600} textAlign="center" mb={1.5}>
+                                Czy na pewno chcesz usunąć tego użytkownika z grupy?
+                            </Typography>
+
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: { xs: "column", sm: "row" },
+                                    justifyContent: "center",
+                                    alignItems: "stretch",
+                                    gap: { xs: 1.5, sm: 3 },
+                                    width: "100%",
+                                }}
+                            >
+                                <Button
+                                    fullWidth
+                                    sx={{
+                                        minWidth: { xs: "auto", sm: 120 },
+                                        backgroundColor: theme.palette.grey[800],
+                                    }}
+                                    disabled={isRemovingMember}
+                                    onClick={async () => {
+                                        setShowRemoveMemberConfirm(false);
+                                        await handleRemoveMember();
+                                    }}
+                                >
+                                    {isRemovingMember ? (
+                                        <CircularProgress size={18} />
+                                    ) : (
+                                        "Tak"
+                                    )}
+                                </Button>
+
+                                <Button
+                                    fullWidth
+                                    sx={{ minWidth: { xs: "auto", sm: 120 }, backgroundColor: groupContext.color || theme.palette.primary.main, color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.main) }}
+                                    onClick={() => setShowRemoveMemberConfirm(false)}
+                                >
+                                    Nie
+                                </Button>
+                            </Box>
+                        </Box>
+                    )}
+                </Box>
             </Box>
         );
     };
