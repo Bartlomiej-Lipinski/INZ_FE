@@ -68,6 +68,18 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
         });
     }, [members, searchQuery]);
 
+    const pendingJoinRequestUserIds = useMemo(() => {
+        if (!groupId) {
+            return new Set<string>();
+        }
+
+        return new Set(
+            joinRequests
+                .filter((request) => request.groupId === groupId)
+                .map((request) => request.user.id),
+        );
+    }, [groupId, joinRequests]);
+
     const joinRequestsBadgeValue = typeof joinRequestsAmount === 'number' ? joinRequestsAmount : '--';
     const shouldShowJoinRequestsSpinner = isFetchingJoinRequests && joinRequestsAmount === null;
 
@@ -141,9 +153,9 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
         }
 
         setJoinRequestsDialogOpen(true);
-        fetchJoinRequests().catch((err) => {
-            console.error('Nie udało się odświeżyć próśb o dołączenie:', err);
-        });
+        // fetchJoinRequests().catch((err) => {
+        //     console.error('Nie udało się odświeżyć próśb o dołączenie:', err);
+        // });
     };
 
     const handleCloseJoinRequestsDialog = () => {
@@ -201,11 +213,15 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
 
         return (
             <Box
-                sx={{
+                sx={(theme) => ({
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 1.5,
-                }}
+                    gap: 2,
+                    maxHeight: 'calc(70vh - 90px)',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: `${groupColor ? groupColor : theme.palette.primary.main} transparent`,
+                })}
             >
                 {joinRequests.map((request) => {
                     const { user } = request;
@@ -423,6 +439,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         <MemberItem
                             member={member}
                             onClick={handleMemberClick}
+                            isAwaitingApproval={pendingJoinRequestUserIds.has(member.id)}
                         />
                     </Box>
                 ))}
@@ -612,6 +629,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                         sx={(theme) => ({
                             color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
                             backgroundColor: groupColor || theme.palette.primary.main,
+                            mt: 1,
                         })}
                     >
                         Zamknij

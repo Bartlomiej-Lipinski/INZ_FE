@@ -12,9 +12,10 @@ import { useAuthContext } from '@/contexts/AuthContext';
 interface MemberItemProps {
   member: GroupMember;
   onClick?: () => void;
+  isAwaitingApproval?: boolean;
 }
 
-export default function MemberItem({member, onClick}: MemberItemProps) {
+export default function MemberItem({member, onClick, isAwaitingApproval = false}: MemberItemProps) {
   const { user } = useAuthContext();
   const storeMemberSelection = () => {
     if (typeof window === 'undefined') {
@@ -107,7 +108,7 @@ export default function MemberItem({member, onClick}: MemberItemProps) {
         </Typography>
         <Typography
           sx={{
-            color: 'text.secondary',
+            color: 'grey.400',
             fontSize: '14px',
             fontWeight: 400,
             textAlign: 'left',
@@ -118,7 +119,22 @@ export default function MemberItem({member, onClick}: MemberItemProps) {
         >
           {member.username ? `@${member.username}` : 'Brak nazwy użytkownika'}
         </Typography>
+
+        {isAwaitingApproval && (
+          <Typography
+            sx={{
+              color: 'warning.light',
+              fontSize: '10px',
+              fontWeight: 600,
+              mt: 1,
+            }}
+          >
+            CZEKA NA AKCEPTACJĘ
+          </Typography>
+        )}
       </Box>
+
+      
 
       {member.id === user?.id && (
        <Typography>
