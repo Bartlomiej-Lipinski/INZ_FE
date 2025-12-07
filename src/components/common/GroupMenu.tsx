@@ -18,6 +18,8 @@ import {
 import {useRouter} from 'next/navigation';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import { clearProfilePictureCache } from '@/hooks/use-profile-picture';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 const MENU_ITEMS = [
     {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu'},
@@ -43,7 +45,7 @@ interface GroupMenuProps {
 
 export default function GroupMenu({open, onClose, groupId, groupName, groupColor}: GroupMenuProps) {
     const router = useRouter();
-
+    const {setUser} = useAuthContext();
     const handleMenuClick = (item: typeof MENU_ITEMS[number]) => {
         const params = new URLSearchParams({
             groupId,
@@ -62,6 +64,8 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
             });
 
             if (response.ok) {
+                setUser(null);
+                clearProfilePictureCache();
                 router.push('/');
             }
 
