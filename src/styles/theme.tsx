@@ -4,7 +4,7 @@ import {createTheme, ThemeProvider as MuiThemeProvider} from '@mui/material/styl
 import CssBaseline from '@mui/material/CssBaseline';
 import {CacheProvider} from '@emotion/react';
 import createCache from '@emotion/cache';
-import {usePathname, useServerInsertedHTML} from 'next/navigation';
+import {usePathname, useSearchParams, useServerInsertedHTML} from 'next/navigation';
 import {type ReactNode, useEffect, useMemo} from 'react';
 
 
@@ -61,6 +61,10 @@ const theme = createTheme({
         fontFamily: 'var(--font-nunito), sans-serif',
         h1: {
             fontSize: '2.5rem',
+            fontWeight: 600,
+        },
+        h2: {
+            fontSize: '2rem',
             fontWeight: 600,
         },
         h3: {
@@ -139,6 +143,18 @@ const theme = createTheme({
                     '&.Mui-focused fieldset': {
                         borderColor: customColors.primary.main,
                         borderWidth: 2,
+                    },
+                    '& .MuiInputLabel-root': {
+                        color: customColors.text.primary,
+                        fontWeight: 600,
+                        fontSize: '17px',
+                        transform: 'translate(14px, -9px) scale(0.75)',
+                        '&.MuiInputLabel-shrink': {
+                            transform: 'translate(14px, -9px) scale(0.75)',
+                        },
+                        '&.Mui-focused': {
+                            color: customColors.text.primary,
+                        },
                     },
                 },
             },
@@ -348,37 +364,34 @@ export function ThemeProvider({children}: { children: ReactNode }) {
 }
 
 
-const GROUP_COLOR_STORAGE_KEY = 'groupColor';
+const GROUP_COLOR_STORAGE_KEY = 'currentGroupColor';
 
 export function GroupThemeUpdater() {
+    const searchParams = useSearchParams();
     const pathname = usePathname();
+    const groupColor = searchParams?.get('groupColor');
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-
         const body = document.body;
         const isGroupMenuPath = pathname?.startsWith('/group-menu') ?? false;
 
-        if (!isGroupMenuPath) {
-            localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
-            body.style.background = DEFAULT_BACKGROUND;
-            return;
-        }
 
-        const groupColorRaw = localStorage.getItem(GROUP_COLOR_STORAGE_KEY);
-        if (groupColorRaw) {
-            const decodedColor = decodeURIComponent(groupColorRaw);
+        if (groupColor) {
+            const decodedColor = decodeURIComponent(groupColor);
             localStorage.setItem(GROUP_COLOR_STORAGE_KEY, decodedColor);
             body.style.background = createGroupGradient(decodedColor);
-        } else {
+        } else if (isGroupMenuPath) {
             const savedColor = localStorage.getItem(GROUP_COLOR_STORAGE_KEY);
             if (savedColor) {
                 body.style.background = createGroupGradient(savedColor);
             } else {
                 body.style.background = DEFAULT_BACKGROUND;
             }
+        } else {
+            localStorage.removeItem(GROUP_COLOR_STORAGE_KEY);
+            body.style.background = DEFAULT_BACKGROUND;
         }
-    }, [pathname]);
+    }, [groupColor, pathname]);
 
     return null;
 }

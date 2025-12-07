@@ -44,7 +44,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
     try {
-        const {entityType, content, groupId, targetId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const targetId = request.nextUrl.searchParams.get('targetId');
+        if (!GET_POST_COMMENTS) {
+            return NextResponse.json({success: false, message: 'Konfiguracja serwera niepełna'}, {status: 500});
+        }
+        if (!groupId || !targetId) {
+            return NextResponse.json({
+                success: false,
+                message: 'Brak wymaganych parametrów: groupId lub targetId'
+            }, {status: 400});
+        }
+        const {content, entityType} = await request.json();
         const endpoint = GET_POST_COMMENTS?.replace('{groupId}', groupId)
             .replace('{targetId}', targetId);
         const cookieHeader = request.headers.get('cookie') ?? '';
@@ -54,7 +65,7 @@ export async function POST(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ entityType, content }),
+            body: JSON.stringify({entityType: entityType, content}),
             credentials: 'include',
         });
 

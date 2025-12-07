@@ -1,320 +1,210 @@
 "use client";
 
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {
-    Avatar,
     Box,
     Button,
-    Card,
-    CardActions,
-    CardContent,
-    Collapse,
     Dialog,
     DialogActions,
     DialogContent,
     DialogTitle,
-    Drawer,
     IconButton,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Menu,
-    MenuItem,
     TextField,
-    Typography,
+    Typography
 } from '@mui/material';
-import {alpha} from '@mui/material/styles';
-import {
-    Bell,
-    Calendar,
-    CalendarDays,
-    CheckSquare,
-    ChevronRight,
-    Coffee,
-    DollarSign,
-    Edit2,
-    Gamepad2,
-    Heart,
-    ImagePlus,
-    Images,
-    Menu as MenuIcon,
-    MessageCircle,
-    MoreVertical,
-    Notebook,
-    PieChart,
-    Send,
-    Settings,
-    Star,
-    Trash2,
-    Trophy,
-    Users,
-    X,
-} from 'lucide-react';
+import {Menu as MenuIcon} from 'lucide-react';
 import {FeedItemType} from "@/lib/types/FeedItemType";
 import {CommentResponseDto, GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import GroupMenu from '@/components/common/GroupMenu';
+import AddPostForm from '@/components/feed/addPostForm';
+import FeedList from '@/components/feed/feedlist';
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {EntityType} from "@/lib/types/entityType";
+import {useImageUrl} from "@/hooks/useImageUrl";
 
-// Mock dane
-const MOCK_USER = {
-    id: 'user-1',
-    name: 'Ja',
-    avatar: 'https://i.pravatar.cc/150?img=1',
+const mapFeedItemType = (type: number | string): FeedItemType => {
+    if (typeof type === 'string') return type as FeedItemType;
+
+    const typeMap: Record<number, FeedItemType> = {
+        0: FeedItemType.POST,
+        1: FeedItemType.EVENT,
+        2: FeedItemType.CHALLENGE,
+        3: FeedItemType.POLL,
+        4: FeedItemType.RECOMMENDATION,
+    };
+    return typeMap[type] ?? FeedItemType.POST;
 };
-
-const MOCK_ITEMS: GroupFeedItemResponseDto[] = [
-    {
-        id: '1',
-        type: FeedItemType.POST,
-        description: 'Świetnie się dziś bawiłam na naszym spotkaniu! 🎉',
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        userId: 'user-2',
-        userName: 'Anna Kowalska',
-        userAvatarUrl: 'https://i.pravatar.cc/150?img=2',
-        storedFileId: 'file-1',
-        comments: [
-            {
-                id: 'c1',
-                content: 'Ja też! Super było! 😊',
-                createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-                userId: 'user-3',
-                userName: 'Jan Nowak',
-                userAvatarUrl: 'https://i.pravatar.cc/150?img=3',
-            },
-        ],
-        reactions: [
-            {
-                id: 'r1',
-                userId: 'user-3',
-                userName: 'Jan Nowak',
-                reactionType: 'Like',
-                createdAt: new Date().toISOString()
-            },
-            {
-                id: 'r2',
-                userId: 'user-4',
-                userName: 'Maria Kowalczyk',
-                reactionType: 'Like',
-                createdAt: new Date().toISOString()
-            },
-            {id: 'r5', userId: 'user-5', userName: 'Kasia', reactionType: 'Like', createdAt: new Date().toISOString()},
-        ],
-    },
-    {
-        id: '2',
-        type: FeedItemType.EVENT,
-        title: 'Wspólne grillowanie',
-        description: 'Zapraszamy wszystkich na grilla w sobotę!',
-        createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-        userId: 'system',
-        userName: 'System',
-        entityId: 'event-1',
-        comments: [],
-        reactions: [
-            {id: 'r3', userId: 'user-1', userName: 'Ja', reactionType: 'Like', createdAt: new Date().toISOString()},
-        ],
-    },
-    {
-        id: '3',
-        type: FeedItemType.RECOMMENDATION,
-        description: 'Polecam ten film - "Incepcja". Naprawdę warto obejrzeć!',
-        createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-        userId: 'user-4',
-        userName: 'Piotr Wiśniewski',
-        userAvatarUrl: 'https://i.pravatar.cc/150?img=4',
-        entityId: 'recommendation-1',
-        comments: [],
-        reactions: [],
-    },
-];
-
-const MENU_ITEMS = [
-    {key: 'news', label: 'NOWOŚCI', icon: Bell, href: '/group-menu/news'},
-    {key: 'chat', label: 'CZAT', icon: MessageCircle, href: '/group-menu/chat'},
-    {key: 'events', label: 'WYDARZENIA', icon: Coffee, href: '/group-menu/events'},
-    {key: 'calendar', label: 'KALENDARZ', icon: CalendarDays, href: '/group-menu/calendar'},
-    {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, href: '/group-menu/settlements'},
-    {key: 'recommendations', label: 'REKOMENDACJE', icon: Star, href: '/group-menu/recommendations'},
-    {key: 'tasks', label: 'ZADANIA', icon: CheckSquare, href: '/group-menu/tasks'},
-    {key: 'albums', label: 'ALBUM', icon: Images, href: '/group-menu/album'},
-    {key: 'games', label: 'GRY', icon: Gamepad2, href: '/group-menu/games'},
-    {key: 'study', label: 'NAUKA', icon: Notebook, href: '/group-menu/study'},
-    {key: 'members', label: 'CZŁONKOWIE', icon: Users, href: '/group-menu/members'},
-    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, href: '/group-menu/settings'},
-] as const;
-
-function getItemIcon(type: FeedItemType) {
-    switch (type) {
-        case FeedItemType.EVENT:
-            return Calendar;
-        case FeedItemType.CHALLENGE:
-            return Trophy;
-        case FeedItemType.POLL:
-            return PieChart;
-        case FeedItemType.RECOMMENDATION:
-            return Star;
-        default:
-            return null;
-    }
-}
-
-function getItemColor(type: FeedItemType): string {
-    switch (type) {
-        case FeedItemType.EVENT:
-            return '#ff9800';
-        case FeedItemType.CHALLENGE:
-            return '#f44336';
-        case FeedItemType.POLL:
-            return '#2196f3';
-        case FeedItemType.RECOMMENDATION:
-            return '#ffd700';
-        default:
-            return '#9042fb';
-    }
-}
-
-function getItemLabel(type: FeedItemType): string {
-    switch (type) {
-        case FeedItemType.EVENT:
-            return 'Wydarzenie';
-        case FeedItemType.CHALLENGE:
-            return 'Wyzwanie';
-        case FeedItemType.POLL:
-            return 'Ankieta';
-        case FeedItemType.RECOMMENDATION:
-            return 'Rekomendacja';
-        default:
-            return 'Post';
-    }
-}
-
-function formatTimestamp(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Teraz';
-    if (diffMins < 60) return `${diffMins} min temu`;
-    if (diffHours < 24) return `${diffHours}h temu`;
-    if (diffDays < 7) return `${diffDays}d temu`;
-    return date.toLocaleDateString('pl-PL');
-}
 
 export default function GroupBoardPage() {
     const searchParams = useSearchParams();
-    const [items, setItems] = useState<GroupFeedItemResponseDto[]>(MOCK_ITEMS);
-    const [newPostContent, setNewPostContent] = useState('');
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
+    const [items, setItems] = useState<GroupFeedItemResponseDto[]>([]);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [newComment, setNewComment] = useState<Record<string, string>>({});
-    const [editDialog, setEditDialog] = useState<{ open: boolean; item: GroupFeedItemResponseDto | null }>({
-        open: false,
-        item: null,
-    });
-    const [editContent, setEditContent] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [page] = useState(0);
+    const [pageSize] = useState(10);
+    const [currentUser, setCurrentUser] = useState<{
+        id: string;
+        email: string;
+        username: string;
+        name: string;
+        surname: string;
+        birthDate?: string;
+        status?: string;
+        description?: string;
+        profilePicture?: {
+            id: string;
+            fileName?: string;
+            contentType?: string;
+            size?: number;
+            url?: string;
+        };
+        isTwoFactorEnabled?: boolean;
+    } | null>(null);
+    const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editingPost, setEditingPost] = useState<GroupFeedItemResponseDto | null>(null);
+    const [editContent, setEditContent] = useState('');
+    const [editTitle, setEditTitle] = useState('');
+    const [isEditing, setIsEditing] = useState(false);
+    const [profilePictureId, setProfilePictureId] = useState<string | undefined>(undefined);
+    const avatarUrl = useImageUrl(profilePictureId);
+
+
+    useEffect(() => {
+        const userAuth = localStorage.getItem('auth:user');
+        if (userAuth) {
+            try {
+                const userData = JSON.parse(userAuth);
+                setCurrentUser({
+                    id: userData.id,
+                    email: userData.email,
+                    username: userData.username,
+                    name: userData.name,
+                    surname: userData.surname,
+                    birthDate: userData.birthDate,
+                    status: userData.status,
+                    description: userData.description,
+                    profilePicture: userData.profilePicture,
+                    isTwoFactorEnabled: userData.isTwoFactorEnabled,
+                });
+                setProfilePictureId(userData.profilePicture?.id);
+            } catch (error) {
+                console.error('Błąd parsowania danych użytkownika:', error);
+            }
+        }
+    }, []);
+
+
+    useEffect(() => {
+        if (avatarUrl && currentUser) {
+            setCurrentUser(prev => prev ? {...prev, avatar: avatarUrl} : null);
+        }
+    }, [avatarUrl]);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
         const groupName = searchParams?.get('groupName') || '';
-        const groupColor = searchParams?.get('groupColor') || '';
-        if (!groupId) return null;
+        const groupColor = searchParams?.get('groupColor') || '#9042fb';
         return {
             id: groupId,
             name: decodeURIComponent(groupName),
-            color: groupColor ? decodeURIComponent(groupColor) : undefined,
+            color: decodeURIComponent(groupColor),
         };
     }, [searchParams]);
 
-    const groupColor = groupData?.color || '#1976d2'; // fallback primary
-
-    const handleAddPost = async () => {
-        if (!newPostContent.trim() && !selectedFile) return;
-
-        setIsSubmitting(true);
-
-        const newItem: GroupFeedItemResponseDto = {
-            id: Date.now().toString(),
-            type: FeedItemType.POST,
-            description: newPostContent,
-            createdAt: new Date().toISOString(),
-            userId: MOCK_USER.id,
-            userName: MOCK_USER.name,
-            userAvatarUrl: MOCK_USER.avatar,
-            storedFileId: selectedFile ? 'file-' + Date.now() : undefined,
-            comments: [],
-            reactions: [],
-        };
-
-        setItems([newItem, ...items]);
-        setNewPostContent('');
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        setIsSubmitting(false);
-    };
-
-    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setSelectedFile(file);
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                setPreviewUrl(e.target?.result as string);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const handleImageButtonClick = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        input.onchange = (e) => {
-            const target = e.target as HTMLInputElement;
-            handleFileSelect({target} as React.ChangeEvent<HTMLInputElement>);
-        };
-        input.click();
-    };
-
-    const handleLike = (itemId: string) => {
-        setItems(
-            items.map((item) => {
-                if (item.id === itemId) {
-                    const userReaction = item.reactions.find((r) => r.userId === MOCK_USER.id);
-
-                    if (userReaction) {
-                        // Usuń reakcję
-                        return {
-                            ...item,
-                            reactions: item.reactions.filter((r) => r.userId !== MOCK_USER.id),
-                        };
-                    } else {
-                        // Dodaj reakcję
-                        return {
-                            ...item,
-                            reactions: [
-                                ...item.reactions,
-                                {
-                                    id: 'r-' + Date.now(),
-                                    userId: MOCK_USER.id,
-                                    userName: MOCK_USER.name,
-                                    reactionType: 'Like',
-                                    createdAt: new Date().toISOString(),
-                                },
-                            ],
-                        };
+    useEffect(() => {
+        const fetchFeedItems = async () => {
+            if (!groupData.id) return;
+            try {
+                const response = await fetchWithAuth(
+                    `${API_ROUTES.GET_FEED_ITEMS}?groupId=${groupData.id}&page=${page}&pageSize=${pageSize}`,
+                    {
+                        method: 'GET',
+                        headers: {'Content-Type': 'application/json'},
                     }
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const payload = data.data as GroupFeedItemResponseDto[];
+                    const mappedItems = payload.map(item => ({
+                        ...item,
+                        type: mapFeedItemType(item.type),
+                    }));
+
+                    setItems(mappedItems);
+                } else {
+                    console.error('Błąd podczas pobierania feedu nie respons ok');
+                    setItems([]);
                 }
-                return item;
-            })
-        );
+            } catch (error) {
+                console.error('Błąd podczas pobierania feedu:', error);
+                setItems([]);
+            }
+        };
+        fetchFeedItems();
+    }, [groupData.id, page, pageSize]);
+
+    const groupColor = groupData?.color || '#1976d2';
+
+    const handleLike = async (itemId: string) => {
+        if (!currentUser) return;
+
+        const item = items.find(i => i.id === itemId);
+        if (!item) return;
+
+        const userReaction = item.reactions.find((r) => r.id === currentUser.id);
+        const isRemoving = !!userReaction;
+
+        const previousItems = [...items];
+
+        try {
+            setItems(
+                items.map((item) => {
+                    if (item.id === itemId) {
+                        if (isRemoving) {
+                            return {...item, reactions: item.reactions.filter((r) => r.id !== currentUser.id)};
+                        } else {
+                            return {
+                                ...item,
+                                reactions: [
+                                    ...item.reactions,
+                                    {
+                                        id: currentUser.id,
+                                        name: currentUser.name,
+                                        surname: currentUser.surname,
+                                        username: currentUser.username,
+                                        profilePicture: currentUser.profilePicture ? {
+                                            id: currentUser.profilePicture.id,
+                                            fileName: currentUser.profilePicture.fileName || '',
+                                            contentType: currentUser.profilePicture.contentType || '',
+                                            size: currentUser.profilePicture.size || 0,
+                                        } : undefined,
+                                    },
+                                ],
+                            };
+                        }
+                    }
+                    return item;
+                })
+            );
+
+            const response = await fetchWithAuth(`${API_ROUTES.REACTION_POST}?groupId=${groupData.id}&targetId=${itemId}&entityType=${EntityType.GroupFeedItem}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error('Błąd reakcji');
+            }
+        } catch (error) {
+            console.error('Błąd:', error);
+            setItems(previousItems);
+        }
     };
 
     const toggleComments = (itemId: string) => {
@@ -330,22 +220,100 @@ export default function GroupBoardPage() {
     };
 
     const handleAddComment = async (itemId: string) => {
+        if (!currentUser) return;
         const content = newComment[itemId]?.trim();
         if (!content) return;
 
-        const comment: CommentResponseDto = {
-            id: 'c-' + Date.now(),
+        const tempComment: CommentResponseDto = {
+            id: `temp-${Date.now()}`,
+            user: {
+                id: currentUser.id,
+                name: currentUser.name,
+                surname: currentUser.surname,
+                username: currentUser.username,
+                profilePicture: currentUser.profilePicture ? {
+                    id: currentUser.profilePicture.id,
+                    fileName: currentUser.profilePicture.fileName || '',
+                    contentType: currentUser.profilePicture.contentType || '',
+                    size: currentUser.profilePicture.size || 0,
+                } : undefined,
+            },
             content,
             createdAt: new Date().toISOString(),
-            userId: MOCK_USER.id,
-            userName: MOCK_USER.name,
-            userAvatarUrl: MOCK_USER.avatar,
         };
 
-        setItems(items.map((item) => (item.id === itemId ? {...item, comments: [...item.comments, comment]} : item)));
+        setItems((prevItems) =>
+            prevItems.map((item) =>
+                item.id === itemId
+                    ? {
+                        ...item,
+                        reactions: Array.isArray(item.reactions) ? item.reactions : [],
+                        comments: Array.isArray(item.comments)
+                            ? [...item.comments, tempComment]
+                            : [tempComment]
+                    }
+                    : item
+            )
+        );
 
-        setNewComment({...newComment, [itemId]: ''});
+        setNewComment((prev) => ({...prev, [itemId]: ''}));
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.POST_COMMENT}?groupId=${groupData.id}&targetId=${itemId}`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({content, entityType: "GroupFeedItem"}),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas dodawania komentarza');
+            }
+
+            const result = await response.json();
+
+            const savedComment: CommentResponseDto = {
+                ...tempComment,
+                id: result.data,
+            };
+
+            setItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id === itemId
+                        ? {
+                            ...item,
+                            reactions: Array.isArray(item.reactions) ? item.reactions : [],
+                            comments: Array.isArray(item.comments)
+                                ? item.comments.map((c) => c.id === tempComment.id ? savedComment : c)
+                                : [savedComment]
+                        }
+                        : item
+                )
+            );
+        } catch (error) {
+            console.error('Błąd podczas dodawania komentarza:', error);
+
+            setItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id === itemId
+                        ? {
+                            ...item,
+                            reactions: Array.isArray(item.reactions) ? item.reactions : [],
+                            comments: Array.isArray(item.comments)
+                                ? item.comments.filter((c) => c.id !== tempComment.id)
+                                : []
+                        }
+                        : item
+                )
+            );
+
+            setNewComment((prev) => ({...prev, [itemId]: content}));
+        }
     };
+
 
     const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, itemId: string) => {
         setMenuAnchor({el: event.currentTarget, itemId});
@@ -356,504 +324,233 @@ export default function GroupBoardPage() {
     };
 
     const handleEditPost = () => {
-        const item = items.find((i) => i.id === menuAnchor?.itemId);
-        if (item) {
-            setEditContent(item.description || '');
-            setEditDialog({open: true, item});
+        if (!menuAnchor) return;
+
+        const post = items.find(item => item.id === menuAnchor.itemId);
+        if (post) {
+            setEditingPost(post);
+            setEditContent(post.description || '');
+            setEditTitle(post.title || '');
+            setEditDialogOpen(true);
         }
         handleCloseMenu();
     };
 
-    const handleSaveEdit = async () => {
-        if (!editDialog.item) return;
+    const handleEditDialogClose = () => {
+        setEditDialogOpen(false);
+        setEditingPost(null);
+        setEditContent('');
+        setEditTitle('');
+    };
 
-        setItems(items.map((item) => (item.id === editDialog.item?.id ? {...item, description: editContent} : item)));
-        setEditDialog({open: false, item: null});
+    const handleEditSubmit = async () => {
+        if (!editingPost || !editContent.trim()) return;
+
+        setIsEditing(true);
+        const previousItems = [...items];
+
+        // Optymistyczna aktualizacja
+        setItems(prevItems =>
+            prevItems.map(item =>
+                item.id === editingPost.id
+                    ? {...item, description: editContent, title: editTitle || undefined}
+                    : item
+            )
+        );
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.PUT_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${editingPost.id}`,
+                {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        description: editContent,
+                        title: editTitle || null,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas edycji posta');
+            }
+
+            handleEditDialogClose();
+        } catch (error) {
+            console.error('Błąd podczas edycji posta:', error);
+            setItems(previousItems);
+        } finally {
+            setIsEditing(false);
+        }
     };
 
     const handleDeletePost = async () => {
         if (!menuAnchor) return;
-        setItems(items.filter((item) => item.id !== menuAnchor.itemId));
+
+        const itemId = menuAnchor.itemId;
         handleCloseMenu();
+
+        const previousItems = [...items];
+
+        setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.DELETE_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${itemId}`,
+                {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Błąd podczas usuwania posta');
+            }
+        } catch (error) {
+            console.error('Błąd podczas usuwania posta:', error);
+            setItems(previousItems);
+        }
     };
 
-    const isUserPost = (item: GroupFeedItemResponseDto) => item.userId === MOCK_USER.id;
-    const hasUserLiked = (item: GroupFeedItemResponseDto) => item.reactions.some((r) => r.userId === MOCK_USER.id && r.reactionType === 'Like');
 
-    // Mock URL dla zdjęć
-    const getImageUrl = (storedFileId?: string) => {
-        if (!storedFileId) return null;
-        return 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=500';
-    };
+    if (!currentUser) {
+        return (
+            <Box sx={{
+                width: "100%",
+                minHeight: "100vh",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center"
+            }}>
+                <Typography>Ładowanie danych użytkownika...</Typography>
+            </Box>
+        );
+    }
 
     return (
-        <Box
-            sx={{
-                width: '100%',
-                minHeight: '100vh',
-                display: 'flex',
-                justifyContent: 'center',
-                px: {xs: 2, sm: 3},
-                py: {xs: 3, sm: 4},
-            }}
-        >
-            <Box sx={{width: '100%', maxWidth: 700}}>
-                {/* Nagłówek z wysuwanym menu */}
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                    <IconButton
-                        onClick={() => setDrawerOpen(true)}
-                        sx={{
-                            bgcolor: '#8D8C8C',
-                            '&:hover': {bgcolor: '#666666'},
-                            mr: 1,
-                        }}
-                    >
+        <Box sx={{
+            width: "100%",
+            minHeight: "100vh",
+            display: "flex",
+            justifyContent: "center",
+            px: {xs: 2, sm: 3},
+            py: {xs: 3, sm: 4}
+        }}>
+            <Box sx={{width: "100%", maxWidth: 700}}>
+                <Box sx={{display: "flex", alignItems: "center", mb: 4}}>
+                    <IconButton onClick={() => setDrawerOpen(true)}
+                                sx={{bgcolor: "#8D8C8C", "&:hover": {bgcolor: "#666666"}, mr: 1}}>
                         <MenuIcon/>
                     </IconButton>
 
-                    <Typography
-                        variant="h2"
-                        sx={{
-                            textAlign: 'center',
-                            color: 'text.primary',
-                            flex: 1,
-                            fontSize: {xs: '1.75rem', sm: '2rem'},
-                        }}
-                    >
-                        {groupData?.name || 'Tablica grupy'}
+                    <Typography variant="h2" sx={{
+                        textAlign: "center",
+                        color: "text.primary",
+                        flex: 1,
+                        fontSize: {xs: "1.75rem", sm: "2rem"}
+                    }}>
+                        {groupData?.name || "Tablica grupy"}
                     </Typography>
                 </Box>
 
-                <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-                    <Box sx={{width: 300, p: 2}} role="presentation">
-                        <Typography variant="h6" sx={{mb: 2}}>
-                            {groupData?.name || 'Menu grupy'}
-                        </Typography>
-                        <List>
-                            {MENU_ITEMS.map((m) => (
-                                <ListItem key={m.key} disablePadding>
-                                    <ListItemButton sx={{borderRadius: 1}} href={m.href}>
-                                        <ListItemIcon>
-                                            <m.icon/>
-                                        </ListItemIcon>
-                                        <ListItemText primary={m.label}/>
-                                        <ChevronRight/>
-                                    </ListItemButton>
-                                </ListItem>
-                            ))}
-                        </List>
-                    </Box>
-                </Drawer>
+                <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
+                           groupName={groupData.name} groupColor={groupData.color}/>
 
-                {/* Pole dodawania posta */}
-                <Card
-                    sx={{
-                        mb: 3,
-                        bgcolor: 'background.paper',
-                        borderRadius: 3,
+                <AddPostForm
+                    user={currentUser}
+                    groupColor={groupColor}
+                    groupId={groupData.id}
+                    onAddPost={(newItem) => {
+                        const tempPost: GroupFeedItemResponseDto = {
+                            ...newItem,
+                            id: newItem.id || `temp-${Date.now()}`,
+                            user: {
+                                id: currentUser.id,
+                                name: currentUser.name,
+                                surname: currentUser.surname,
+                                username: currentUser.username,
+                                profilePicture: currentUser.profilePicture ? {
+                                    id: currentUser.profilePicture.id,
+                                    fileName: currentUser.profilePicture.fileName || '',
+                                    contentType: currentUser.profilePicture.contentType || '',
+                                    size: currentUser.profilePicture.size || 0,
+                                } : undefined,
+                            },
+                            reactions: [],
+                            comments: [],
+                            createdAt: new Date().toISOString(),
+                            type: newItem.type || FeedItemType.POST,
+                            description: newItem.description || '',
+                            title: newItem.title,
+                            storedFileId: newItem.storedFileId,
+                        };
+
+                        setItems((prevItems) => [tempPost, ...prevItems]);
                     }}
-                >
-                    <CardContent sx={{pb: 1}}>
-                        <Box sx={{display: 'flex', gap: 2, mb: 2}}>
-                            <Avatar src={MOCK_USER.avatar} sx={{width: 40, height: 40}}/>
-                            <TextField
-                                fullWidth
-                                multiline
-                                minRows={2}
-                                maxRows={6}
-                                placeholder="Napisz coś do grupy..."
-                                value={newPostContent}
-                                onChange={(e) => setNewPostContent(e.target.value)}
-                                variant="outlined"
-                                disabled={isSubmitting}
-                                sx={{
-                                    '& .MuiOutlinedInput-root': {
-                                        borderRadius: 3,
-                                    },
-                                }}
-                            />
-                        </Box>
+                />
 
-                        {previewUrl && (
-                            <Box sx={{position: 'relative', mb: 2}}>
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    style={{
-                                        width: '100%',
-                                        maxHeight: 300,
-                                        objectFit: 'cover',
-                                        borderRadius: 12,
-                                    }}
-                                />
-                                <IconButton
-                                    size="small"
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        bgcolor: 'rgba(0,0,0,0.6)',
-                                        '&:hover': {bgcolor: 'rgba(0,0,0,0.8)'},
-                                    }}
-                                    onClick={() => {
-                                        setSelectedFile(null);
-                                        setPreviewUrl(null);
-                                    }}
-                                >
-                                    <X size={20} color="white"/>
-                                </IconButton>
-                            </Box>
-                        )}
-                    </CardContent>
 
-                    <CardActions sx={{justifyContent: 'space-between', px: 2, pb: 2}}>
-                        <IconButton
-                            color="primary"
-                            onClick={handleImageButtonClick}
-                            disabled={isSubmitting}
-                            sx={{
-                                bgcolor: alpha(groupColor, 0.08),
-                                '&:hover': {bgcolor: alpha(groupColor, 0.16)},
-                            }}
-                        >
-                            <ImagePlus/>
-                        </IconButton>
-                        <Button
-                            variant="contained"
-                            endIcon={<Send size={18}/>}
-                            onClick={handleAddPost}
-                            disabled={(!newPostContent.trim() && !selectedFile) || isSubmitting}
-                            sx={{
-                                bgcolor: groupColor,
-                                '&:hover': {bgcolor: alpha(groupColor, 0.85)},
-                            }}
-                        >
-                            {isSubmitting ? 'Publikowanie...' : 'Opublikuj'}
-                        </Button>
-                    </CardActions>
-                </Card>
-
-                {/* Lista postów */}
-                <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
-                    {items.map((item) => {
-                        const ItemIcon = getItemIcon(item.type);
-                        const isExpanded = expandedComments.has(item.id);
-                        const imageUrl = getImageUrl(item.storedFileId);
-                        const userLiked = hasUserLiked(item);
-
-                        // avatars to show near like button (pierwsi trzej reakcjonariusze)
-                        const avatarsToShow = item.reactions.slice(0, 3).map((r, i) => ({
-                            id: r.userId,
-                            name: r.userName,
-                            picture: `https://i.pravatar.cc/150?u=${r.userId}`,
-                        }));
-
-                        return (
-                            <Card
-                                key={item.id}
-                                sx={{
-                                    bgcolor: 'background.paper',
-                                    borderRadius: 3,
-                                    position: 'relative',
-                                }}
-                            >
-                                {/* Wskaźnik typu */}
-                                {item.type !== FeedItemType.POST && ItemIcon && (
-                                    <Box
-                                        sx={{
-                                            position: 'absolute',
-                                            top: 16,
-                                            right: 16,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 0.5,
-                                            bgcolor: alpha(getItemColor(item.type), 0.2),
-                                            px: 1.5,
-                                            py: 0.5,
-                                            borderRadius: 2,
-                                            zIndex: 1,
-                                        }}
-                                    >
-                                        <ItemIcon size={16} color={getItemColor(item.type)}/>
-                                        <Typography
-                                            sx={{
-                                                fontSize: '0.75rem',
-                                                fontWeight: 600,
-                                                color: getItemColor(item.type),
-                                                textTransform: 'uppercase',
-                                            }}
-                                        >
-                                            {getItemLabel(item.type)}
-                                        </Typography>
-                                    </Box>
-                                )}
-
-                                <CardContent>
-                                    {/* Nagłówek posta */}
-                                    <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2}}>
-                                        <Box sx={{display: 'flex', gap: 1.5, flex: 1}}>
-                                            {item.userAvatarUrl ? (
-                                                <Avatar src={item.userAvatarUrl} sx={{width: 44, height: 44}}/>
-                                            ) : (
-                                                <Box
-                                                    sx={{
-                                                        width: 44,
-                                                        height: 44,
-                                                        borderRadius: '50%',
-                                                        bgcolor: 'primary.main',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                    }}
-                                                >
-                                                    <Typography sx={{fontWeight: 600, fontSize: '1.25rem'}}>
-                                                        {item.userName?.[0] || '?'}
-                                                    </Typography>
-                                                </Box>
-                                            )}
-                                            <Box>
-                                                <Typography sx={{fontWeight: 600, fontSize: '1rem'}}>
-                                                    {item.userName || 'Nieznany użytkownik'}
-                                                </Typography>
-                                                <Typography sx={{fontSize: '0.875rem', color: 'text.secondary'}}>
-                                                    {formatTimestamp(item.createdAt)}
-                                                </Typography>
-                                            </Box>
-                                        </Box>
-
-                                        {isUserPost(item) && (
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => handleOpenMenu(e, item.id)}
-                                                sx={{alignSelf: 'flex-start'}}
-                                            >
-                                                <MoreVertical/>
-                                            </IconButton>
-                                        )}
-                                    </Box>
-
-                                    {/* Tytuł */}
-                                    {item.title && (
-                                        <Typography
-                                            sx={{
-                                                fontSize: '1.25rem',
-                                                fontWeight: 600,
-                                                mb: 1,
-                                                color: item.type !== FeedItemType.POST ? getItemColor(item.type) : 'text.primary',
-                                            }}
-                                        >
-                                            {item.title}
-                                        </Typography>
-                                    )}
-
-                                    {/* Treść */}
-                                    {item.description && (
-                                        <Typography sx={{mb: imageUrl ? 2 : 0, whiteSpace: 'pre-wrap'}}>
-                                            {item.description}
-                                        </Typography>
-                                    )}
-
-                                    {/* Zdjęcie */}
-                                    {imageUrl && (
-                                        <Box sx={{mt: 2}}>
-                                            <img
-                                                src={imageUrl}
-                                                alt="Post"
-                                                style={{
-                                                    width: '100%',
-                                                    maxHeight: 400,
-                                                    objectFit: 'cover',
-                                                    borderRadius: 12,
-                                                }}
-                                            />
-                                        </Box>
-                                    )}
-                                </CardContent>
-
-                                {/* Akcje */}
-                                <CardActions sx={{px: 2, pb: 2, gap: 2, alignItems: 'center'}}>
-                                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                                        <Button
-                                            size="small"
-                                            startIcon={
-                                                <Heart
-                                                    size={18}
-                                                    style={{
-                                                        fill: userLiked ? '#ffffff' : 'none', // biały fill gdy polubione
-                                                        color: userLiked ? '#ffffff' : undefined, // biały kolor ikony gdy polubione
-                                                    }}
-                                                />
-                                            }
-                                            onClick={() => handleLike(item.id)}
-                                            sx={{
-                                                color: userLiked ? '#ffffff' : 'text.secondary', // liczba like'ów biała gdy polubione
-                                                bgcolor: userLiked ? groupColor : 'transparent', // opcjonalne tło, żeby biały był widoczny
-                                                '&:hover': {bgcolor: userLiked ? alpha(groupColor, 0.9) : undefined},
-                                                textTransform: 'none',
-                                            }}
-                                        >
-                                            {item.reactions.length}
-                                        </Button>
-
-                                        {/* Overlapping avatars */}
-                                        {avatarsToShow.length > 0 && (
-                                            <Box sx={{display: 'flex', alignItems: 'center', ml: 1}}>
-                                                {avatarsToShow.map((a, i) => (
-                                                    <Avatar
-                                                        key={a.id}
-                                                        src={a.picture}
-                                                        title={a.name}
-                                                        sx={{
-                                                            width: 28,
-                                                            height: 28,
-                                                            border: '2px solid',
-                                                            borderColor: 'background.paper',
-                                                            ml: i === 0 ? 0 : -1.1,
-                                                            zIndex: 10 - i,
-                                                            boxShadow: 1,
-                                                        }}
-                                                    />
-                                                ))}
-                                            </Box>
-                                        )}
-                                    </Box>
-
-                                    <Button
-                                        size="small"
-                                        startIcon={<MessageCircle size={18}/>}
-                                        onClick={() => toggleComments(item.id)}
-                                        sx={{color: 'text.secondary', textTransform: 'none'}}
-                                    >
-                                        {item.comments.length}
-                                    </Button>
-                                </CardActions>
-
-                                {/* Komentarze */}
-                                <Collapse in={isExpanded}>
-                                    <Box sx={{px: 2, pb: 2}}>
-                                        <Box
-                                            sx={{
-                                                bgcolor: alpha('#fff', 0.05),
-                                                borderRadius: 2,
-                                                p: 2,
-                                            }}
-                                        >
-                                            {/* Lista komentarzy */}
-                                            {item.comments.map((comment) => (
-                                                <Box key={comment.id} sx={{display: 'flex', gap: 1.5, mb: 2}}>
-                                                    <Avatar src={comment.userAvatarUrl} sx={{width: 32, height: 32}}>
-                                                        {comment.userName[0]}
-                                                    </Avatar>
-                                                    <Box sx={{flex: 1}}>
-                                                        <Box
-                                                            sx={{
-                                                                bgcolor: alpha('#fff', 0.05),
-                                                                borderRadius: 2,
-                                                                p: 1.5,
-                                                            }}
-                                                        >
-                                                            <Typography
-                                                                sx={{fontWeight: 600, fontSize: '0.875rem', mb: 0.5}}>
-                                                                {comment.userName}
-                                                            </Typography>
-                                                            <Typography
-                                                                sx={{fontSize: '0.875rem'}}>{comment.content}</Typography>
-                                                        </Box>
-                                                        <Typography
-                                                            sx={{
-                                                                fontSize: '0.75rem',
-                                                                color: 'text.secondary',
-                                                                mt: 0.5,
-                                                                ml: 1.5,
-                                                            }}
-                                                        >
-                                                            {formatTimestamp(comment.createdAt)}
-                                                        </Typography>
-                                                    </Box>
-                                                </Box>
-                                            ))}
-
-                                            {/* Dodawanie komentarza */}
-                                            <Box sx={{display: 'flex', gap: 1.5, mt: item.comments.length > 0 ? 2 : 0}}>
-                                                <Avatar src={MOCK_USER.avatar} sx={{width: 32, height: 32}}>
-                                                    {MOCK_USER.name[0]}
-                                                </Avatar>
-                                                <TextField
-                                                    fullWidth
-                                                    size="small"
-                                                    placeholder="Dodaj komentarz..."
-                                                    value={newComment[item.id] || ''}
-                                                    onChange={(e) => setNewComment({
-                                                        ...newComment,
-                                                        [item.id]: e.target.value
-                                                    })}
-                                                    onKeyPress={(e) => {
-                                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                                            e.preventDefault();
-                                                            handleAddComment(item.id);
-                                                        }
-                                                    }}
-                                                    sx={{
-                                                        '& .MuiOutlinedInput-root': {
-                                                            borderRadius: 3,
-                                                        },
-                                                    }}
-                                                    InputProps={{
-                                                        endAdornment: (
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={() => handleAddComment(item.id)}
-                                                                disabled={!newComment[item.id]?.trim()}
-                                                            >
-                                                                <Send/>
-                                                            </IconButton>
-                                                        ),
-                                                    }}
-                                                />
-                                            </Box>
-                                        </Box>
-                                    </Box>
-                                </Collapse>
-                            </Card>
-                        );
-                    })}
-                </Box>
-
-                {/* Menu opcji posta */}
-                <Menu
-                    anchorEl={menuAnchor?.el}
-                    open={Boolean(menuAnchor)}
-                    onClose={handleCloseMenu}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'right'}}
-                >
-                    <MenuItem onClick={handleEditPost}>
-                        <Edit2 size={18} style={{marginRight: 8}}/>
-                        Edytuj
-                    </MenuItem>
-                    <MenuItem onClick={handleDeletePost} sx={{color: 'error.main'}}>
-                        <Trash2 size={18} style={{marginRight: 8}}/>
-                        Usuń
-                    </MenuItem>
-                </Menu>
-
-                {/* Dialog edycji */}
-                <Dialog open={editDialog.open} onClose={() => setEditDialog({open: false, item: null})} maxWidth="sm"
-                        fullWidth>
-                    <DialogTitle>Edytuj post</DialogTitle>
-                    <DialogContent>
-                        <TextField fullWidth multiline minRows={4} value={editContent}
-                                   onChange={(e) => setEditContent(e.target.value)} sx={{mt: 1}}/>
-                    </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
-                        <Button onClick={() => setEditDialog({open: false, item: null})}>Anuluj</Button>
-                        <Button variant="contained" onClick={handleSaveEdit}
-                                sx={{bgcolor: groupColor, '&:hover': {bgcolor: alpha(groupColor, 0.85)}}}>
-                            Zapisz
-                        </Button>
-                    </DialogActions>
-                </Dialog>
+                <FeedList
+                    items={items}
+                    groupColor={groupColor}
+                    expandedComments={expandedComments}
+                    userId={currentUser.id}
+                    onLike={handleLike}
+                    onToggleComments={toggleComments}
+                    onOpenMenu={handleOpenMenu}
+                    newComment={newComment}
+                    onCommentChange={(id, value) => setNewComment({...newComment, [id]: value})}
+                    onAddComment={handleAddComment}
+                    menuAnchor={menuAnchor}
+                    onCloseMenu={handleCloseMenu}
+                    onEditPost={handleEditPost}
+                    onDeletePost={handleDeletePost}
+                />
             </Box>
+            <Dialog
+                open={editDialogOpen}
+                onClose={handleEditDialogClose}
+                fullWidth
+                maxWidth="sm"
+            >
+                <DialogTitle>Edytuj post</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        label="Tytuł (opcjonalnie)"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        margin="normal"
+                        disabled={isEditing}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Treść"
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        multiline
+                        minRows={3}
+                        maxRows={6}
+                        margin="normal"
+                        disabled={isEditing}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleEditDialogClose} disabled={isEditing}>
+                        Anuluj
+                    </Button>
+                    <Button
+                        onClick={handleEditSubmit}
+                        variant="contained"
+                        disabled={!editContent.trim() || isEditing}
+                        sx={{bgcolor: groupColor}}
+                    >
+                        {isEditing ? 'Zapisywanie...' : 'Zapisz'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 }

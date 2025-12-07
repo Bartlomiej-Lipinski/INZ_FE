@@ -1,5 +1,3 @@
-import {FeedItemType} from "@/lib/types/FeedItemType";
-
 export interface ProfilePictureDto {
     id: string;
     fileName: string;
@@ -22,16 +20,15 @@ export interface CommentResponseDto {
     user: UserResponseDto;
 }
 
-export interface GroupFeedItemResponseDto {
+export interface RecommendationResponseDto {
     id: string;
-    type: FeedItemType;
-    title?: string;
-    description?: string;
+    title: string;
+    content: string;
+    category?: string;
+    imageUrl?: string;
+    linkUrl?: string;
     createdAt: string;
     user: UserResponseDto;
-    storedFileId?: string;
-    temporaryImageUrl?: string;
-    entityId?: string;
     comments: CommentResponseDto[];
     reactions: UserResponseDto[];
 }
