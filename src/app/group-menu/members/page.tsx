@@ -1,27 +1,17 @@
 "use client";
 import MembersList from '@/components/pages/Members-list';
-import { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
+import { useSearchParams } from 'next/navigation';
 
 
 export default function MembersPage() {
-    const [groupName, setGroupName] = useState<string>('');
-    const [groupId, setGroupId] = useState<string | null>(null);
-    const [groupColor, setGroupColor] = useState<string>('');
+    const searchParams = useSearchParams();
+    const groupId = searchParams?.get('groupId');
+    const groupNameParam = searchParams?.get('groupName') ?? '';
+    const groupColorParam = searchParams?.get('groupColor') ?? '';
 
-    useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
-        const storedGroupName = localStorage.getItem('groupName') ?? '';
-        const storedGroupId = localStorage.getItem('groupId');
-        const storedGroupColor = localStorage.getItem('groupColor') ?? '';
-
-        setGroupId(storedGroupId);
-        setGroupColor(storedGroupColor);
-        setGroupName(storedGroupName);
-
-    }, []);
+    const groupName = groupNameParam ? decodeURIComponent(groupNameParam) : '';
+    const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : '';
 
 
     return (
@@ -41,8 +31,7 @@ export default function MembersPage() {
             {groupName ? `Członkowie grupy ` : 'Lista członków'}
             <span style={{ color: groupColor ? groupColor : 'white', fontWeight: 700 }}>{groupName}</span>
             </Typography>
-        <MembersList groupId={groupId ?? null} groupColor={groupColor}/>
+        <MembersList groupId={groupId ?? null} groupName={groupName} groupColor={groupColor}/>
     </Box>
     );
 }
-

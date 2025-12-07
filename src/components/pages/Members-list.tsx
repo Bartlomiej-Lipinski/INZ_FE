@@ -26,7 +26,7 @@ import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/contexts/AuthContext';
 
-export default function MembersList({ groupId, groupColor }: { groupId: string | null, groupColor: string }) {
+export default function MembersList({ groupId, groupName, groupColor }: { groupId: string | null, groupName: string, groupColor: string }) {
     const { user } = useAuthContext();
     const { members, isLoading, error, fetchGroupMembers } = useMembers();
     const {
@@ -396,8 +396,18 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     };
 
     const handleMemberClick = useCallback(() => {
-        router.push('/group-menu/members/profile');
-    }, []);
+        if (!groupId) {
+            return;
+        }
+
+        const params = new URLSearchParams({
+            groupId,
+            groupName: encodeURIComponent(groupName),
+            groupColor: encodeURIComponent(groupColor || '#9042fb'),
+        });
+
+        router.push(`/group-menu/members/profile?${params.toString()}`);
+    }, [groupColor, groupId, groupName, router]);
 
     const handleCloseDialog = () => {
         setInviteDialogOpen(false);

@@ -17,16 +17,24 @@ import { formatDate } from "@/lib/utils/date";
 import { getStatusLabel, STORAGE_KEYS } from "@/lib/constants";
 import { Group } from "@/lib/types/group";
 import { useAuthContext } from "@/contexts/AuthContext";
+import { useSearchParams } from "next/navigation";
 
 export default function MemberProfilePage() {
     const theme = useTheme();
     const { user } = useAuthContext();
+    const searchParams = useSearchParams();
 
-    const [groupContext, setGroupContext] = useState<Group>({
-        id: "",
-        name: "",
-        color: "",
-    });
+    const groupContext: Group = {
+        id: searchParams?.get("groupId") ?? "",
+        name: (() => {
+            const raw = searchParams?.get("groupName") ?? "";
+            return raw ? decodeURIComponent(raw) : "";
+        })(),
+        color: (() => {
+            const raw = searchParams?.get("groupColor") ?? "";
+            return raw ? decodeURIComponent(raw) : "";
+        })(),
+    };
     const [storedMember, setStoredMember] = useState<GroupMember | null>(null);
     const [memberLoadError, setMemberLoadError] = useState<string | null>(null);
     const [isMemberLoaded, setIsMemberLoaded] = useState(false);
@@ -36,12 +44,6 @@ export default function MemberProfilePage() {
         if (typeof window === "undefined") {
             return;
         }
-
-        setGroupContext({
-            id: localStorage.getItem("groupId") ?? "",
-            name: localStorage.getItem("groupName") ?? "",
-            color: localStorage.getItem("groupColor") ?? "",
-        });
 
         try {
             const rawMember = localStorage.getItem(STORAGE_KEYS.SELECTED_GROUP_MEMBER);

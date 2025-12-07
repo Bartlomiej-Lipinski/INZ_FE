@@ -3,6 +3,7 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {HubConnection, HubConnectionBuilder, LogLevel} from '@microsoft/signalr';
 import {Box, Button, List, ListItem, ListItemText, Paper, TextField, Typography} from '@mui/material';
+import {useSearchParams} from 'next/navigation';
 
 type ChatMessage = {
     id: string;
@@ -14,7 +15,8 @@ type ChatMessage = {
 const HUB_URL = process.env.NEXT_PUBLIC_SIGNALR_URL ?? '';
 
 export default function ChatPage() {
-    const groupId = localStorage.getItem('groupId');
+    const searchParams = useSearchParams();
+    const groupId = searchParams?.get('groupId') ?? '';
     const [connection, setConnection] = useState<HubConnection | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [message, setMessage] = useState('');
