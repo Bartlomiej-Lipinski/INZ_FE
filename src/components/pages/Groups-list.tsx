@@ -1,15 +1,15 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography,} from '@mui/material';
-import {Search, X} from 'lucide-react';
-import {Group} from '@/lib/types/group';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography, } from '@mui/material';
+import { Search, X } from 'lucide-react';
+import { Group } from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
-import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-import {AddGroupModal} from '@/components/modals/add-group-modal';
-import {JoinGroupModal} from '@/components/modals/join-group-modal';
-import {useRouter} from 'next/navigation';
+import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
+import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
+import { AddGroupModal } from '@/components/modals/add-group-modal';
+import { JoinGroupModal } from '@/components/modals/join-group-modal';
+import { useRouter } from 'next/navigation';
 
 
 interface ApiResponse {
@@ -30,7 +30,7 @@ export default function GroupsList() {
     const loadGroups = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await fetchWithAuth(`${API_ROUTES.USER_GROUPS}`, {method: 'GET'});
+            const response = await fetchWithAuth(`${API_ROUTES.USER_GROUPS}`, { method: 'GET' });
             if (response.ok) {
                 const json = await response.json() as ApiResponse;
                 const data: Group[] = Array.isArray(json?.data) ? (json.data) : (json.data ? [json.data] : []);
@@ -76,8 +76,8 @@ export default function GroupsList() {
         try {
             const response = await fetchWithAuth(API_ROUTES.ADD_GROUP, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name, color}),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, color }),
             });
 
             if (response.ok) {
@@ -104,15 +104,13 @@ export default function GroupsList() {
         try {
             const response = await fetchWithAuth(API_ROUTES.JOIN_GROUP, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({groupCode: code}),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ groupCode: code }),
             });
             if (response.ok) {
                 await loadGroups();
                 return true;
             } else {
-                const text = await response.text();
-                console.error('Join failed:', response.status, response.statusText, text);
                 return false;
             }
         } catch (err) {
@@ -131,7 +129,7 @@ export default function GroupsList() {
                     minHeight: 'calc(70vh - 300px)',
                 }}
             >
-                <CircularProgress size={48}/>
+                <CircularProgress size={48} />
             </Box>
         );
     }
@@ -203,7 +201,7 @@ export default function GroupsList() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <Search size={20} style={{color: 'inherit', opacity: 0.7}}/>
+                                        <Search size={20} style={{ color: 'inherit', opacity: 0.7 }} />
                                     </InputAdornment>
                                 ),
                                 endAdornment: searchQuery ? (
@@ -219,7 +217,7 @@ export default function GroupsList() {
                                                 },
                                             }}
                                         >
-                                            <X size={18}/>
+                                            <X size={18} />
                                         </IconButton>
                                     </InputAdornment>
                                 ) : null,
@@ -239,8 +237,8 @@ export default function GroupsList() {
                         sx={(theme) => ({
                             width: '100%',
                             maxWidth: 900,
-                            px: {xs: 3, sm: 5},
-                            py: {xs: 3, sm: 4},
+                            px: { xs: 3, sm: 5 },
+                            py: { xs: 3, sm: 4 },
                             borderRadius: 4,
                             border: `1px solid ${theme.palette.grey[700]}`,
                             boxShadow: '0 16px 45px rgba(0, 0, 0, 0.35)',
@@ -252,27 +250,27 @@ export default function GroupsList() {
                             backdropFilter: 'blur(6px)',
                         })}
                     >
-                        
+
                         {/*buttons for adding and joining groups*/}
                         <Box
-                        sx={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            justifyContent: 'center',
-                            gap: 3,
-                            width: '100%',
-                            mb: 2,
-                        }}>
-                             <Button
-                             sx={{ minWidth: 220 }}
-                             onClick={() => setIsModalOpen(true)}
+                            sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                justifyContent: 'center',
+                                gap: 3,
+                                width: '100%',
+                                mb: 2,
+                            }}>
+                            <Button
+                                sx={{ minWidth: 220 }}
+                                onClick={() => setIsModalOpen(true)}
                             >
                                 + Dodaj grupę
                             </Button>
-                            
+
                             <Button
-                            sx={{ minWidth: 220 }}
-                            onClick={() => setIsJoinModalOpen(true)}
+                                sx={{ minWidth: 220 }}
+                                onClick={() => setIsJoinModalOpen(true)}
                             >
                                 Dołącz do grupy
                             </Button>
@@ -285,7 +283,7 @@ export default function GroupsList() {
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    minHeight: '30vh',
+                                    maxHeight: '30vh',
                                 }}
                             >
                                 <Typography
@@ -332,7 +330,7 @@ export default function GroupsList() {
                                     gap: 3,
                                     width: '100%',
                                     maxWidth: filteredGroups.length === 1 ? '400px' : '800px',
-                                    maxHeight: 'calc(70vh - 170px)',
+                                    maxHeight: 'calc(50vh - 90px)',
                                     overflowY: 'auto',
                                     overflowX: 'hidden',
                                     pr: 1,
@@ -361,7 +359,7 @@ export default function GroupsList() {
                                         onMouseEnter={() => handleGroupMouseEnter(group)}
                                         onMouseLeave={handleGroupMouseLeave}
                                     >
-                                        <GroupItem group={group} onClick={() => handleGroupClick(group)}/>
+                                        <GroupItem group={group} onClick={() => handleGroupClick(group)} />
                                     </Box>
                                 ))}
                             </Box>
@@ -369,7 +367,7 @@ export default function GroupsList() {
                     </Box>
                 </Box>
 
-               
+
 
                 <AddGroupModal
                     isOpen={isModalOpen}

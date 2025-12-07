@@ -45,4 +45,5 @@ export interface GroupMember {
   status: string | null;
   description: string | null;
   profilePicture: ProfilePicture | null;
+  isAwaitingApproval?: boolean;
 }

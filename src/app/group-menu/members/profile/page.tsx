@@ -95,6 +95,7 @@ export default function MemberProfilePage() {
             description: storedMember.description?.trim() ?? "",
             birthDate: birthDateValue,
             profilePictureUrl: storedMember.profilePicture?.url ?? null,
+            isAwaitingApproval: Boolean(storedMember.isAwaitingApproval),
         };
     }, [storedMember]);
 
@@ -146,7 +147,7 @@ export default function MemberProfilePage() {
 
                         {groupContext.name && (
                             <Typography color="text.secondary" mt={2}>
-                                Członek grupy{" "}
+                                {normalizedMember.isAwaitingApproval ? "Czeka na akceptację do grupy" : "Członek grupy"}{" "}
                                 <Box
                                     component="span"
                                     sx={{
@@ -246,6 +247,7 @@ export default function MemberProfilePage() {
                                     overflowY: "auto",
                                     marginLeft: "10px",
                                     paddingRight: "10px",
+                                    paddingLeft: "10px",
                                     paddingBottom: "10px",
                                     scrollbarWidth: "thin",
                                     scrollbarColor: `${groupContext.color} transparent`,
@@ -297,15 +299,30 @@ export default function MemberProfilePage() {
             return null;
         }
 
+        const isAwaitingApproval = normalizedMember?.isAwaitingApproval;
+
         return (
             <Box
                 width="100%"
-                mt={2}
+                mt={3}
                 display="flex"
                 flexDirection="column"
                 alignItems="center"
                 gap={3}
             >
+                {isAwaitingApproval && (
+                    <Alert
+                        severity="info"
+                        sx={{
+                            width: "100%",
+                            mt: 1,
+                        }}
+                    >
+                        Ten użytkownik wciąż czeka na akceptację do grupy. Akcje administracyjne będą dostępne po
+                        zatwierdzeniu prośby.
+                    </Alert>
+                )}
+
                 <Divider
                     sx={{
                         width: "100%",
@@ -317,7 +334,9 @@ export default function MemberProfilePage() {
                     width: "80%",
                     backgroundColor: groupContext.color || theme.palette.primary.light,
                     color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.light)
-                }}>
+                }}
+                    disabled={isAwaitingApproval}
+                >
                     Nadaj prawa administratora grupy
                 </Button>
 
@@ -328,7 +347,10 @@ export default function MemberProfilePage() {
                     }}
                 />
 
-                <Button sx={{ width: "60%", backgroundColor: theme.palette.error.main }}>
+                <Button
+                    sx={{ width: "60%", backgroundColor: theme.palette.error.main }}
+                    disabled={isAwaitingApproval}
+                >
                     Usuń członka z grupy
                 </Button>
             </Box>

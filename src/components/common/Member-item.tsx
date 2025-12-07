@@ -1,12 +1,12 @@
 "use client";
 
-import {useMemo} from 'react';
-import {Avatar, Box, IconButton, Typography} from '@mui/material';
-import {alpha} from '@mui/material/styles';
-import {ChevronRight} from 'lucide-react';
+import { useMemo } from 'react';
+import { Avatar, Box, IconButton, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import { ChevronRight } from 'lucide-react';
 
-import {GroupMember} from '@/lib/types/user';
-import {STORAGE_KEYS} from '@/lib/constants';
+import { GroupMember } from '@/lib/types/user';
+import { STORAGE_KEYS } from '@/lib/constants';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 interface MemberItemProps {
@@ -15,7 +15,7 @@ interface MemberItemProps {
   isAwaitingApproval?: boolean;
 }
 
-export default function MemberItem({member, onClick, isAwaitingApproval = false}: MemberItemProps) {
+export default function MemberItem({ member, onClick, isAwaitingApproval = false }: MemberItemProps) {
   const { user } = useAuthContext();
   const storeMemberSelection = () => {
     if (typeof window === 'undefined') {
@@ -26,6 +26,7 @@ export default function MemberItem({member, onClick, isAwaitingApproval = false}
       const payload = {
         ...member,
         birthDate: member.birthDate instanceof Date ? member.birthDate.toISOString() : member.birthDate,
+        isAwaitingApproval,
       };
 
       localStorage.setItem(STORAGE_KEYS.SELECTED_GROUP_MEMBER, JSON.stringify(payload));
@@ -72,12 +73,12 @@ export default function MemberItem({member, onClick, isAwaitingApproval = false}
     >
       <Avatar
         sx={(theme) => ({
-          width: {xs: 40, sm: 48},
-          height: {xs: 40, sm: 48},
+          width: { xs: 40, sm: 48 },
+          height: { xs: 40, sm: 48 },
           bgcolor: 'transparent',
           border: `2px solid ${theme.palette.grey[400]}`,
           flexShrink: 0,
-          fontSize: {xs: '14px', sm: '18px'},
+          fontSize: { xs: '14px', sm: '18px' },
           fontWeight: 600,
           color: 'text.primary',
         })}
@@ -120,26 +121,28 @@ export default function MemberItem({member, onClick, isAwaitingApproval = false}
           {member.username ? `@${member.username}` : 'Brak nazwy użytkownika'}
         </Typography>
 
-        {isAwaitingApproval && (
-          <Typography
-            sx={{
-              color: 'warning.light',
-              fontSize: '10px',
-              fontWeight: 600,
-              mt: 1,
-            }}
-          >
-            CZEKA NA AKCEPTACJĘ
-          </Typography>
-        )}
       </Box>
 
-      
+      {isAwaitingApproval && (
+        <Typography
+          sx={{
+            color: 'warning.light',
+            fontSize: '10px',
+            textAlign: 'right',
+            justifyContent: 'flex-end',
+            alignItems: 'flex-end',
+            maxWidth: '50px',
+            fontWeight: 600,
+          }}
+        >
+          CZEKA NA AKCEPTACJĘ
+        </Typography>
+      )}
 
       {member.id === user?.id && (
-       <Typography>
-        Ja
-       </Typography>
+        <Typography>
+          Ja
+        </Typography>
       )}
 
       <IconButton

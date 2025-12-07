@@ -1,11 +1,11 @@
 "use client";
 
-import {useCallback} from 'react';
-import {Avatar, Box, CircularProgress, IconButton, Typography} from '@mui/material';
-import {alpha} from '@mui/material/styles';
-import {ChevronRight} from 'lucide-react';
-import {Group} from '@/lib/types/group';
-import {useIsAdmin} from '@/hooks/use-isAdmin';
+import { useCallback } from 'react';
+import { Avatar, Box, CircularProgress, IconButton, Typography } from '@mui/material';
+import { alpha } from '@mui/material/styles';
+import { ChevronRight } from 'lucide-react';
+import { Group } from '@/lib/types/group';
+import { useIsAdmin } from '@/hooks/use-isAdmin';
 
 interface GroupItemProps {
   group: Group;
@@ -39,7 +39,7 @@ export default function GroupItem({ group, onClick, disabled = false }: GroupIte
         alignItems: 'center',
         gap: 3.5,
         p: 2,
-        bgcolor: alpha(theme.palette.grey[700], 0.6),
+        bgcolor: alpha(theme.palette.grey[600], 0.5),
         borderRadius: 2,
         cursor: showDisabledState ? 'not-allowed' : (onClick ? 'pointer' : 'default'),
         transition: 'all 0.2s ease-in-out',
@@ -58,8 +58,8 @@ export default function GroupItem({ group, onClick, disabled = false }: GroupIte
       {/* Avatar */}
       <Avatar
         sx={{
-          width: {xs: 40, sm: 48},
-          height: {xs: 40, sm: 48},
+          width: { xs: 40, sm: 48 },
+          height: { xs: 40, sm: 48 },
           bgcolor: 'grey.600',
           flexShrink: 0,
           fontSize: '18px',
@@ -98,7 +98,7 @@ export default function GroupItem({ group, onClick, disabled = false }: GroupIte
         disableRipple
       >
         {isLoading ? (
-          <CircularProgress size={20} sx={{color: 'text.primary'}} />
+          <CircularProgress size={20} sx={{ color: 'text.primary' }} />
         ) : (
           <ChevronRight size={24} strokeWidth={1.5} />
         )}

@@ -20,17 +20,23 @@ import { Search, X, UserPlus, Send } from 'lucide-react';
 import MemberItem from '@/components/common/Member-item';
 import { useMembers } from '@/hooks/use-members';
 import { useJoinRequest } from '@/hooks/use-join-request';
+import type { JoinRequest } from '@/hooks/use-join-request';
 import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 import { useRouter } from 'next/navigation';
+import { useAuthContext } from '@/contexts/AuthContext';
 
 export default function MembersList({ groupId, groupColor }: { groupId: string | null, groupColor: string }) {
+    const { user } = useAuthContext();
     const { members, isLoading, error, fetchGroupMembers } = useMembers();
     const {
         joinRequests,
         joinRequestsAmount,
         isFetchingRequests: isFetchingJoinRequests,
         fetchJoinRequests,
+        acceptJoinRequest,
+        rejectJoinRequest,
+        isMutating: isMutatingJoinRequest,
         error: joinRequestsError,
     } = useJoinRequest();
     const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +46,12 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     const [generateError, setGenerateError] = useState<string | null>(null);
     const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [joinRequestsDialogOpen, setJoinRequestsDialogOpen] = useState(false);
+    const [activeJoinRequestAction, setActiveJoinRequestAction] = useState<{
+        userId: string;
+        action: 'accept' | 'reject';
+    } | null>(null);
     const router = useRouter();
+    const canManageJoinRequests = user?.role === 'Admin';
 
 
     useEffect(() => {
@@ -51,10 +62,12 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
         fetchGroupMembers(groupId).catch((err) => {
             console.error('Nie udało się pobrać członków:', err);
         });
-        fetchJoinRequests().catch((err) => {
-            console.error('Nie udało się pobrać próśb o dołączenie:', err);
-        });
-    }, [groupId, fetchGroupMembers, fetchJoinRequests]);
+        if (canManageJoinRequests) {
+            fetchJoinRequests().catch((err) => {
+                console.error('Nie udało się pobrać próśb o dołączenie:', err);
+            });
+        }
+    }, [groupId, fetchGroupMembers, fetchJoinRequests, canManageJoinRequests]);
 
     const filteredMembers = useMemo(() => {
         if (!searchQuery.trim()) {
@@ -148,7 +161,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     };
 
     const handleOpenJoinRequestsDialog = () => {
-        if (!groupId) {
+        if (!groupId || !canManageJoinRequests) {
             return;
         }
 
@@ -161,6 +174,39 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     const handleCloseJoinRequestsDialog = () => {
         setJoinRequestsDialogOpen(false);
     };
+
+    const handleJoinRequestAction = async (action: 'accept' | 'reject', request: JoinRequest) => {
+        if (isMutatingJoinRequest) {
+            return;
+        }
+
+        setActiveJoinRequestAction({ userId: request.user.id, action });
+
+        const payload = {
+            groupId: request.groupId,
+            userId: request.user.id,
+        };
+
+        const actionHandler = action === 'accept' ? acceptJoinRequest : rejectJoinRequest;
+        const actionName = action === 'accept' ? 'akceptowania' : 'odrzucania';
+
+        try {
+            const response = await actionHandler(payload);
+
+            if (!response.success) {
+                console.error(`Nie udało się dokończyć ${actionName} prośby.`, response.message);
+            }
+        } catch (err) {
+            console.error(`Błąd podczas ${actionName} prośby.`, err);
+        } finally {
+            setActiveJoinRequestAction(null);
+        }
+    };
+
+    const isJoinRequestActionInProgress = (userId: string, action: 'accept' | 'reject') =>
+        isMutatingJoinRequest &&
+        activeJoinRequestAction?.userId === userId &&
+        activeJoinRequestAction?.action === action;
 
     const renderJoinRequestsDialogBody = () => {
         if (isFetchingJoinRequests && joinRequests.length === 0) {
@@ -231,13 +277,17 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                     const initialsCandidate = `${user.name?.charAt(0) ?? ''}${user.surname?.charAt(0) ?? ''}`;
                     const initials =
                         (initialsCandidate.trim() || user.username?.charAt(0) || '?').toUpperCase();
+                    const isAcceptLoading = isJoinRequestActionInProgress(user.id, 'accept');
+                    const isRejectLoading = isJoinRequestActionInProgress(user.id, 'reject');
 
                     return (
                         <Box
                             key={`${request.groupId}-${user.id}`}
                             sx={(theme) => ({
                                 display: 'flex',
-                                alignItems: 'center',
+                                flexDirection: { xs: 'column', sm: 'row' },
+                                alignItems: { xs: 'stretch', sm: 'center' },
+                                // justifyItems: { xs: 'center', sm: 'center' },
                                 gap: 2,
                                 padding: 1.5,
                                 borderRadius: 3,
@@ -245,45 +295,98 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                                 backgroundColor: theme.palette.grey[900],
                             })}
                         >
-                            <Avatar
-                                src={user.profilePicture?.url ?? undefined}
-                                alt={displayName}
-                                sx={(theme) => ({
-                                    width: 44,
-                                    height: 44,
-                                    fontWeight: 600,
-                                    bgcolor: groupColor || theme.palette.primary.main,
-                                    color: theme.palette.getContrastText(
-                                        groupColor || theme.palette.primary.main,
-                                    ),
-                                })}
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    flex: 1,
+                                    minWidth: 0,
+                                }}
                             >
-                                {initials}
-                            </Avatar>
-                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                                <Typography
-                                    sx={{
+                                <Avatar
+                                    sx={(theme) => ({
+                                        width: 44,
+                                        height: 44,
                                         fontWeight: 600,
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                    }}
+                                        bgcolor: groupColor || theme.palette.primary.main,
+                                        color: theme.palette.getContrastText(
+                                            groupColor || theme.palette.primary.main,
+                                        ),
+                                    })}
                                 >
-                                    {displayName}
-                                </Typography>
-                                {usernameLabel && (
+                                    {initials}
+                                </Avatar>
+                                <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                                     <Typography
-                                        variant="body2"
-                                        color="text.secondary"
                                         sx={{
+                                            fontWeight: 600,
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
                                         }}
                                     >
-                                        {usernameLabel}
+                                        {displayName}
                                     </Typography>
-                                )}
+                                    {usernameLabel && (
+                                        <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                            }}
+                                        >
+                                            {usernameLabel}
+                                        </Typography>
+                                    )}
+                                </Box>
+                            </Box>
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    gap: 1,
+                                    flexWrap: 'wrap',
+                                    justifyContent: { xs: 'center', sm: 'flex-end' },
+                                    alignItems: { xs: 'center', sm: 'center' },
+                                }}
+                            >
+                                <Button
+
+                                    disabled={isMutatingJoinRequest}
+                                    onClick={() => handleJoinRequestAction('accept', request)}
+                                    sx={(theme) => ({
+                                        // flexShrink: 0,
+                                        minWidth: 80,
+                                        fontWeight: 600,
+                                        height: '40px',
+                                        backgroundColor: theme.palette.success.main,
+                                    })}
+                                >
+                                    {isAcceptLoading ? (
+                                        <CircularProgress size={16} color="inherit" />
+                                    ) : (
+                                        'Akceptuj'
+                                    )}
+                                </Button>
+                                <Button
+                                    disabled={isMutatingJoinRequest}
+                                    onClick={() => handleJoinRequestAction('reject', request)}
+                                    sx={(theme) => ({
+                                        flexShrink: 0,
+                                        minWidth: 90,
+                                        height: '40px',
+                                        fontWeight: 600,
+                                        backgroundColor: theme.palette.error.main,
+                                    })}
+                                >
+                                    {isRejectLoading ? (
+                                        <CircularProgress size={16} color="inherit" />
+                                    ) : (
+                                        'Odrzuć'
+                                    )}
+                                </Button>
                             </Box>
                         </Box>
                     );
@@ -450,168 +553,170 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
     return (
         <>
             <Box
-            sx={{
-                position: 'relative',
-                justifyItems: 'center',
-                maxWidth: '80%',
-                mx: 'auto',
-            }}
-        >
-            <Box
                 sx={{
-                    width: '80%',
-                    maxWidth: '300px',
+                    position: 'relative',
+                    justifyItems: 'center',
+                    maxWidth: '80%',
                     mx: 'auto',
-                    mb: 3,
-                    textAlign: 'center',
                 }}
             >
-
-
-                <TextField
-                    fullWidth
-                    placeholder="Wyszukaj członka"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    sx={(theme) => ({
-                        '& .MuiOutlinedInput-root': {
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                borderColor: groupColor || theme.palette.primary.main,
-                            },
-                        },
-                    })}
-                    slotProps={{
-                        input: {
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <Search size={20} style={{ opacity: 0.7 }} />
-                                </InputAdornment>
-                            ),
-                            endAdornment: searchQuery ? (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        onClick={handleClearSearch}
-                                        edge="end"
-                                        size="small"
-                                        sx={{
-                                            color: 'text.secondary',
-                                            '&:hover': {
-                                                color: 'text.primary',
-                                            },
-                                        }}
-                                    >
-                                        <X size={18} />
-                                    </IconButton>
-                                </InputAdornment>
-                            ) : null,
-                        },
-                    }}
-                />
-            </Box>
-
-
-
-            <Box
-                sx={(theme) => ({
-                    width: '100%',
-                    maxWidth: 900,
-                    px: { xs: 3, sm: 5 },
-                    py: { xs: 3, sm: 4 },
-                    borderRadius: 4,
-                    border: `1px solid ${groupColor ? groupColor : theme.palette.grey[700]}`,
-                    boxShadow: '0 16px 45px rgba(0, 0, 0, 0.35)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 2.5,
-                    backdropFilter: 'blur(6px)',
-                })}
-            >
-
                 <Box
                     sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        gap: 2,
-                        flexWrap: 'wrap',
+                        width: '80%',
+                        maxWidth: '300px',
+                        mx: 'auto',
                         mb: 3,
+                        textAlign: 'center',
                     }}
                 >
-                    <Button
-                        startIcon={<UserPlus size={20} style={{ marginLeft: 4 }} />}
-                        disabled={!groupId}
-                        onClick={handleOpenJoinRequestsDialog}
+
+
+                    <TextField
+                        fullWidth
+                        placeholder="Wyszukaj członka"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
                         sx={(theme) => ({
-                            backgroundColor: groupColor || theme.palette.primary.main,
-                            color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
-                            minWidth: 250,
-                            '&:disabled': {
-                                backgroundColor: theme.palette.action.disabledBackground,
-                                color: theme.palette.text.disabled,
+                            '& .MuiOutlinedInput-root': {
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor || theme.palette.primary.main,
+                                },
                             },
                         })}
-                    >
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                            }}
-                        >
-                            <Typography  sx={{ fontWeight: 600 }}>
-                                Prośby o dołączenie
-                            </Typography>
-                            {shouldShowJoinRequestsSpinner ? (
-                                <CircularProgress size={18}/>
-                            ) : (
-                                <Box
-                                    sx={{
-                                        px: 1,
-                                        borderRadius: 30,
-                                        textAlign: 'center',
-                                        fontWeight: 700,
-                                        backgroundColor: 'rgba(0, 0, 0, 0.25)',
-                                        ml: 1,
-                                    }}
-                                >
-                                    {joinRequestsBadgeValue}
-                                </Box>
-                            )}
-                        </Box>
-                    </Button>
-                    <Button
-                        startIcon={<Send size={20} />}
-                        onClick={handleGenerateInvite}
-                        disabled={!groupId || isGeneratingInvite}
-                        sx={(theme) => ({
-                            backgroundColor: groupColor || theme.palette.primary.main,
-                            color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
-                            minWidth: 250,
-                            '&:disabled': {
-                                backgroundColor: theme.palette.action.disabledBackground,
-                                color: theme.palette.text.disabled,
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <Search size={20} style={{ opacity: 0.7 }} />
+                                    </InputAdornment>
+                                ),
+                                endAdornment: searchQuery ? (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            onClick={handleClearSearch}
+                                            edge="end"
+                                            size="small"
+                                            sx={{
+                                                color: 'text.secondary',
+                                                '&:hover': {
+                                                    color: 'text.primary',
+                                                },
+                                            }}
+                                        >
+                                            <X size={18} />
+                                        </IconButton>
+                                    </InputAdornment>
+                                ) : null,
                             },
-                        })}
-                    >
-                        {isGeneratingInvite ? 'Generuję kod...' : 'Zaproszenie do grupy'}
-                    </Button>
+                        }}
+                    />
                 </Box>
-                {generateError && (
-                    <Typography
-                        variant="body2"
+
+
+
+                <Box
+                    sx={(theme) => ({
+                        width: '100%',
+                        maxWidth: 900,
+                        px: { xs: 3, sm: 5 },
+                        py: { xs: 3, sm: 4 },
+                        borderRadius: 4,
+                        border: `1px solid ${groupColor ? groupColor : theme.palette.grey[700]}`,
+                        boxShadow: '0 16px 45px rgba(0, 0, 0, 0.35)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 2.5,
+                        backdropFilter: 'blur(6px)',
+                    })}
+                >
+
+                    <Box
                         sx={{
-                            color: 'error.main',
-                            textAlign: 'center',
-                            mb: 1,
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: 2,
+                            flexWrap: 'wrap',
+                            mb: 3,
                         }}
                     >
-                        {generateError}
-                    </Typography>
-                )}
-                {renderListContent()}
+                        {canManageJoinRequests && (
+                            <Button
+                                startIcon={<UserPlus size={20} style={{ marginLeft: 4 }} />}
+                                disabled={!groupId}
+                                onClick={handleOpenJoinRequestsDialog}
+                                sx={(theme) => ({
+                                    backgroundColor: groupColor || theme.palette.primary.main,
+                                    color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
+                                    minWidth: 250,
+                                    '&:disabled': {
+                                        backgroundColor: theme.palette.action.disabledBackground,
+                                        color: theme.palette.text.disabled,
+                                    },
+                                })}
+                            >
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                    }}
+                                >
+                                    <Typography sx={{ fontWeight: 600 }}>
+                                        Prośby o dołączenie
+                                    </Typography>
+                                    {shouldShowJoinRequestsSpinner ? (
+                                        <CircularProgress size={18} />
+                                    ) : (
+                                        <Box
+                                            sx={{
+                                                px: 1,
+                                                borderRadius: 30,
+                                                textAlign: 'center',
+                                                fontWeight: 700,
+                                                backgroundColor: 'rgba(0, 0, 0, 0.25)',
+                                                ml: 1,
+                                            }}
+                                        >
+                                            {joinRequestsBadgeValue}
+                                        </Box>
+                                    )}
+                                </Box>
+                            </Button>
+                        )}
+                        <Button
+                            startIcon={<Send size={20} />}
+                            onClick={handleGenerateInvite}
+                            disabled={!groupId || isGeneratingInvite}
+                            sx={(theme) => ({
+                                backgroundColor: groupColor || theme.palette.primary.main,
+                                color: theme.palette.getContrastText(groupColor || theme.palette.primary.main),
+                                minWidth: 250,
+                                '&:disabled': {
+                                    backgroundColor: theme.palette.action.disabledBackground,
+                                    color: theme.palette.text.disabled,
+                                },
+                            })}
+                        >
+                            {isGeneratingInvite ? 'Generuję kod...' : 'Zaproszenie do grupy'}
+                        </Button>
+                    </Box>
+                    {generateError && (
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: 'error.main',
+                                textAlign: 'center',
+                                mb: 1,
+                            }}
+                        >
+                            {generateError}
+                        </Typography>
+                    )}
+                    {renderListContent()}
+                </Box>
             </Box>
-        </Box>
 
             <Dialog
                 open={joinRequestsDialogOpen}
@@ -675,7 +780,7 @@ export default function MembersList({ groupId, groupColor }: { groupId: string |
                     <Button
                         onClick={handleCopyInviteCode}
                         disabled={!inviteCode}
-                        sx={(theme) => (    {
+                        sx={(theme) => ({
                             mt: 1,
                             minWidth: 140,
                             backgroundColor: groupColor || theme.palette.primary.main,
