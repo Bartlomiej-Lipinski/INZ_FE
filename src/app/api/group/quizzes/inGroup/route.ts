@@ -1,6 +1,5 @@
 import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {QuizzesCreate} from "@/lib/types/quizzes";
 
 const BASE_URL = process.env.BASE_URL;
 const QUIZZES_GET_POST = process.env.QUIZZES_GET_POST;
@@ -38,7 +37,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const groupId = request.nextUrl.searchParams.get('groupId');
-        const quizPayLoad = await request.json() as QuizzesCreate;
+        const quizPayLoad = await request.json();
         if (!groupId) {
             return NextResponse.json(
                 {success: false, message: 'Brak wymaganych parametrów'},

@@ -1,0 +1,319 @@
+"use client";
+
+import React, {useEffect, useMemo, useState} from 'react';
+import {useSearchParams} from 'next/navigation';
+import {
+    QuizAttemptAnswerRequestDto,
+    QuizAttemptResponseDto,
+    QuizQuestionRequestDto,
+    QuizRequestDto,
+    QuizResponseDto,
+    ViewMode,
+} from '@/lib/types/quiz';
+import {calculateQuizScore} from '@/lib/utils/quiz';
+import QuizList from '@/components/quiz/QuizList';
+import QuizForm from '@/components/quiz/QuizForm';
+import QuizTake from '@/components/quiz/QuizTake';
+import QuizResults from '@/components/quiz/QuizResults';
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+
+
+export default function QuizzesPage() {
+    const searchParams = useSearchParams();
+    const [viewMode, setViewMode] = useState<ViewMode>('list');
+    const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([]);
+    const [selectedQuiz, setSelectedQuiz] = useState<QuizResponseDto | null>(null);
+
+    // Form state
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [questions, setQuestions] = useState<QuizQuestionRequestDto[]>([]);
+
+    // Taking quiz state
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+    const [answers, setAnswers] = useState<Record<string, QuizAttemptAnswerRequestDto>>({});
+    const [result, setResult] = useState<QuizAttemptResponseDto | null>(null);
+
+    const groupData = useMemo(() => {
+        const groupId = searchParams?.get('groupId') || '';
+        const groupName = searchParams?.get('groupName') || '';
+        const groupColor = searchParams?.get('groupColor') || '#9042fb';
+        return {
+            id: groupId,
+            name: decodeURIComponent(groupName),
+            color: decodeURIComponent(groupColor),
+        };
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (!groupData.id) return;
+
+        let mounted = true;
+
+        const fetchQuizzes = async () => {
+            try {
+                const res = await fetchWithAuth(`${API_ROUTES.GET_QUIZZES}?groupId=${groupData.id}`,
+                    {method: 'GET', credentials: 'include'}
+                );
+
+                if (!res.ok) {
+                    console.error('Błąd pobierania quizów, status:', res.status);
+                    return;
+                }
+
+                const json = await res.json();
+
+                const raw = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
+
+                const normalized: QuizResponseDto[] = raw.map((q: any) => ({
+                    id: String(q.id),
+                    groupId: String(q.groupId || groupData.id),
+                    title: q.title || '',
+                    description: q.description || undefined,
+                    createdAt: q.createdAt || new Date().toISOString(),
+                    questions: Array.isArray(q.questions) ? q.questions : [],
+                }));
+
+                if (mounted) setQuizzes(normalized);
+            } catch (error) {
+                console.error('Błąd podczas pobierania quizów:', error);
+            }
+        };
+
+        fetchQuizzes();
+
+        return () => {
+            mounted = false;
+        };
+    }, [groupData.id]);
+
+    const handleCreateQuiz = () => {
+        setTitle('');
+        setDescription('');
+        setQuestions([]);
+        setViewMode('create');
+    };
+
+    const handleEditQuiz = (quiz: QuizResponseDto) => {
+        setSelectedQuiz(quiz);
+        setTitle(quiz.title);
+        setDescription(quiz.description || '');
+        setQuestions(
+            quiz.questions.map((q) => ({
+                type: q.type,
+                content: q.content,
+                options: q.options.map((o) => ({text: o.text, isCorrect: o.isCorrect || false})),
+                correctTrueFalse: q.correctTrueFalse,
+            }))
+        );
+        setViewMode('edit');
+    };
+
+    const handleTakeQuiz = (quiz: QuizResponseDto) => {
+        setSelectedQuiz(quiz);
+        setCurrentQuestionIndex(0);
+        setAnswers({});
+        setResult(null);
+        setViewMode('take');
+    };
+
+    const handleDeleteQuiz = (quizId: string) => {
+        setQuizzes(quizzes.filter((q) => q.id !== quizId));
+    };
+
+    const handleBackToList = () => {
+        setViewMode('list');
+        setSelectedQuiz(null);
+    };
+
+    async function handleSubmitQuiz() {
+        if (viewMode === 'create') {
+            if (!groupData.id) {
+                console.error('Brak groupId');
+                return;
+            }
+            if (!title.trim()) {
+                console.error('Tytuł quizu jest wymagany');
+                return;
+            }
+
+            const payload = {
+                title,
+                description: description || undefined,
+                questions: questions,
+            } as QuizRequestDto;
+
+            try {
+                const res = await fetchWithAuth(
+                    `${API_ROUTES.POST_QUIZZES}?groupId=${groupData.id}`,
+                    {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload),
+                        credentials: 'include',
+                    }
+                );
+
+                if (!res.ok) {
+                    console.error('Błąd tworzenia quizu, status:', res.status);
+                    return;
+                }
+
+                const json = await res.json();
+                const raw = json?.data ?? json;
+                const createdRaw = Array.isArray(raw) ? raw[0] : raw;
+
+                const created: QuizResponseDto = {
+                    id: String(createdRaw?.id ?? Date.now().toString()),
+                    groupId: String(createdRaw?.groupId ?? groupData.id),
+                    title: createdRaw?.title ?? payload.title,
+                    description: createdRaw?.description ?? payload.description,
+                    createdAt: createdRaw?.createdAt ?? new Date().toISOString(),
+                    questions: Array.isArray(createdRaw?.questions) ? createdRaw.questions : payload.questions,
+                };
+
+                setQuizzes(prev => [created, ...prev]);
+                setTitle('');
+                setDescription('');
+                setQuestions([]);
+                setViewMode('list');
+                return;
+            } catch (error) {
+                console.error('Błąd podczas tworzenia quizu:', error);
+                return;
+            }
+        }
+
+        // lokalne zachowanie dla edit / offline fallback
+        const quizData: QuizResponseDto = {
+            id: viewMode === 'edit' && selectedQuiz ? selectedQuiz.id : Date.now().toString(),
+            groupId: groupData.id,
+            title,
+            description: description || undefined,
+            createdAt: viewMode === 'edit' && selectedQuiz ? selectedQuiz.createdAt : new Date().toISOString(),
+            questions: questions.map((q, qIndex) => {
+                const baseQId = 'q-' + Date.now() + '-' + qIndex;
+                return {
+                    id: baseQId,
+                    type: q.type,
+                    content: q.content,
+                    correctTrueFalse: q.correctTrueFalse,
+                    options: q.options
+                        ? q.options.map((o, oIndex) => ({
+                            id: 'o-' + Date.now() + '-' + qIndex + '-' + oIndex,
+                            questionId: baseQId,
+                            text: o.text,
+                            isCorrect: o.isCorrect,
+                        }))
+                        : [],
+                };
+            }),
+        };
+
+        if (viewMode === 'edit' && selectedQuiz) {
+            setQuizzes(prev => prev.map((q) => (q.id === selectedQuiz.id ? quizData : q)));
+        } else {
+            setQuizzes(prev => [quizData, ...prev]);
+        }
+
+        handleBackToList();
+    }
+
+    const handleAnswerChange = (questionId: string, answer: Partial<QuizAttemptAnswerRequestDto>) => {
+        setAnswers({
+            ...answers,
+            [questionId]: {
+                questionId,
+                ...answer,
+            },
+        });
+    };
+
+    const handleSubmitAttempt = () => {
+        if (!selectedQuiz) return;
+
+        const score = calculateQuizScore(selectedQuiz, answers);
+
+        const mockResult: QuizAttemptResponseDto = {
+            attemptId: 'attempt-' + Date.now(),
+            quizId: selectedQuiz.id,
+            score,
+            completedAt: new Date().toISOString(),
+            answers: Object.values(answers),
+        };
+
+        setResult(mockResult);
+        setViewMode('results');
+    };
+
+    const handleRetake = () => {
+        setAnswers({});
+        setCurrentQuestionIndex(0);
+        setResult(null);
+        setViewMode('take');
+    };
+
+    // Render appropriate view
+    if (viewMode === 'list') {
+        return (
+            <QuizList
+                quizzes={quizzes}
+                groupColor={groupData.color}
+                onCreateQuiz={handleCreateQuiz}
+                onEditQuiz={handleEditQuiz}
+                onTakeQuiz={handleTakeQuiz}
+                onDeleteQuiz={handleDeleteQuiz}
+            />
+        );
+    }
+
+    if (viewMode === 'create' || viewMode === 'edit') {
+        return (
+            <QuizForm
+                mode={viewMode}
+                title={title}
+                description={description}
+                questions={questions}
+                groupColor={groupData.color}
+                onTitleChange={setTitle}
+                onDescriptionChange={setDescription}
+                onQuestionsChange={setQuestions}
+                onSubmit={handleSubmitQuiz}
+                onCancel={handleBackToList}
+            />
+        );
+    }
+
+    if (viewMode === 'take' && selectedQuiz) {
+        return (
+            <QuizTake
+                quiz={selectedQuiz}
+                currentQuestionIndex={currentQuestionIndex}
+                answers={answers}
+                groupColor={groupData.color}
+                onAnswerChange={handleAnswerChange}
+                onNext={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+                onPrevious={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+                onSubmit={handleSubmitAttempt}
+                onCancel={handleBackToList}
+                onQuestionSelect={setCurrentQuestionIndex}
+            />
+        );
+    }
+
+    if (viewMode === 'results' && result && selectedQuiz) {
+        return (
+            <QuizResults
+                quiz={selectedQuiz}
+                result={result}
+                answers={answers}
+                groupColor={groupData.color}
+                onRetake={handleRetake}
+                onBackToList={handleBackToList}
+            />
+        );
+    }
+
+    return null;
+}

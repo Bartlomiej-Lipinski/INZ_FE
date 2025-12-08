@@ -29,6 +29,7 @@ const MENU_ITEMS = [
     {key: 'albums', label: 'ALBUM', icon: Images, path: '/group-albums'},
     {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study'},
     {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety'},
+    {key: 'quizzes', label: 'QUIZY', icon: Coffee, path: '/group-quiz'},
     {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-members'},
     {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
 ] as const;
