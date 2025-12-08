@@ -14,12 +14,15 @@ export async function PUT(request: NextRequest) {
                 {status: 400}
             );
         }
-        const {description, file} = await request.json();
+        const {description, title, file} = await request.json();
         const endpoint = DELETE_PUT_FEED?.replace('{groupId}', groupId)
             .replace('{feedItemId}', feedItemId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const formData = new FormData();
         formData.append('description', description);
+        if (title) {
+            formData.append('title', title);
+        }
         if (file) {
             formData.append('file', file);
         }
