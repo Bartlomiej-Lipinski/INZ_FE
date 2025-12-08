@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useSearchParams } from 'next/navigation';
@@ -11,6 +12,7 @@ export default function GroupOptionsPage() {
     const searchParams = useSearchParams();
     const theme = useTheme();
     const { user } = useAuthContext();
+    const [showLeaveGroupConfirm, setShowLeaveGroupConfirm] = useState(false);
 
     const groupId = searchParams?.get('groupId') ?? '';
     const groupColorParam = searchParams?.get('groupColor') ?? '';
@@ -72,23 +74,84 @@ export default function GroupOptionsPage() {
                             gap: 4,
                         }}
                     >
-                        <Button
-                            startIcon={<LogOut size={20} />}
-                            disabled={!groupId}
-                            sx={{
-                                minHeight: 56,
-                                fontWeight: 600,
-                                borderRadius: 2,
-                                textTransform: 'none',
-                                bgcolor: theme.palette.grey[700],
-                                color: theme.palette.getContrastText(theme.palette.grey[800]),
-                                '&:hover': {
+                        {!showLeaveGroupConfirm && (
+                            <Button
+                                startIcon={<LogOut size={20} />}
+                                disabled={!groupId}
+                                onClick={() => setShowLeaveGroupConfirm(true)}
+                                sx={{
+                                    minHeight: 56,
+                                    fontWeight: 600,
+                                    borderRadius: 2,
+                                    textTransform: 'none',
                                     bgcolor: theme.palette.grey[700],
-                                },
-                            }}
-                        >
-                            Opuść grupę
-                        </Button>
+                                    color: theme.palette.getContrastText(theme.palette.grey[800]),
+                                    '&:hover': {
+                                        bgcolor: theme.palette.grey[700],
+                                    },
+                                }}
+                            >
+                                Opuść grupę
+                            </Button>
+                        )}
+
+                        {showLeaveGroupConfirm && (
+                            <Box
+                                sx={{
+                                    width: '100%',
+                                    p: { xs: 2.5, sm: 3 },
+                                    borderRadius: 2,
+                                    border: `1px solid ${theme.palette.warning.light}`,
+                                    bgcolor: 'rgba(255, 255, 255, 0.05)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 1.5,
+                                    alignItems: 'center',
+                                }}
+                            >
+                                <Typography fontWeight={600} textAlign="center" mb={1.5}>
+                                    Czy na pewno chcesz opuścić tę grupę?
+                                </Typography>
+
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: { xs: 'column', sm: 'row' },
+                                        justifyContent: 'center',
+                                        alignItems: 'stretch',
+                                        gap: { xs: 1.5, sm: 3 },
+                                        width: '100%',
+                                    }}
+                                >
+                                    <Button
+                                        fullWidth
+                                        sx={{
+                                            minWidth: { xs: 'auto', sm: 120 },
+                                            backgroundColor: theme.palette.grey[800],
+                                            border: `1px solid ${theme.palette.grey[700]}`,
+                                        }}
+                                        onClick={() => {
+                                            // TO-DO: logic to leave group
+                                            setShowLeaveGroupConfirm(false);
+                                        }}
+                                    >
+                                        Tak
+                                    </Button>
+
+                                    <Button
+                                        fullWidth
+                                        sx={{
+                                            minWidth: { xs: 'auto', sm: 120 },
+                                            backgroundColor: groupColor,
+                                            color: theme.palette.getContrastText(groupColor),
+                                        }}
+                                        onClick={() => setShowLeaveGroupConfirm(false)}
+                                    >
+                                        Nie
+                                    </Button>
+                                </Box>
+                            </Box>
+                        )}
 
                         <Button
                             startIcon={<Settings2 size={20} />}
