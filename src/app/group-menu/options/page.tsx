@@ -1,24 +1,50 @@
 "use client";
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import GroupHeader from '@/components/layout/Group-header';
 import { LogOut, Settings2, Trash2 } from 'lucide-react';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { useMembers } from '@/hooks/use-members';
 
 export default function GroupOptionsPage() {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const theme = useTheme();
     const { user } = useAuthContext();
+    const { removeGroupMember } = useMembers();
     const [showLeaveGroupConfirm, setShowLeaveGroupConfirm] = useState(false);
+    const [isLeavingGroup, setIsLeavingGroup] = useState(false);
 
     const groupId = searchParams?.get('groupId') ?? '';
     const groupColorParam = searchParams?.get('groupColor') ?? '';
+    const userId = user?.id ?? '';
 
     const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : theme.palette.primary.main;
     const isAdmin = user?.role === 'Admin';
+
+    // TO-DO: logic to leave group
+    const handleLeaveGroupConfirm = useCallback(async () => {
+        // if (!groupId || !userId) {
+        //     console.warn("Brak wymaganych danych do opuszczenia grupy.");
+        //     return;
+        // }
+
+        // setIsLeavingGroup(true);
+
+        // try {
+        //     const response = await removeGroupMember(groupId, userId);
+
+        //     if (response.success) {
+        //         setShowLeaveGroupConfirm(false);
+        //         router.push('/');
+        //     }
+        // } finally {
+        //     setIsLeavingGroup(false);
+        // }
+    }, [groupId, removeGroupMember, router, userId]);
 
     return (
         <Box
@@ -125,17 +151,15 @@ export default function GroupOptionsPage() {
                                 >
                                     <Button
                                         fullWidth
+                                        disabled={isLeavingGroup}
                                         sx={{
                                             minWidth: { xs: 'auto', sm: 120 },
                                             backgroundColor: theme.palette.grey[800],
                                             border: `1px solid ${theme.palette.grey[700]}`,
                                         }}
-                                        onClick={() => {
-                                            // TO-DO: logic to leave group
-                                            setShowLeaveGroupConfirm(false);
-                                        }}
+                                        onClick={handleLeaveGroupConfirm}
                                     >
-                                        Tak
+                                        {isLeavingGroup ? 'Opuszczanie...' : 'Tak'}
                                     </Button>
 
                                     <Button
