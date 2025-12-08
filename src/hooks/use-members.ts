@@ -112,6 +112,7 @@ export function useMembers(): UseMembersResult {
             return { success: false, message };
         }
     }, []);
+    
     const removeGroupMember = useCallback(async (groupId: string, userId: string): Promise<ApiResponse<unknown>> => {
         if (!groupId || !userId) {
             const message = "Brak identyfikatora grupy lub użytkownika.";
