@@ -174,39 +174,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
         setJoinRequestsDialogOpen(false);
     };
 
-    const publishNewMemberAnnouncement = useCallback(async (request: JoinRequest) => {
-        if (!request.groupId) {
-            return;
-        }
-
-        const fullName = [request.user.name, request.user.surname].filter(Boolean).join(' ').trim();
-        const usernameHandle = request.user.username ? ` (@${request.user.username})` : '';
-        const identifiedUser = fullName
-            ? `${fullName}${usernameHandle}`
-            : request.user.username
-                ? `@${request.user.username}`
-                : 'nowego użytkownika';
-        const description = `Do grupy ${groupName} dołączył nowy członek: ${identifiedUser}\nPrzywitajcie go serdecznie!`;
-
-        const formData = new FormData();
-        formData.append('groupId', request.groupId);
-        formData.append('title', 'Nowy członek');
-        formData.append('description', description);
-
-        try {
-            const response = await fetchWithAuth(API_ROUTES.POST_FEED_ITEM, {
-                method: 'POST',
-                body: formData,
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Nie udało się opublikować posta powitalnego');
-            }
-        } catch (err) {
-            console.error('Błąd podczas publikowania posta o nowym członku:', err);
-        }
-    }, [groupName]);
 
     const handleJoinRequestAction = async (action: 'accept' | 'reject', request: JoinRequest) => {
         if (isMutatingJoinRequest) {
@@ -229,13 +196,8 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
             if (!response.success) {
                 console.error(`Nie udało się dokończyć ${actionName} prośby.`, response.message);
             } else {
-                if (action === 'accept') {
-                    await publishNewMemberAnnouncement(request);
-                }
                 if (groupId && action === 'reject') {
-                    fetchGroupMembers(groupId).catch((err) => {
-                        console.error('Nie udało się odświeżyć listy członków:', err);
-                    });
+                    await fetchGroupMembers(groupId);
                 }
             }
         } catch (err) {
@@ -263,7 +225,7 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                         minHeight: 180,
                     }}
                 >
-                    <CircularProgress size={36} sx={{ color: "white"}} />
+                    <CircularProgress size={36} sx={{ color: "white" }} />
                     <Typography color="text.secondary">
                         Ładuję prośby o dołączenie...
                     </Typography>
@@ -717,7 +679,7 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                                         Prośby o dołączenie
                                     </Typography>
                                     {shouldShowJoinRequestsSpinner ? (
-                                        <CircularProgress size={18} sx={{ color: "white", ml: 1}} />
+                                        <CircularProgress size={18} sx={{ color: "white", ml: 1 }} />
                                     ) : (
                                         <Box
                                             sx={{

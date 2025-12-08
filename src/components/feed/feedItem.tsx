@@ -14,7 +14,7 @@ import {
     Typography
 } from '@mui/material';
 import {alpha} from '@mui/material/styles';
-import {Edit2, Heart, MessageCircle, MoreVertical, Send, Trash2} from 'lucide-react';
+import {Edit2, Heart, MessageCircle, MoreVertical, Send, Trash2, User} from 'lucide-react';
 import {FeedItemType} from '@/lib/types/FeedItemType';
 import {CommentResponseDto, GroupFeedItemResponseDto, UserResponseDto} from '@/lib/types/feedDtos';
 import {useImageUrl} from "@/hooks/useImageUrl";
@@ -30,6 +30,8 @@ function getItemIcon(type: FeedItemType) {
             return MessageCircle;
         case FeedItemType.RECOMMENDATION:
             return Heart;
+        case FeedItemType.MEMBER:
+            return User;
         default:
             return null;
     }
@@ -45,6 +47,8 @@ function getItemColor(type: FeedItemType): string {
             return '#2196f3';
         case FeedItemType.RECOMMENDATION:
             return '#ffd700';
+        case FeedItemType.MEMBER:
+            return '#81db60';
         default:
             return '#9042fb';
     }
@@ -60,6 +64,8 @@ function getItemLabel(type: FeedItemType): string {
             return 'Ankieta';
         case FeedItemType.RECOMMENDATION:
             return 'Rekomendacja';
+        case FeedItemType.MEMBER:
+            return 'Nowy członek';
         default:
             return 'Post';
     }

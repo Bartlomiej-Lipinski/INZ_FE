@@ -32,6 +32,7 @@ const mapFeedItemType = (type: number | string): FeedItemType => {
         2: FeedItemType.CHALLENGE,
         3: FeedItemType.POLL,
         4: FeedItemType.RECOMMENDATION,
+        5: FeedItemType.MEMBER,
     };
     return typeMap[type] ?? FeedItemType.POST;
 };
