@@ -27,7 +27,7 @@ export interface UserCreate{
 export interface UserUpdate{
   name: string;
   surname: string;
-  username: string | null;
+  username: string;
   status: string | null;
   description: string | null;
   birthDate: Date;

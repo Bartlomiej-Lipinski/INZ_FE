@@ -168,9 +168,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
         }
 
         setJoinRequestsDialogOpen(true);
-        // fetchJoinRequests().catch((err) => {
-        //     console.error('Nie udało się odświeżyć próśb o dołączenie:', err);
-        // });
     };
 
     const handleCloseJoinRequestsDialog = () => {
@@ -295,7 +292,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                                 display: 'flex',
                                 flexDirection: { xs: 'column', sm: 'row' },
                                 alignItems: { xs: 'stretch', sm: 'center' },
-                                // justifyItems: { xs: 'center', sm: 'center' },
                                 gap: 2,
                                 padding: 1.5,
                                 borderRadius: 3,
@@ -407,13 +403,13 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
             return;
         }
 
-        // const params = new URLSearchParams({
-        //     groupId,
-        //     groupName: encodeURIComponent(groupName),
-        //     groupColor: encodeURIComponent(groupColor || '#9042fb'),
-        // });
+        const params = new URLSearchParams({
+            groupId,
+            groupName: encodeURIComponent(groupName),
+            groupColor: encodeURIComponent(groupColor || '#9042fb'),
+        });
 
-        router.push(`/group-menu/members/profile`);
+        router.push(`/group-menu/members/profile?${params.toString()}`);
     }, [groupColor, groupId, groupName, router]);
 
     const handleCloseDialog = () => {

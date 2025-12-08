@@ -3,20 +3,15 @@
 import {useCallback, useState} from "react";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import { ProfilePicture } from "@/lib/types/profile-picture";
 
-export interface JoinRequestProfilePicture {
-    url: string;
-    fileName: string;
-    contentType: string;
-    size: number;
-}
 
 export interface JoinRequestUser {
     id: string;
     name: string;
     surname: string;
     username: string | null;
-    profilePicture: JoinRequestProfilePicture | null;
+    profilePicture: ProfilePicture | null;
 }
 
 export interface JoinRequest {
@@ -73,6 +68,8 @@ export function useJoinRequest(): UseJoinRequestResult {
         );
     }, []);
 
+
+    //TO-DO: Refactor to use groupId
     const fetchJoinRequests = useCallback(async (): Promise<ApiResponse<JoinRequest[]>> => {
         setIsFetchingRequests(true);
         setError(null);
