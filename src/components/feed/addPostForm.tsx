@@ -172,7 +172,7 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: Read
                         disabled={isSubmitting}
                         sx={{
                             bgcolor: groupColor,
-                            color: '#9e9e9e',
+                            color: 'white',
                             '&:hover': {
                                 bgcolor: 'rgba(255, 255, 255, 0.1)',
                                 color: '#bdbdbd',
