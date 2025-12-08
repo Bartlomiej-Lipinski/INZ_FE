@@ -8,6 +8,9 @@ import GroupHeader from '@/components/layout/Group-header';
 import { LogOut, Settings2, Trash2 } from 'lucide-react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useMembers } from '@/hooks/use-members';
+import { AddGroupModal } from '@/components/modals/add-group-modal';
+import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
+import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 
 export default function GroupOptionsPage() {
     const searchParams = useSearchParams();
@@ -17,11 +20,14 @@ export default function GroupOptionsPage() {
     const { removeGroupMember } = useMembers();
     const [showLeaveGroupConfirm, setShowLeaveGroupConfirm] = useState(false);
     const [isLeavingGroup, setIsLeavingGroup] = useState(false);
+    const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
 
     const groupId = searchParams?.get('groupId') ?? '';
+    const groupNameParam = searchParams?.get('groupName') ?? '';
     const groupColorParam = searchParams?.get('groupColor') ?? '';
     const userId = user?.id ?? '';
 
+    const groupName = groupNameParam ? decodeURIComponent(groupNameParam) : '';
     const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : theme.palette.primary.main;
     const isAdmin = user?.role === 'Admin';
 
@@ -45,6 +51,23 @@ export default function GroupOptionsPage() {
         //     setIsLeavingGroup(false);
         // }
     }, [groupId, removeGroupMember, router, userId]);
+
+    const handleUpdateGroup = useCallback(async (name: string, color: string) => {
+        if (!groupId) {
+            console.warn('Brak identyfikatora grupy - przerwano aktualizację.');
+            return;
+        }
+
+        try {
+            await fetchWithAuth(API_ROUTES.GROUP_BY_ID, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: groupId, name, color }),
+            });
+        } catch (error) {
+            console.error('Nie udało się zaktualizować grupy:', error);
+        }
+    }, [groupId]);
 
     return (
         <Box
@@ -180,6 +203,7 @@ export default function GroupOptionsPage() {
                         <Button
                             startIcon={<Settings2 size={20} />}
                             disabled={!isAdmin}
+                            onClick={() => setIsEditGroupModalOpen(true)}
                             sx={{
                                 minHeight: 56,
                                 fontWeight: 600,
@@ -223,6 +247,14 @@ export default function GroupOptionsPage() {
                     )}
                 </Box>
             </Box>
+            <AddGroupModal
+                isOpen={isEditGroupModalOpen}
+                onClose={() => setIsEditGroupModalOpen(false)}
+                onAdd={handleUpdateGroup}
+                mode="update"
+                initialGroupName={groupName}
+                initialColor={groupColor}
+            />
         </Box>
     );
 }
