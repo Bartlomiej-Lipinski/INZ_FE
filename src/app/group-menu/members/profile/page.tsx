@@ -503,7 +503,7 @@ export default function MemberProfilePage() {
                             onClick={() => setShowRemoveMemberConfirm(true)}
                             startIcon={
                                 isRemovingMember ? (
-                                    <CircularProgress size={20} />
+                                    <CircularProgress size={20} sx={{ color: 'text.disabled' }}/>
                                 ) : undefined
                             }
                         >
@@ -554,7 +554,7 @@ export default function MemberProfilePage() {
                                     }}
                                 >
                                     {isRemovingMember ? (
-                                        <CircularProgress size={18} />
+                                        <CircularProgress size={18} sx={{ color: 'white' }}/>
                                     ) : (
                                         "Tak"
                                     )}

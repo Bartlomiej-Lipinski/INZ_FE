@@ -139,14 +139,16 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
             const payload: GenerateCodeResponse = await response.json().catch(() => ({} as GenerateCodeResponse));
 
             if (!response.ok || !payload?.success) {
-                throw new Error(payload?.message ?? 'Nie udało się wygenerować kodu zaproszenia');
+                setGenerateError('Nie udało się wygenerować kodu zaproszenia');
+                return;
             }
 
 
             const derivedCode = extractInviteCode(payload.data);
 
             if (!derivedCode) {
-                throw new Error('Nie udało się odczytać wygenerowanego kodu');
+                setGenerateError('Nie udało się odczytać wygenerowanego kodu');
+                return;
             }
 
             setInviteCode(derivedCode);
@@ -195,6 +197,12 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
 
             if (!response.success) {
                 console.error(`Nie udało się dokończyć ${actionName} prośby.`, response.message);
+            }else{
+                if (groupId && action === 'reject') {
+                    fetchGroupMembers(groupId).catch((err) => {
+                        console.error('Nie udało się odświeżyć listy członków:', err);
+                    });
+                }
             }
         } catch (err) {
             console.error(`Błąd podczas ${actionName} prośby.`, err);
@@ -357,7 +365,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                                     disabled={isMutatingJoinRequest}
                                     onClick={() => handleJoinRequestAction('accept', request)}
                                     sx={(theme) => ({
-                                        // flexShrink: 0,
                                         minWidth: 80,
                                         fontWeight: 600,
                                         height: '40px',
@@ -400,13 +407,13 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
             return;
         }
 
-        const params = new URLSearchParams({
-            groupId,
-            groupName: encodeURIComponent(groupName),
-            groupColor: encodeURIComponent(groupColor || '#9042fb'),
-        });
+        // const params = new URLSearchParams({
+        //     groupId,
+        //     groupName: encodeURIComponent(groupName),
+        //     groupColor: encodeURIComponent(groupColor || '#9042fb'),
+        // });
 
-        router.push(`/group-menu/members/profile?${params.toString()}`);
+        router.push(`/group-menu/members/profile`);
     }, [groupColor, groupId, groupName, router]);
 
     const handleCloseDialog = () => {
@@ -758,7 +765,29 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                 fullWidth
                 maxWidth="xs"
             >
-                <DialogTitle sx={{ fontWeight: 600, pb: 1 }}>Skopiuj zaproszenie</DialogTitle>
+                <DialogTitle
+                    sx={{
+                        fontWeight: 600,
+                        pb: 1,
+                        pt: 3,
+                        textAlign: 'center',
+                    }}
+                >
+                    <IconButton
+                        onClick={handleCloseDialog}
+                        size="small"
+                        aria-label="Zamknij dialog"
+                        sx={(theme) => ({
+                            position: 'absolute',
+                            top: theme.spacing(1),
+                            left: theme.spacing(1),
+                            color: 'text.primary',
+                        })}
+                    >
+                        <X size={20} />
+                    </IconButton>
+                    Skopiuj zaproszenie
+                </DialogTitle>
                 <DialogContent
                     sx={{
                         display: 'flex',
