@@ -12,7 +12,7 @@ import {
     Notebook,
     PieChart,
     X,
-    Settings,
+    Settings2,
     Star,
     Users
 } from 'lucide-react';
@@ -33,7 +33,7 @@ const MENU_ITEMS = [
     {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study'},
     {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety'},
     {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-menu/members'},
-    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
+    {key: 'options', label: 'OPCJE GRUPY', icon: Settings2, path: '/group-menu/options'},
 ] as const;
 
 interface GroupMenuProps {
