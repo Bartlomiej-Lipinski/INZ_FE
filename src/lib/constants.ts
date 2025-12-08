@@ -2,6 +2,10 @@ export const IMAGES = {
   MATES_LOGO: "/mates.png",
 } as const; 
 
+export const STORAGE_KEYS = {
+  SELECTED_GROUP_MEMBER: "selectedGroupMember",
+} as const;
+
 
 export const MAX_PROFILE_PHOTO_SIZE = 2 * 1024 * 1024;
 export const ALLOWED_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;

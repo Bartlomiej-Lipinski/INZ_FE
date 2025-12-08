@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {
     Avatar,
@@ -33,15 +33,15 @@ import {
     ExternalLink,
     Heart,
     Image as ImageIcon,
-    Menu as MenuIcon,
     MessageCircle,
     MoreVertical,
     Plus,
     Send,
+    Star,
     Trash2,
     X,
 } from 'lucide-react';
-import GroupMenu from "@/components/common/GroupMenu";
+import GroupMenuHeader from '@/components/layout/Group-menu-header';
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {EntityType} from "@/lib/types/entityType";
@@ -156,6 +156,33 @@ function CommentItem({comment}: { comment: CommentResponseDto }) {
     );
 }
 
+const ensureArray = <T,>(value: unknown): T[] => Array.isArray(value) ? value : [];
+
+const isRecommendationDto = (value: unknown): value is RecommendationResponseDto => {
+    if (!value || typeof value !== 'object') {
+        return false;
+    }
+    const rec = value as RecommendationResponseDto;
+    return typeof rec.id === 'string'
+        && typeof rec.title === 'string'
+        && typeof rec.content === 'string'
+        && typeof rec.createdAt === 'string'
+        && !!rec.user;
+};
+
+const normalizeRecommendation = (rec: RecommendationResponseDto): RecommendationResponseDto => ({
+    ...rec,
+    comments: ensureArray<CommentResponseDto>(rec?.comments),
+    reactions: ensureArray<UserResponseDto>(rec?.reactions),
+});
+
+const normalizeRecommendations = (items: unknown): RecommendationResponseDto[] => {
+    if (!Array.isArray(items)) {
+        return [];
+    }
+    return items.map((item) => normalizeRecommendation(item as RecommendationResponseDto));
+};
+
 export default function RecommendationsPage() {
     const searchParams = useSearchParams();
     const [recommendations, setRecommendations] = useState<RecommendationResponseDto[]>([]);
@@ -167,7 +194,6 @@ export default function RecommendationsPage() {
     const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; id: string } | null>(null);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [newComment, setNewComment] = useState<Record<string, string>>({});
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -225,32 +251,32 @@ export default function RecommendationsPage() {
         }
     }, []);
 
-    useEffect(() => {
-        const fetchRecommendations = async () => {
-            if (!groupData.id) return;
+    const fetchRecommendations = useCallback(async () => {
+        if (!groupData.id) return;
 
-            try {
-                const response = await fetchWithAuth(
-                    `${API_ROUTES.GET_RECOMMENDATIONS}?groupId=${groupData.id}`,
-                    {method: 'GET', credentials: 'include'}
-                );
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.GET_RECOMMENDATIONS}?groupId=${groupData.id}`,
+                {method: 'GET', credentials: 'include'}
+            );
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const payload = data.data as RecommendationResponseDto[];
-                    setRecommendations(payload);
-                } else {
-                    console.error('Błąd podczas pobierania rekomendacji');
-                    setRecommendations([]);
-                }
-            } catch (error) {
-                console.error('Błąd podczas pobierania rekomendacji:', error);
+            if (response.ok) {
+                const data = await response.json();
+                const normalized = normalizeRecommendations(data?.data);
+                setRecommendations(normalized);
+            } else {
+                console.error('Błąd podczas pobierania rekomendacji');
                 setRecommendations([]);
             }
-        };
-
-        fetchRecommendations();
+        } catch (error) {
+            console.error('Błąd podczas pobierania rekomendacji:', error);
+            setRecommendations([]);
+        }
     }, [groupData.id]);
+
+    useEffect(() => {
+        fetchRecommendations();
+    }, [fetchRecommendations]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -371,12 +397,18 @@ export default function RecommendationsPage() {
             }
 
             const result = await response.json();
+            const candidate = result?.data ?? result;
 
-            setRecommendations(prevRecs =>
-                prevRecs.map(rec =>
-                    rec.id === tempId ? result : rec
-                )
-            );
+            if (isRecommendationDto(candidate)) {
+                const normalizedRecommendation = normalizeRecommendation(candidate);
+                setRecommendations(prevRecs =>
+                    prevRecs.map(rec =>
+                        rec.id === tempId ? normalizedRecommendation : rec
+                    )
+                );
+            } else {
+                await fetchRecommendations();
+            }
         } catch (error) {
             console.error('Błąd podczas dodawania rekomendacji:', error);
             setRecommendations(prevRecs => prevRecs.filter(rec => rec.id !== tempId));
@@ -498,7 +530,7 @@ export default function RecommendationsPage() {
         const rec = recommendations.find(r => r.id === recId);
         if (!rec) return;
 
-        const userReaction = rec.reactions.find(r => r.id === currentUser.id);
+        const userReaction = ensureArray<UserResponseDto>(rec.reactions).find(r => r.id === currentUser.id);
         const isRemoving = !!userReaction;
 
         const previousRecommendations = [...recommendations];
@@ -507,15 +539,16 @@ export default function RecommendationsPage() {
             setRecommendations(prevRecs =>
                 prevRecs.map(r => {
                     if (r.id === recId) {
+                        const safeReactions = ensureArray<UserResponseDto>(r.reactions);
                         if (isRemoving) {
                             return {
                                 ...r,
-                                reactions: r.reactions.filter(reaction => reaction.id !== currentUser.id)
+                                reactions: safeReactions.filter(reaction => reaction.id !== currentUser.id)
                             };
                         } else {
                             return {
                                 ...r,
-                                reactions: [...r.reactions,
+                                reactions: [...safeReactions,
                                     {
                                         id: currentUser.id,
                                         name: currentUser.name,
@@ -683,7 +716,7 @@ export default function RecommendationsPage() {
     };
 
     const hasUserLiked = (rec: RecommendationResponseDto) =>
-        rec.reactions.some((r) => r.id === currentUser?.id);
+        ensureArray<UserResponseDto>(rec.reactions).some((r) => r.id === currentUser?.id);
 
     const isUserRecommendation = (rec: RecommendationResponseDto) => rec.user.id === currentUser?.id;
 
@@ -708,7 +741,9 @@ export default function RecommendationsPage() {
         const userLiked = hasUserLiked(rec);
         const isOwner = isUserRecommendation(rec);
         const isExpanded = expandedComments.has(rec.id);
-        const avatarsToShow = rec.reactions.slice(0, 3);
+        const reactions = ensureArray<UserResponseDto>(rec.reactions);
+        const comments = ensureArray<CommentResponseDto>(rec.comments);
+        const avatarsToShow = reactions.slice(0, 3);
         const displayName = rec.user
             ? `${rec.user.name} ${rec.user.surname}`.trim() || rec.user.username
             : 'Nieznany użytkownik';
@@ -818,7 +853,7 @@ export default function RecommendationsPage() {
                                 }
                             }}
                         >
-                            {rec.reactions.length}
+                            {reactions.length}
                         </Button>
 
                         {avatarsToShow.length > 0 && (
@@ -844,14 +879,14 @@ export default function RecommendationsPage() {
                             }
                         }}
                     >
-                        {rec.comments.length}
+                        {comments.length}
                     </Button>
                 </CardActions>
 
                 <Collapse in={isExpanded}>
                     <Box sx={{px: 3, pb: 3}}>
                         <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 2}}>
-                            {rec.comments.map(comment => (
+                            {comments.map(comment => (
                                 <Box key={comment.id} sx={{position: 'relative'}}>
                                     <CommentItem comment={comment}/>
                                     {comment.user?.id === currentUser?.id && (
@@ -870,7 +905,7 @@ export default function RecommendationsPage() {
                                     )}
                                 </Box>
                             ))}
-                            <Box sx={{display: 'flex', gap: 1.5, mt: rec.comments.length > 0 ? 2 : 0}}>
+                            <Box sx={{display: 'flex', gap: 1.5, mt: comments.length > 0 ? 2 : 0}}>
                                 {currentUserDto && (
                                     <UserAvatar user={currentUserDto} size={32} groupColor={groupData.color}/>
                                 )}
@@ -924,25 +959,14 @@ export default function RecommendationsPage() {
     };
 
     return (
-        <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
-            <Box sx={{maxWidth: 1200, mx: 'auto'}}>
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                    <IconButton onClick={() => setDrawerOpen(true)}>
-                        <MenuIcon/>
-                    </IconButton>
-                    <Typography variant="h4" sx={{fontWeight: 700, ml: 2}}>
-                        Rekomendacje
-                    </Typography>
-                </Box>
-
-                <GroupMenu
-                    open={drawerOpen}
-                    onClose={() => setDrawerOpen(false)}
-                    groupId={groupData.id}
-                    groupName={groupData.name}
-                    groupColor={groupData.color}
+        <Box sx={{width: '100%', minHeight: '100vh', }}>
+            <GroupMenuHeader
+                    title="Rekomendacje"
+                    leftIcon={<Star size={35} color="white" />}
                 />
-
+            
+            <Box sx={{maxWidth: 1200, width: '90%', mx: 'auto'}}>
+            
                 <Button
                     variant="contained"
                     startIcon={<Plus size={20}/>}
@@ -978,7 +1002,7 @@ export default function RecommendationsPage() {
 
                 <Grid container spacing={3}>
                     {filteredRecommendations.map(rec => (
-                        <Grid item xs={12} md={6} key={rec.id}>
+                        <Grid size={{xs: 12, md: 4}} key={rec.id}>
                             {renderRecommendationCard(rec)}
                         </Grid>
                     ))}

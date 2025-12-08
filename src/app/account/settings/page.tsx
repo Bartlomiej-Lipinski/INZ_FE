@@ -284,7 +284,7 @@ export default function AccountSettingsPage() {
                 }}
               >
 
-                {/* TODO: Add logic to delete account */}
+                {/* TO-DO: Add logic to delete account */}
                 {/* Yes button */}
                 <Button
                   fullWidth

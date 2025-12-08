@@ -26,6 +26,7 @@ import Select from '@mui/material/Select';
 import GroupMenu from "@/components/common/GroupMenu";
 import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
 import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
+import GroupMenuHeader from '../layout/Group-menu-header';
 
 interface StudyMaterialsPageProps {
     files: StoredFileResponseDto[];
@@ -73,7 +74,6 @@ export function StudyMaterialsPage({
                     id: userData.id,
                     name: userData.name,
                     avatar: 'https://i.pravatar.cc/150?img=1',
-                    // userData.ProfilePIcture.id ||
                 });
             } catch (error) {
                 console.error('Błąd parsowania danych użytkownika z localStorage:', error);
@@ -284,36 +284,12 @@ export function StudyMaterialsPage({
     const hasFilters: boolean = !!(searchQuery || selectedCategory !== 'all' || selectedAuthor !== 'all');
 
     return (
-        <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
-            <Box sx={{maxWidth: 1200, mx: 'auto'}}>
-                {/* Nagłówek */}
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                    <IconButton
-                        onClick={() => setDrawerOpen(true)}
-                        sx={{
-                            bgcolor: '#8D8C8C',
-                            '&:hover': {bgcolor: '#666666'},
-                            mr: 1,
-                        }}
-                    >
-                        <MenuIcon/>
-                    </IconButton>
-
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            textAlign: 'center',
-                            flex: 1,
-                            fontWeight: 600,
-                            fontSize: {xs: '1.75rem', sm: '2rem'},
-                        }}
-                    >
-                        <Notebook size={32}/> {'Materiały Edukacyjne'}
-                    </Typography>
-                </Box>
-
-                <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData!.id}
-                           groupName={groupData!.name} groupColor={groupData!.color || '#ffffff'}/>
+        <Box sx={{width: '100%', minHeight: '100vh', }}>
+            <GroupMenuHeader
+                title="Materiały Edukacyjne"
+                leftIcon={<Notebook size={35} color="white" />}
+            />
+            <Box sx={{maxWidth: 1200, width: '90%', mx: 'auto'}}>
 
                 {/* Przycisk dodawania */}
                 <Button

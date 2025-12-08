@@ -1,23 +1,18 @@
+import { ProfilePicture } from "./profile-picture";
+
 export interface User {
   id: string;
-  username: string | null;
+  username: string;
   email: string;
   name: string;
   surname: string;
   birthDate: Date;
   status: string | null;
   description: string | null;
-  profilePicture: {
-        id: string;
-        fileName: string;
-        contentType: string;
-        size: number;
-        url: string;
-      } | null;
+  profilePicture: ProfilePicture | null;
   isTwoFactorEnabled: boolean;
-  role?: 'Member';
+  role?: 'Member' | 'Admin';
 }
-
 
 export interface UserCreate{
   name: string;
@@ -29,14 +24,26 @@ export interface UserCreate{
 }
 
 
-
 export interface UserUpdate{
   name: string;
   surname: string;
-  username: string | null;
+  username: string;
   status: string | null;
   description: string | null;
   birthDate: Date;
   profilePictureId?: string | null;
 }
 
+
+export interface GroupMember {
+  id: string;
+  email: string;
+  username: string;
+  name: string;
+  surname: string;
+  birthDate: Date;
+  status: string | null;
+  description: string | null;
+  profilePicture: ProfilePicture | null;
+  isAwaitingApproval?: boolean;
+}

@@ -52,11 +52,11 @@ export async function enrichItemsWithUserData(
 
     const enrichedItems = await Promise.all(
         items.map(async (item) => {
-            const user = await fetchUserData(item.userId);
+            const user = await fetchUserData(item.user.id);
 
             const enrichedComments = await Promise.all(
                 item.comments.map(async (comment) => {
-                    const commentUser = await fetchUserData(comment.userId);
+                    const commentUser = await fetchUserData(comment.user.id);
                     return {
                         ...comment,
                         userName: commentUser.name,

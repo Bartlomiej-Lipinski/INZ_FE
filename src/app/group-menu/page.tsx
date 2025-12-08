@@ -1,7 +1,7 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
-import {useSearchParams} from 'next/navigation';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     Box,
     Button,
@@ -13,16 +13,15 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import {Menu as MenuIcon} from 'lucide-react';
-import {FeedItemType} from "@/lib/types/FeedItemType";
-import {CommentResponseDto, GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
-import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-import GroupMenu from '@/components/common/GroupMenu';
+import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import { FeedItemType } from "@/lib/types/FeedItemType";
+import { CommentResponseDto, GroupFeedItemResponseDto } from "@/lib/types/feedDtos";
+import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
 import AddPostForm from '@/components/feed/addPostForm';
 import FeedList from '@/components/feed/feedlist';
-import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {EntityType} from "@/lib/types/entityType";
-import {useImageUrl} from "@/hooks/useImageUrl";
+import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
+import { EntityType } from "@/lib/types/entityType";
+import { User } from "@/lib/types/user";
 
 const mapFeedItemType = (type: number | string): FeedItemType => {
     if (typeof type === 'string') return type as FeedItemType;
@@ -33,8 +32,50 @@ const mapFeedItemType = (type: number | string): FeedItemType => {
         2: FeedItemType.CHALLENGE,
         3: FeedItemType.POLL,
         4: FeedItemType.RECOMMENDATION,
+        5: FeedItemType.MEMBER,
     };
     return typeMap[type] ?? FeedItemType.POST;
+};
+
+type StoredProfilePicture = null | (Partial<NonNullable<User['profilePicture']>> & { id?: string });
+type StoredUser = Partial<User> & { birthDate?: string | Date; profilePicture?: StoredProfilePicture };
+type CurrentUser = User & { username: string };
+
+const hasProfilePicture = (picture?: StoredProfilePicture): picture is StoredProfilePicture & { id: string } => {
+    return Boolean(picture && picture.id);
+};
+
+const normalizeStoredUser = (data: StoredUser | null | undefined): CurrentUser | null => {
+    if (!data || !data.id || !data.email || !data.name || !data.surname) {
+        return null;
+    }
+
+    const parsedBirthDate = data.birthDate ? new Date(data.birthDate) : new Date(0);
+    const birthDate = Number.isNaN(parsedBirthDate.getTime()) ? new Date(0) : parsedBirthDate;
+
+    const profilePicture = hasProfilePicture(data.profilePicture)
+        ? {
+            id: data.profilePicture.id,
+            fileName: data.profilePicture.fileName ?? '',
+            contentType: data.profilePicture.contentType ?? '',
+            size: data.profilePicture.size ?? 0,
+            url: data.profilePicture.url ?? '',
+        }
+        : null;
+
+    return {
+        id: data.id,
+        email: data.email,
+        username: data.username ?? '',
+        name: data.name,
+        surname: data.surname,
+        birthDate,
+        status: data.status ?? null,
+        description: data.description ?? null,
+        profilePicture,
+        isTwoFactorEnabled: data.isTwoFactorEnabled ?? false,
+        role: data.role,
+    };
 };
 
 export default function GroupBoardPage() {
@@ -42,67 +83,34 @@ export default function GroupBoardPage() {
     const [items, setItems] = useState<GroupFeedItemResponseDto[]>([]);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [newComment, setNewComment] = useState<Record<string, string>>({});
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [page] = useState(0);
     const [pageSize] = useState(10);
-    const [currentUser, setCurrentUser] = useState<{
-        id: string;
-        email: string;
-        username: string;
-        name: string;
-        surname: string;
-        birthDate?: string;
-        status?: string;
-        description?: string;
-        profilePicture?: {
-            id: string;
-            fileName?: string;
-            contentType?: string;
-            size?: number;
-            url?: string;
-        };
-        isTwoFactorEnabled?: boolean;
-    } | null>(null);
+    const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [editingPost, setEditingPost] = useState<GroupFeedItemResponseDto | null>(null);
     const [editContent, setEditContent] = useState('');
     const [editTitle, setEditTitle] = useState('');
     const [isEditing, setIsEditing] = useState(false);
-    const [profilePictureId, setProfilePictureId] = useState<string | undefined>(undefined);
-    const avatarUrl = useImageUrl(profilePictureId);
 
 
     useEffect(() => {
         const userAuth = localStorage.getItem('auth:user');
-        if (userAuth) {
-            try {
-                const userData = JSON.parse(userAuth);
-                setCurrentUser({
-                    id: userData.id,
-                    email: userData.email,
-                    username: userData.username,
-                    name: userData.name,
-                    surname: userData.surname,
-                    birthDate: userData.birthDate,
-                    status: userData.status,
-                    description: userData.description,
-                    profilePicture: userData.profilePicture,
-                    isTwoFactorEnabled: userData.isTwoFactorEnabled,
-                });
-                setProfilePictureId(userData.profilePicture?.id);
-            } catch (error) {
-                console.error('Błąd parsowania danych użytkownika:', error);
+        if (!userAuth) {
+            return;
+        }
+
+        try {
+            const rawUser = JSON.parse(userAuth) as StoredUser;
+            const normalized = normalizeStoredUser(rawUser);
+            if (normalized) {
+                setCurrentUser(normalized);
             }
+        } catch (error) {
+            console.error('Błąd parsowania danych użytkownika:', error);
+            setCurrentUser(null);
         }
     }, []);
-
-
-    useEffect(() => {
-        if (avatarUrl && currentUser) {
-            setCurrentUser(prev => prev ? {...prev, avatar: avatarUrl} : null);
-        }
-    }, [avatarUrl]);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
@@ -123,7 +131,7 @@ export default function GroupBoardPage() {
                     `${API_ROUTES.GET_FEED_ITEMS}?groupId=${groupData.id}&page=${page}&pageSize=${pageSize}`,
                     {
                         method: 'GET',
-                        headers: {'Content-Type': 'application/json'},
+                        headers: { 'Content-Type': 'application/json' },
                     }
                 );
 
@@ -166,7 +174,7 @@ export default function GroupBoardPage() {
                 items.map((item) => {
                     if (item.id === itemId) {
                         if (isRemoving) {
-                            return {...item, reactions: item.reactions.filter((r) => r.id !== currentUser.id)};
+                            return { ...item, reactions: item.reactions.filter((r) => r.id !== currentUser.id) };
                         } else {
                             return {
                                 ...item,
@@ -194,7 +202,7 @@ export default function GroupBoardPage() {
 
             const response = await fetchWithAuth(`${API_ROUTES.REACTION_POST}?groupId=${groupData.id}&targetId=${itemId}&entityType=${EntityType.GroupFeedItem}`, {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
             });
 
@@ -256,16 +264,16 @@ export default function GroupBoardPage() {
             )
         );
 
-        setNewComment((prev) => ({...prev, [itemId]: ''}));
+        setNewComment((prev) => ({ ...prev, [itemId]: '' }));
 
         try {
             const response = await fetchWithAuth(
                 `${API_ROUTES.POST_COMMENT}?groupId=${groupData.id}&targetId=${itemId}`,
                 {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({content, entityType: "GroupFeedItem"}),
+                    body: JSON.stringify({ content, entityType: "GroupFeedItem" }),
                 }
             );
 
@@ -310,13 +318,13 @@ export default function GroupBoardPage() {
                 )
             );
 
-            setNewComment((prev) => ({...prev, [itemId]: content}));
+            setNewComment((prev) => ({ ...prev, [itemId]: content }));
         }
     };
 
 
     const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, itemId: string) => {
-        setMenuAnchor({el: event.currentTarget, itemId});
+        setMenuAnchor({ el: event.currentTarget, itemId });
     };
 
     const handleCloseMenu = () => {
@@ -353,7 +361,7 @@ export default function GroupBoardPage() {
         setItems(prevItems =>
             prevItems.map(item =>
                 item.id === editingPost.id
-                    ? {...item, description: editContent, title: editTitle || undefined}
+                    ? { ...item, description: editContent, title: editTitle || undefined }
                     : item
             )
         );
@@ -363,7 +371,7 @@ export default function GroupBoardPage() {
                 `${API_ROUTES.PUT_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${editingPost.id}`,
                 {
                     method: 'PUT',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({
                         description: editContent,
@@ -400,7 +408,7 @@ export default function GroupBoardPage() {
                 `${API_ROUTES.DELETE_FEED_ITEM}?groupId=${groupData.id}&feedItemId=${itemId}`,
                 {
                     method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                 }
             );
@@ -424,40 +432,26 @@ export default function GroupBoardPage() {
                 justifyContent: "center",
                 alignItems: "center"
             }}>
-                <Typography>Ładowanie danych użytkownika...</Typography>
+                <Typography>Ładowanie danych...</Typography>
             </Box>
         );
     }
 
     return (
-        <Box sx={{
-            width: "100%",
-            minHeight: "100vh",
-            display: "flex",
-            justifyContent: "center",
-            px: {xs: 2, sm: 3},
-            py: {xs: 3, sm: 4}
-        }}>
-            <Box sx={{width: "100%", maxWidth: 700}}>
-                <Box sx={{display: "flex", alignItems: "center", mb: 4}}>
-                    <IconButton onClick={() => setDrawerOpen(true)}
-                                sx={{bgcolor: "#8D8C8C", "&:hover": {bgcolor: "#666666"}, mr: 1}}>
-                        <MenuIcon/>
-                    </IconButton>
+        <Box
+            sx={{
+                width: "100%",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+            }}
+        >
+            <GroupMenuHeader
+                title={groupData?.name?.trim() || "Tablica grupy"}
+            />
 
-                    <Typography variant="h2" sx={{
-                        textAlign: "center",
-                        color: "text.primary",
-                        flex: 1,
-                        fontSize: {xs: "1.75rem", sm: "2rem"}
-                    }}>
-                        {groupData?.name || "Tablica grupy"}
-                    </Typography>
-                </Box>
-
-                <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
-                           groupName={groupData.name} groupColor={groupData.color}/>
-
+            <Box sx={{ width: "90%", maxWidth: 700 }}>
                 <AddPostForm
                     user={currentUser}
                     groupColor={groupColor}
@@ -501,7 +495,7 @@ export default function GroupBoardPage() {
                     onToggleComments={toggleComments}
                     onOpenMenu={handleOpenMenu}
                     newComment={newComment}
-                    onCommentChange={(id, value) => setNewComment({...newComment, [id]: value})}
+                    onCommentChange={(id, value) => setNewComment({ ...newComment, [id]: value })}
                     onAddComment={handleAddComment}
                     menuAnchor={menuAnchor}
                     onCloseMenu={handleCloseMenu}
@@ -545,7 +539,7 @@ export default function GroupBoardPage() {
                         onClick={handleEditSubmit}
                         variant="contained"
                         disabled={!editContent.trim() || isEditing}
-                        sx={{bgcolor: groupColor}}
+                        sx={{ bgcolor: groupColor }}
                     >
                         {isEditing ? 'Zapisywanie...' : 'Zapisz'}
                     </Button>
