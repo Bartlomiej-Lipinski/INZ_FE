@@ -4,7 +4,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {HubConnection, HubConnectionBuilder, LogLevel} from '@microsoft/signalr';
 import {Box, Button, List, ListItem, ListItemText, Paper, TextField, Typography} from '@mui/material';
 import {useSearchParams} from 'next/navigation';
-import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import GroupHeader from '@/components/layout/Group-header';
 import {MessageCircle} from 'lucide-react';
 
 type ChatMessage = {
@@ -77,7 +77,7 @@ export default function ChatPage() {
 
     return (
         <Box sx={{width: '100%', minHeight: '100vh'}}>
-            <GroupMenuHeader
+            <GroupHeader
                 title={
                     <>
                         Czat grupowy

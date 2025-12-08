@@ -13,7 +13,7 @@ import {
     TextField,
     Typography
 } from '@mui/material';
-import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import GroupHeader from '@/components/layout/Group-header';
 import { FeedItemType } from "@/lib/types/FeedItemType";
 import { CommentResponseDto, GroupFeedItemResponseDto } from "@/lib/types/feedDtos";
 import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
@@ -447,7 +447,7 @@ export default function GroupBoardPage() {
                 justifyContent: "center",
             }}
         >
-            <GroupMenuHeader
+            <GroupHeader
                 title={groupData?.name?.trim() || "Tablica grupy"}
             />
 

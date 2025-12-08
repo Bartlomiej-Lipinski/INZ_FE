@@ -1,5 +1,5 @@
-import {Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography} from '@mui/material';
-import {alpha} from '@mui/material/styles';
+import {Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography} from '@mui/material';
+import {alpha, useTheme} from '@mui/material/styles';
 import {
     Bell,
     CheckSquare,
@@ -11,6 +11,7 @@ import {
     MessageCircle,
     Notebook,
     PieChart,
+    X,
     Settings,
     Star,
     Users
@@ -44,6 +45,7 @@ interface GroupMenuProps {
 }
 
 export default function GroupMenu({open, onClose, groupId, groupName, groupColor}: GroupMenuProps) {
+    const theme = useTheme();
     const router = useRouter();
     const {setUser} = useAuthContext();
     const handleMenuClick = (item: typeof MENU_ITEMS[number]) => {
@@ -78,11 +80,16 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
     }
 
     return (
-        <Drawer anchor="left" open={open} onClose={onClose}>
+        <Drawer anchor="left" open={open} onClose={onClose} sx={{ '& .MuiDrawer-paper': { backgroundColor: theme.palette.grey[900] } }}>
             <Box sx={{width: 300, p: 2, display: 'flex', flexDirection: 'column', height: '100%'}} role="presentation">
-                <Typography variant="h6" sx={{mb: 2, fontWeight: 600}}>
-                    Menu grupy - {groupName}
-                </Typography>
+                <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
+                    <Typography variant="h6" sx={{fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                        Menu grupy - {groupName}
+                    </Typography>
+                    <IconButton aria-label="Zamknij menu" onClick={onClose} size="small" sx={{color: 'white', mr: 1.5}}>
+                        <X size={20}/>
+                    </IconButton>
+                </Box>
                 <List>
                     {MENU_ITEMS.map((item) => {
                         const ItemIcon = item.icon;
@@ -94,12 +101,12 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
                                         borderRadius: 1,
                                         mb: 0.5,
                                         '&:hover': {
-                                            bgcolor: alpha(groupColor, 0.1),
+                                            bgcolor: alpha(groupColor, 0.2),
                                         },
                                     }}
                                 >
                                     <ListItemIcon>
-                                        <ItemIcon size={22}/>
+                                        <ItemIcon size={24} color={groupColor ? groupColor : theme.palette.grey[500]}/>
                                     </ListItemIcon>
                                     <ListItemText primary={item.label}/>
                                     <ChevronRight size={20}/>
@@ -117,12 +124,12 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
                             borderRadius: 1,
                             color: 'error.main',
                             '&:hover': {
-                                bgcolor: alpha('#d32f2f', 0.1),
+                                bgcolor: alpha('#d32f2f', 0.2),
                             },
                         }}
                     >
                         <ListItemIcon>
-                            <LogOut size={22} color="#d32f2f"/>
+                            <LogOut size={24} color="#d32f2f"/>
                         </ListItemIcon>
                         <ListItemText primary="WYLOGUJ"/>
                     </ListItemButton>

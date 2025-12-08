@@ -3,7 +3,7 @@ import MembersList from '@/components/pages/Members-list';
 import { Box } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from '@mui/material/styles';
-import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import GroupHeader from '@/components/layout/Group-header';
 import { Users } from 'lucide-react';
 
 
@@ -19,7 +19,7 @@ export default function MembersPage() {
 
     return (
         <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            <GroupMenuHeader
+            <GroupHeader
                 title={
                     <>
                         {groupName ? `Członkowie grupy ` : 'Lista członków'}

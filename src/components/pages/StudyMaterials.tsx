@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Alert,
     Box,
@@ -14,8 +14,8 @@ import {
     MenuItem,
     Typography,
 } from '@mui/material';
-import {Edit2, FileText, Menu as MenuIcon, Notebook, Plus, Trash2} from 'lucide-react';
-import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-material';
+import { Edit2, FileText, Menu as MenuIcon, Notebook, Plus, Trash2 } from 'lucide-react';
+import { FileCategoryResponseDto, StoredFileResponseDto } from '@/lib/types/study-material';
 import FileFilters from "@/components/pages/StudyMaterialsFilters";
 import CategoriesManager from './CategoriesManager';
 import FileList from './FileList';
@@ -24,9 +24,9 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import GroupMenu from "@/components/common/GroupMenu";
-import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
-import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
-import GroupMenuHeader from '../layout/Group-menu-header';
+import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
+import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
+import GroupHeader from '../layout/Group-header';
 
 interface StudyMaterialsPageProps {
     files: StoredFileResponseDto[];
@@ -41,13 +41,13 @@ interface StudyMaterialsPageProps {
 }
 
 export function StudyMaterialsPage({
-                                       files,
-                                       categories,
-                                       isAdmin,
-                                       groupData,
-                                       onFilesChange,
-                                       onCategoriesChange,
-                                   }: StudyMaterialsPageProps) {
+    files,
+    categories,
+    isAdmin,
+    groupData,
+    onFilesChange,
+    onCategoriesChange,
+}: StudyMaterialsPageProps) {
     const groupColor = groupData?.color || '#9042fb';
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
@@ -177,7 +177,7 @@ export function StudyMaterialsPage({
     };
 
     const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, fileId: string) => {
-        setMenuAnchor({el: event.currentTarget, fileId});
+        setMenuAnchor({ el: event.currentTarget, fileId });
     };
 
     const handleCloseMenu = () => {
@@ -192,9 +192,9 @@ export function StudyMaterialsPage({
                 `${API_ROUTES.POST_CATEGORY}?groupId=${groupData.id}`,
                 {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({str: newCategoryName}),
+                    body: JSON.stringify({ str: newCategoryName }),
                 }
             );
 
@@ -213,7 +213,7 @@ export function StudyMaterialsPage({
     };
 
     const handleOpenCategoryMenu = (event: React.MouseEvent<HTMLElement>, categoryId: string) => {
-        setCategoryMenuAnchor({el: event.currentTarget, categoryId});
+        setCategoryMenuAnchor({ el: event.currentTarget, categoryId });
     };
 
     const handleCloseCategoryMenu = () => {
@@ -235,13 +235,13 @@ export function StudyMaterialsPage({
 
         onCategoriesChange(categories.map(c =>
             c.id === editingCategory.id
-                ? {...c, name: editCategoryName}
+                ? { ...c, name: editCategoryName }
                 : c
         ));
 
         onFilesChange(files.map(f =>
             f.fileCategory?.id === editingCategory.id
-                ? {...f, fileCategory: {...f.fileCategory, name: editCategoryName}}
+                ? { ...f, fileCategory: { ...f.fileCategory, name: editCategoryName } }
                 : f
         ));
 
@@ -284,17 +284,17 @@ export function StudyMaterialsPage({
     const hasFilters: boolean = !!(searchQuery || selectedCategory !== 'all' || selectedAuthor !== 'all');
 
     return (
-        <Box sx={{width: '100%', minHeight: '100vh', }}>
-            <GroupMenuHeader
+        <Box sx={{ width: '100%', minHeight: '100vh', }}>
+            <GroupHeader
                 title="Materiały Edukacyjne"
                 leftIcon={<Notebook size={35} color="white" />}
             />
-            <Box sx={{maxWidth: 1200, width: '90%', mx: 'auto'}}>
+            <Box sx={{ maxWidth: 1200, width: '90%', mx: 'auto' }}>
 
                 {/* Przycisk dodawania */}
                 <Button
                     variant="contained"
-                    startIcon={<Plus size={20}/>}
+                    startIcon={<Plus size={20} />}
                     onClick={() => setUploadDialogOpen(true)}
                     fullWidth
                     sx={{
@@ -347,8 +347,8 @@ export function StudyMaterialsPage({
                     open={Boolean(menuAnchor)}
                     onClose={handleCloseMenu}
                 >
-                    <MenuItem onClick={handleDeleteFile} sx={{color: 'error.main'}}>
-                        <Trash2 size={18} style={{marginRight: 8}}/>
+                    <MenuItem onClick={handleDeleteFile} sx={{ color: 'error.main' }}>
+                        <Trash2 size={18} style={{ marginRight: 8 }} />
                         Usuń
                     </MenuItem>
                 </Menu>
@@ -360,11 +360,11 @@ export function StudyMaterialsPage({
                     onClose={handleCloseCategoryMenu}
                 >
                     <MenuItem onClick={handleEditCategory}>
-                        <Edit2 size={18} style={{marginRight: 8}}/>
+                        <Edit2 size={18} style={{ marginRight: 8 }} />
                         Edytuj
                     </MenuItem>
-                    <MenuItem onClick={handleDeleteCategory} sx={{color: 'error.main'}}>
-                        <Trash2 size={18} style={{marginRight: 8}}/>
+                    <MenuItem onClick={handleDeleteCategory} sx={{ color: 'error.main' }}>
+                        <Trash2 size={18} style={{ marginRight: 8 }} />
                         Usuń
                     </MenuItem>
                 </Menu>
@@ -378,13 +378,13 @@ export function StudyMaterialsPage({
                 >
                     <DialogTitle>Prześlij materiał</DialogTitle>
                     <DialogContent>
-                        <Box sx={{mt: 2}}>
+                        <Box sx={{ mt: 2 }}>
                             <Button
                                 variant="outlined"
                                 component="label"
                                 fullWidth
-                                startIcon={<FileText/>}
-                                sx={{mb: 2, py: 2}}
+                                startIcon={<FileText />}
+                                sx={{ mb: 2, py: 2 }}
                             >
                                 {uploadFile ? uploadFile.name : 'Wybierz plik'}
                                 <input
@@ -396,7 +396,7 @@ export function StudyMaterialsPage({
                             </Button>
 
                             {uploadFile && (
-                                <Alert severity="success" sx={{mb: 2}}>
+                                <Alert severity="success" sx={{ mb: 2 }}>
                                     Wybrano: {uploadFile.name}
                                 </Alert>
                             )}
@@ -418,13 +418,13 @@ export function StudyMaterialsPage({
                             </FormControl>
                         </Box>
                     </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={() => setUploadDialogOpen(false)}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleUploadFile}
                             disabled={!uploadFile}
-                            sx={{bgcolor: groupColor, '&:hover': {bgcolor: groupColor, opacity: 0.85}}}
+                            sx={{ bgcolor: groupColor, '&:hover': { bgcolor: groupColor, opacity: 0.85 } }}
                         >
                             Prześlij
                         </Button>
@@ -445,16 +445,16 @@ export function StudyMaterialsPage({
                             label="Nazwa kategorii"
                             value={newCategoryName}
                             onChange={(e) => setNewCategoryName(e.target.value)}
-                            sx={{mt: 2}}
+                            sx={{ mt: 2 }}
                         />
                     </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={() => setCategoryDialogOpen(false)}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleAddCategory}
                             disabled={!newCategoryName.trim()}
-                            sx={{bgcolor: groupColor, '&:hover': {bgcolor: groupColor, opacity: 0.85}}}
+                            sx={{ bgcolor: groupColor, '&:hover': { bgcolor: groupColor, opacity: 0.85 } }}
                         >
                             Dodaj
                         </Button>
@@ -475,16 +475,16 @@ export function StudyMaterialsPage({
                             label="Nazwa kategorii"
                             value={editCategoryName}
                             onChange={(e) => setEditCategoryName(e.target.value)}
-                            sx={{mt: 2}}
+                            sx={{ mt: 2 }}
                         />
                     </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={() => setEditCategoryDialogOpen(false)}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleSaveEditCategory}
                             disabled={!editCategoryName.trim()}
-                            sx={{bgcolor: groupColor, '&:hover': {bgcolor: groupColor, opacity: 0.85}}}
+                            sx={{ bgcolor: groupColor, '&:hover': { bgcolor: groupColor, opacity: 0.85 } }}
                         >
                             Zapisz
                         </Button>

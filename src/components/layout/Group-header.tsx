@@ -2,13 +2,14 @@
 
 import { ReactNode, useState } from 'react';
 import GroupMenu from '@/components/common/GroupMenu';
-import { Box, IconButton, Typography } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { SxProps, Theme } from '@mui/material/styles';
-import { Menu as MenuIcon } from 'lucide-react';
+import { HomeIcon, Menu as MenuIcon } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useTheme } from '@mui/material/styles';
+import { useRouter } from 'next/navigation';
     
-type GroupMenuHeaderProps = {
+type GroupHeaderProps = {
     title: ReactNode;
     wrapperSx?: SxProps<Theme>;
     titleSx?: SxProps<Theme>;
@@ -17,16 +18,17 @@ type GroupMenuHeaderProps = {
     leftIconWrapperSx?: SxProps<Theme>;
 };
 
-export default function GroupMenuHeader({
+export default function GroupHeader({
     title,
     wrapperSx,
     titleSx,
     iconButtonSx,
     leftIcon,
     leftIconWrapperSx,
-}: GroupMenuHeaderProps) {
+}: GroupHeaderProps) {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const theme = useTheme();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const groupId = searchParams?.get('groupId') ?? '';
     const groupNameParam = searchParams?.get('groupName') ?? '';
@@ -45,19 +47,21 @@ export default function GroupMenuHeader({
                 ...wrapperSx,
             }}
         >
-            <IconButton
-                onClick={() => setDrawerOpen(true)}
-                sx={{
-                    position: 'absolute',
-                    top: { xs: 16, sm: 32 },
-                    left: { xs: 16, sm: 32 },
-                    bgcolor: 'grey.400',
-                    '&:hover': { bgcolor: 'grey.600' },
-                    ...iconButtonSx,
-                }}
-            >
-                <MenuIcon />
-            </IconButton>
+            <Tooltip title="Menu" placement="right" slotProps={{tooltip: {sx: {fontSize: '14px', padding: '8px 12px'}}}}>
+                <IconButton
+                    onClick={() => setDrawerOpen(true)}
+                    sx={{
+                        position: 'absolute',
+                        top: { xs: 16, sm: 32 },
+                        left: { xs: 16, sm: 32 },
+                        bgcolor: 'grey.400',
+                        '&:hover': { bgcolor: 'grey.600' },
+                        ...iconButtonSx,
+                    }}
+                >
+                    <MenuIcon />
+                </IconButton>
+            </Tooltip>
 
             <Box
                 sx={{
@@ -102,6 +106,23 @@ export default function GroupMenuHeader({
                     </Typography>
                 </Box>
             </Box>
+
+
+            <Tooltip title="Moje grupy" placement="left" slotProps={{tooltip: {sx: {fontSize: '14px', padding: '8px 12px'}}}}>
+                <IconButton
+                    onClick={() => router.push('/')}
+                    sx={{
+                        position: 'absolute',
+                        top: { xs: 16, sm: 32 },
+                        right: { xs: 16, sm: 32 },
+                        bgcolor: 'grey.400',
+                        '&:hover': { bgcolor: 'grey.600' },
+                        ...iconButtonSx,
+                    }}
+                >
+                    <HomeIcon />
+                </IconButton>
+            </Tooltip>
 
             <GroupMenu
                 open={drawerOpen}

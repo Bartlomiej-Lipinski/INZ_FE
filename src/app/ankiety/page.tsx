@@ -19,7 +19,7 @@ import {PollCreate} from "@/lib/types/poll";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import PollCard from '@/components/ankiety/PollCard';
-import GroupMenuHeader from '@/components/layout/Group-menu-header';
+import GroupHeader from '@/components/layout/Group-header';
 
 export default function PollsPage() {
     const searchParams = useSearchParams();
@@ -206,7 +206,7 @@ export default function PollsPage() {
                 justifyContent: 'center',
             }}
         >
-            <GroupMenuHeader
+            <GroupHeader
                 title="Ankiety"
                 leftIcon={<PieChart size={32}/>}
             />

@@ -1,7 +1,7 @@
 "use client";
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {useSearchParams} from 'next/navigation';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
     Avatar,
     Box,
@@ -27,7 +27,7 @@ import {
     Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import {alpha} from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import {
     Edit2,
     ExternalLink,
@@ -41,12 +41,12 @@ import {
     Trash2,
     X,
 } from 'lucide-react';
-import GroupMenuHeader from '@/components/layout/Group-menu-header';
-import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {EntityType} from "@/lib/types/entityType";
-import {CommentResponseDto, RecommendationResponseDto, UserResponseDto} from "@/lib/types/recommendationDtos";
-import {useImageUrl} from "@/hooks/useImageUrl";
+import GroupHeader from '@/components/layout/Group-header';
+import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
+import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
+import { EntityType } from "@/lib/types/entityType";
+import { CommentResponseDto, RecommendationResponseDto, UserResponseDto } from "@/lib/types/recommendationDtos";
+import { useImageUrl } from "@/hooks/useImageUrl";
 
 const CATEGORIES = [
     'Książki',
@@ -86,7 +86,7 @@ function getCategoryColor(category?: string): string {
     return colors[category || ''] || '#757575';
 }
 
-function UserAvatar({user, size, groupColor}: { user?: UserResponseDto; size: number; groupColor?: string }) {
+function UserAvatar({ user, size, groupColor }: { user?: UserResponseDto; size: number; groupColor?: string }) {
     const avatarUrl = useImageUrl(user?.profilePicture?.id);
     const displayName = user
         ? `${user.name} ${user.surname}`.trim() || user.username
@@ -107,7 +107,7 @@ function UserAvatar({user, size, groupColor}: { user?: UserResponseDto; size: nu
     );
 }
 
-function ReactionAvatar({user, index}: { user: UserResponseDto; index: number }) {
+function ReactionAvatar({ user, index }: { user: UserResponseDto; index: number }) {
     const avatarUrl = useImageUrl(user.profilePicture?.id);
     const displayName = `${user.name} ${user.surname}`.trim() || user.username;
 
@@ -130,25 +130,25 @@ function ReactionAvatar({user, index}: { user: UserResponseDto; index: number })
     );
 }
 
-function CommentItem({comment}: { comment: CommentResponseDto }) {
+function CommentItem({ comment }: { comment: CommentResponseDto }) {
     const avatarUrl = useImageUrl(comment.user?.profilePicture?.id);
     const displayName = comment.user
         ? `${comment.user.name} ${comment.user.surname}`.trim() || comment.user.username
         : 'Nieznany użytkownik';
 
     return (
-        <Box sx={{display: 'flex', gap: 1.5, mb: 2}}>
-            <Avatar src={avatarUrl || undefined} sx={{width: 32, height: 32}}>
+        <Box sx={{ display: 'flex', gap: 1.5, mb: 2 }}>
+            <Avatar src={avatarUrl || undefined} sx={{ width: 32, height: 32 }}>
                 {comment.user?.name?.[0]?.toUpperCase() || '?'}
             </Avatar>
-            <Box sx={{flex: 1}}>
-                <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 1.5}}>
-                    <Typography sx={{fontWeight: 600, fontSize: '0.875rem', mb: 0.5}}>
+            <Box sx={{ flex: 1 }}>
+                <Box sx={{ bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 1.5 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', mb: 0.5 }}>
                         {displayName}
                     </Typography>
-                    <Typography sx={{fontSize: '0.875rem'}}>{comment.content}</Typography>
+                    <Typography sx={{ fontSize: '0.875rem' }}>{comment.content}</Typography>
                 </Box>
-                <Typography sx={{fontSize: '0.75rem', color: 'text.secondary', mt: 0.5, ml: 1.5}}>
+                <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.5, ml: 1.5 }}>
                     {formatTimestamp(comment.createdAt)}
                 </Typography>
             </Box>
@@ -257,7 +257,7 @@ export default function RecommendationsPage() {
         try {
             const response = await fetchWithAuth(
                 `${API_ROUTES.GET_RECOMMENDATIONS}?groupId=${groupData.id}`,
-                {method: 'GET', credentials: 'include'}
+                { method: 'GET', credentials: 'include' }
             );
 
             if (response.ok) {
@@ -288,7 +288,7 @@ export default function RecommendationsPage() {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
     const handleOpenAddDialog = () => {
-        setFormData({title: '', content: '', category: '', imageUrl: '', linkUrl: ''});
+        setFormData({ title: '', content: '', category: '', imageUrl: '', linkUrl: '' });
         setPreviewUrl(null);
         setAddDialogOpen(true);
     };
@@ -322,7 +322,7 @@ export default function RecommendationsPage() {
             const reader = new FileReader();
             reader.onload = (e) => {
                 setPreviewUrl(e.target?.result as string);
-                setFormData(prev => ({...prev, imageUrl: ''}));
+                setFormData(prev => ({ ...prev, imageUrl: '' }));
             };
             reader.readAsDataURL(file);
         }
@@ -361,10 +361,10 @@ export default function RecommendationsPage() {
         setRecommendations(prevRecs => [newRec, ...prevRecs]);
         setAddDialogOpen(false);
 
-        const savedFormData = {...formData};
+        const savedFormData = { ...formData };
         const savedSelectedFile = selectedFile;
 
-        setFormData({title: '', content: '', category: '', imageUrl: '', linkUrl: ''});
+        setFormData({ title: '', content: '', category: '', imageUrl: '', linkUrl: '' });
         setPreviewUrl(null);
         setSelectedFile(null);
 
@@ -479,7 +479,7 @@ export default function RecommendationsPage() {
                 throw new Error('Błąd podczas edycji rekomendacji');
             }
 
-            setFormData({title: '', content: '', category: '', imageUrl: '', linkUrl: ''});
+            setFormData({ title: '', content: '', category: '', imageUrl: '', linkUrl: '' });
             setPreviewUrl(null);
             setSelectedFile(null);
         } catch (error) {
@@ -549,18 +549,18 @@ export default function RecommendationsPage() {
                             return {
                                 ...r,
                                 reactions: [...safeReactions,
-                                    {
-                                        id: currentUser.id,
-                                        name: currentUser.name,
-                                        surname: currentUser.surname,
-                                        username: currentUser.username,
-                                        profilePicture: currentUser.profilePicture ? {
-                                            id: currentUser.profilePicture.id,
-                                            fileName: currentUser.profilePicture.fileName || '',
-                                            contentType: currentUser.profilePicture.contentType || '',
-                                            size: currentUser.profilePicture.size || 0,
-                                        } : undefined,
-                                    },
+                                {
+                                    id: currentUser.id,
+                                    name: currentUser.name,
+                                    surname: currentUser.surname,
+                                    username: currentUser.username,
+                                    profilePicture: currentUser.profilePicture ? {
+                                        id: currentUser.profilePicture.id,
+                                        fileName: currentUser.profilePicture.fileName || '',
+                                        contentType: currentUser.profilePicture.contentType || '',
+                                        size: currentUser.profilePicture.size || 0,
+                                    } : undefined,
+                                },
                                 ],
                             };
                         }
@@ -573,7 +573,7 @@ export default function RecommendationsPage() {
                 `${API_ROUTES.REACTION_POST}?groupId=${groupData.id}&targetId=${recId}&entityType=${EntityType.Recommendation}`,
                 {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                 }
             );
@@ -625,15 +625,15 @@ export default function RecommendationsPage() {
             )
         );
 
-        setNewComment(prev => ({...prev, [recId]: ''}));
+        setNewComment(prev => ({ ...prev, [recId]: '' }));
 
         try {
             const response = await fetchWithAuth(
                 `${API_ROUTES.POST_COMMENT}?groupId=${groupData.id}&targetId=${recId}`,
                 {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({content, entityType: "Recommendation"}),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content, entityType: "Recommendation" }),
                     credentials: 'include',
                 }
             );
@@ -665,7 +665,7 @@ export default function RecommendationsPage() {
             setRecommendations(prevRecs =>
                 prevRecs.map(rec =>
                     rec.id === recId
-                        ? {...rec, comments: rec.comments.filter(c => c.id !== tempComment.id)}
+                        ? { ...rec, comments: rec.comments.filter(c => c.id !== tempComment.id) }
                         : rec
                 )
             );
@@ -679,7 +679,7 @@ export default function RecommendationsPage() {
         setRecommendations(prevRecs =>
             prevRecs.map(rec =>
                 rec.id === recId
-                    ? {...rec, comments: rec.comments.filter(c => c.id !== commentId)}
+                    ? { ...rec, comments: rec.comments.filter(c => c.id !== commentId) }
                     : rec
             )
         );
@@ -749,26 +749,26 @@ export default function RecommendationsPage() {
             : 'Nieznany użytkownik';
 
         return (
-            <Card key={rec.id} sx={{bgcolor: 'background.paper', borderRadius: 3, position: 'relative'}}>
+            <Card key={rec.id} sx={{ bgcolor: 'background.paper', borderRadius: 3, position: 'relative' }}>
                 {rec.imageUrl && (
                     <CardMedia
                         component="img"
                         height="200"
                         image={rec.imageUrl}
                         alt={rec.title}
-                        sx={{objectFit: 'cover'}}
+                        sx={{ objectFit: 'cover' }}
                     />
                 )}
 
-                <CardContent sx={{p: 3}}>
-                    <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 2}}>
-                        <Box sx={{display: 'flex', gap: 1.5, flex: 1}}>
-                            <UserAvatar user={rec.user} size={44} groupColor={groupData.color}/>
+                <CardContent sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                        <Box sx={{ display: 'flex', gap: 1.5, flex: 1 }}>
+                            <UserAvatar user={rec.user} size={44} groupColor={groupData.color} />
                             <Box>
-                                <Typography sx={{fontWeight: 600, fontSize: '1rem'}}>
+                                <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>
                                     {displayName}
                                 </Typography>
-                                <Typography sx={{fontSize: '0.875rem', color: 'text.secondary'}}>
+                                <Typography sx={{ fontSize: '0.875rem', color: 'text.secondary' }}>
                                     {formatTimestamp(rec.createdAt)}
                                 </Typography>
                             </Box>
@@ -776,10 +776,10 @@ export default function RecommendationsPage() {
                         {isOwner && (
                             <IconButton
                                 size="small"
-                                onClick={(e) => setMenuAnchor({el: e.currentTarget, id: rec.id})}
-                                sx={{alignSelf: 'flex-start'}}
+                                onClick={(e) => setMenuAnchor({ el: e.currentTarget, id: rec.id })}
+                                sx={{ alignSelf: 'flex-start' }}
                             >
-                                <MoreVertical/>
+                                <MoreVertical />
                             </IconButton>
                         )}
                     </Box>
@@ -807,7 +807,7 @@ export default function RecommendationsPage() {
                         {rec.title}
                     </Typography>
 
-                    <Typography sx={{mb: 2, whiteSpace: 'pre-wrap'}}>
+                    <Typography sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
                         {rec.content}
                     </Typography>
 
@@ -823,14 +823,14 @@ export default function RecommendationsPage() {
                                 color: groupData.color,
                             }}
                         >
-                            <ExternalLink size={16}/>
+                            <ExternalLink size={16} />
                             Link
                         </MuiLink>
                     )}
                 </CardContent>
 
-                <CardActions sx={{px: 3, pb: 2, gap: 2, alignItems: 'center'}}>
-                    <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
+                <CardActions sx={{ px: 3, pb: 2, gap: 2, alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Button
                             size="small"
                             startIcon={
@@ -857,9 +857,9 @@ export default function RecommendationsPage() {
                         </Button>
 
                         {avatarsToShow.length > 0 && (
-                            <Box sx={{display: 'flex', alignItems: 'center', ml: 1}}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', ml: 1 }}>
                                 {avatarsToShow.map((user, i) => (
-                                    <ReactionAvatar key={user.id} user={user} index={i}/>
+                                    <ReactionAvatar key={user.id} user={user} index={i} />
                                 ))}
                             </Box>
                         )}
@@ -867,7 +867,7 @@ export default function RecommendationsPage() {
 
                     <Button
                         size="small"
-                        startIcon={<MessageCircle size={18} style={{color: 'rgba(255, 255, 255, 0.7)'}}/>}
+                        startIcon={<MessageCircle size={18} style={{ color: 'rgba(255, 255, 255, 0.7)' }} />}
                         onClick={() => toggleComments(rec.id)}
                         sx={{
                             bgcolor: groupData.color,
@@ -884,11 +884,11 @@ export default function RecommendationsPage() {
                 </CardActions>
 
                 <Collapse in={isExpanded}>
-                    <Box sx={{px: 3, pb: 3}}>
-                        <Box sx={{bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 2}}>
+                    <Box sx={{ px: 3, pb: 3 }}>
+                        <Box sx={{ bgcolor: alpha('#fff', 0.05), borderRadius: 2, p: 2 }}>
                             {comments.map(comment => (
-                                <Box key={comment.id} sx={{position: 'relative'}}>
-                                    <CommentItem comment={comment}/>
+                                <Box key={comment.id} sx={{ position: 'relative' }}>
+                                    <CommentItem comment={comment} />
                                     {comment.user?.id === currentUser?.id && (
                                         <IconButton
                                             size="small"
@@ -900,21 +900,21 @@ export default function RecommendationsPage() {
                                                 color: 'error.main',
                                             }}
                                         >
-                                            <Trash2 size={14}/>
+                                            <Trash2 size={14} />
                                         </IconButton>
                                     )}
                                 </Box>
                             ))}
-                            <Box sx={{display: 'flex', gap: 1.5, mt: comments.length > 0 ? 2 : 0}}>
+                            <Box sx={{ display: 'flex', gap: 1.5, mt: comments.length > 0 ? 2 : 0 }}>
                                 {currentUserDto && (
-                                    <UserAvatar user={currentUserDto} size={32} groupColor={groupData.color}/>
+                                    <UserAvatar user={currentUserDto} size={32} groupColor={groupData.color} />
                                 )}
                                 <TextField
                                     fullWidth
                                     size="small"
                                     placeholder="Dodaj komentarz..."
                                     value={newComment[rec.id] || ''}
-                                    onChange={(e) => setNewComment(prev => ({...prev, [rec.id]: e.target.value}))}
+                                    onChange={(e) => setNewComment(prev => ({ ...prev, [rec.id]: e.target.value }))}
                                     onKeyPress={(e) => {
                                         if (e.key === 'Enter' && !e.shiftKey) {
                                             e.preventDefault();
@@ -945,7 +945,7 @@ export default function RecommendationsPage() {
                                                     }
                                                 }}
                                             >
-                                                <Send/>
+                                                <Send />
                                             </IconButton>
                                         ),
                                     }}
@@ -959,25 +959,25 @@ export default function RecommendationsPage() {
     };
 
     return (
-        <Box sx={{width: '100%', minHeight: '100vh', }}>
-            <GroupMenuHeader
-                    title="Rekomendacje"
-                    leftIcon={<Star size={35} color="white" />}
-                />
-            
-            <Box sx={{maxWidth: 1200, width: '90%', mx: 'auto'}}>
-            
+        <Box sx={{ width: '100%', minHeight: '100vh', }}>
+            <GroupHeader
+                title="Rekomendacje"
+                leftIcon={<Star size={35} color="white" />}
+            />
+
+            <Box sx={{ maxWidth: 1200, width: '90%', mx: 'auto' }}>
+
                 <Button
                     variant="contained"
-                    startIcon={<Plus size={20}/>}
+                    startIcon={<Plus size={20} />}
                     onClick={handleOpenAddDialog}
                     fullWidth
-                    sx={{mb: 3, bgcolor: groupData.color}}
+                    sx={{ mb: 3, bgcolor: groupData.color }}
                 >
                     Dodaj rekomendację
                 </Button>
 
-                <Box sx={{mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap'}}>
+                <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Chip
                         label="Wszystkie"
                         onClick={() => setSelectedCategory('all')}
@@ -1002,7 +1002,7 @@ export default function RecommendationsPage() {
 
                 <Grid container spacing={3}>
                     {filteredRecommendations.map(rec => (
-                        <Grid size={{xs: 12, md: 4}} key={rec.id}>
+                        <Grid size={{ xs: 12, md: 4 }} key={rec.id}>
                             {renderRecommendationCard(rec)}
                         </Grid>
                     ))}
@@ -1013,10 +1013,10 @@ export default function RecommendationsPage() {
                         const rec = recommendations.find(r => r.id === menuAnchor?.id);
                         if (rec) handleOpenEditDialog(rec);
                     }}>
-                        <Edit2 size={18} style={{marginRight: 8}}/> Edytuj
+                        <Edit2 size={18} style={{ marginRight: 8 }} /> Edytuj
                     </MenuItem>
-                    <MenuItem onClick={handleDeleteRecommendation} sx={{color: 'error.main'}}>
-                        <Trash2 size={18} style={{marginRight: 8}}/> Usuń
+                    <MenuItem onClick={handleDeleteRecommendation} sx={{ color: 'error.main' }}>
+                        <Trash2 size={18} style={{ marginRight: 8 }} /> Usuń
                     </MenuItem>
                 </Menu>
 
@@ -1028,8 +1028,8 @@ export default function RecommendationsPage() {
                             fullWidth
                             label="Tytuł"
                             value={formData.title}
-                            onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
-                            sx={{mb: 2, mt: 1}}
+                            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                            sx={{ mb: 2, mt: 1 }}
                         />
                         <TextField
                             fullWidth
@@ -1037,15 +1037,15 @@ export default function RecommendationsPage() {
                             multiline
                             rows={4}
                             value={formData.content}
-                            onChange={(e) => setFormData(prev => ({...prev, content: e.target.value}))}
-                            sx={{mb: 2}}
+                            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                            sx={{ mb: 2 }}
                         />
-                        <FormControl fullWidth sx={{mb: 2}}>
+                        <FormControl fullWidth sx={{ mb: 2 }}>
                             <InputLabel>Kategoria</InputLabel>
                             <Select
                                 value={formData.category}
                                 label="Kategoria"
-                                onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
+                                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                             >
                                 {CATEGORIES.map(cat => (
                                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
@@ -1056,33 +1056,33 @@ export default function RecommendationsPage() {
                             fullWidth
                             label="Link (opcjonalnie)"
                             value={formData.linkUrl}
-                            onChange={(e) => setFormData(prev => ({...prev, linkUrl: e.target.value}))}
-                            sx={{mb: 2}}
+                            onChange={(e) => setFormData(prev => ({ ...prev, linkUrl: e.target.value }))}
+                            sx={{ mb: 2 }}
                         />
-                        <Box sx={{mb: 2}}>
+                        <Box sx={{ mb: 2 }}>
                             <input
                                 type="file"
                                 accept="image/*"
                                 id="image-upload"
-                                style={{display: 'none'}}
+                                style={{ display: 'none' }}
                                 onChange={handleFileSelect}
                             />
                             <label htmlFor="image-upload">
                                 <Button
                                     component="span"
                                     variant="outlined"
-                                    startIcon={<ImageIcon size={18}/>}
+                                    startIcon={<ImageIcon size={18} />}
                                 >
                                     Dodaj zdjęcie
                                 </Button>
                             </label>
                         </Box>
                         {previewUrl && (
-                            <Box sx={{position: 'relative', mb: 2}}>
+                            <Box sx={{ position: 'relative', mb: 2 }}>
                                 <img
                                     src={previewUrl}
                                     alt="Preview"
-                                    style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}
+                                    style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }}
                                 />
                                 <IconButton
                                     size="small"
@@ -1090,20 +1090,20 @@ export default function RecommendationsPage() {
                                         setPreviewUrl(null);
                                         setSelectedFile(null);
                                     }}
-                                    sx={{position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper'}}
+                                    sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper' }}
                                 >
-                                    <X size={16}/>
+                                    <X size={16} />
                                 </IconButton>
                             </Box>
                         )}
                     </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={() => setAddDialogOpen(false)}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleAddRecommendation}
                             disabled={!formData.title.trim() || !formData.content.trim()}
-                            sx={{bgcolor: groupData.color}}
+                            sx={{ bgcolor: groupData.color }}
                         >
                             Dodaj
                         </Button>
@@ -1118,8 +1118,8 @@ export default function RecommendationsPage() {
                             fullWidth
                             label="Tytuł"
                             value={formData.title}
-                            onChange={(e) => setFormData(prev => ({...prev, title: e.target.value}))}
-                            sx={{mb: 2, mt: 1}}
+                            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                            sx={{ mb: 2, mt: 1 }}
                         />
                         <TextField
                             fullWidth
@@ -1127,15 +1127,15 @@ export default function RecommendationsPage() {
                             multiline
                             rows={4}
                             value={formData.content}
-                            onChange={(e) => setFormData(prev => ({...prev, content: e.target.value}))}
-                            sx={{mb: 2}}
+                            onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                            sx={{ mb: 2 }}
                         />
-                        <FormControl fullWidth sx={{mb: 2}}>
+                        <FormControl fullWidth sx={{ mb: 2 }}>
                             <InputLabel>Kategoria</InputLabel>
                             <Select
                                 value={formData.category}
                                 label="Kategoria"
-                                onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
+                                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
                             >
                                 {CATEGORIES.map(cat => (
                                     <MenuItem key={cat} value={cat}>{cat}</MenuItem>
@@ -1146,33 +1146,33 @@ export default function RecommendationsPage() {
                             fullWidth
                             label="Link (opcjonalnie)"
                             value={formData.linkUrl}
-                            onChange={(e) => setFormData(prev => ({...prev, linkUrl: e.target.value}))}
-                            sx={{mb: 2}}
+                            onChange={(e) => setFormData(prev => ({ ...prev, linkUrl: e.target.value }))}
+                            sx={{ mb: 2 }}
                         />
-                        <Box sx={{mb: 2}}>
+                        <Box sx={{ mb: 2 }}>
                             <input
                                 type="file"
                                 accept="image/*"
                                 id="image-upload-edit"
-                                style={{display: 'none'}}
+                                style={{ display: 'none' }}
                                 onChange={handleFileSelect}
                             />
                             <label htmlFor="image-upload-edit">
                                 <Button
                                     component="span"
                                     variant="outlined"
-                                    startIcon={<ImageIcon size={18}/>}
+                                    startIcon={<ImageIcon size={18} />}
                                 >
                                     Zmień zdjęcie
                                 </Button>
                             </label>
                         </Box>
                         {previewUrl && (
-                            <Box sx={{position: 'relative', mb: 2}}>
+                            <Box sx={{ position: 'relative', mb: 2 }}>
                                 <img
                                     src={previewUrl}
                                     alt="Preview"
-                                    style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}
+                                    style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }}
                                 />
                                 <IconButton
                                     size="small"
@@ -1180,20 +1180,20 @@ export default function RecommendationsPage() {
                                         setPreviewUrl(null);
                                         setSelectedFile(null);
                                     }}
-                                    sx={{position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper'}}
+                                    sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper' }}
                                 >
-                                    <X size={16}/>
+                                    <X size={16} />
                                 </IconButton>
                             </Box>
                         )}
                     </DialogContent>
-                    <DialogActions sx={{px: 3, pb: 2}}>
+                    <DialogActions sx={{ px: 3, pb: 2 }}>
                         <Button onClick={() => setEditDialogOpen(false)}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleEditRecommendation}
                             disabled={!formData.title.trim() || !formData.content.trim()}
-                            sx={{bgcolor: groupData.color}}
+                            sx={{ bgcolor: groupData.color }}
                         >
                             Zapisz
                         </Button>
