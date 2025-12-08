@@ -24,13 +24,9 @@ export default function QuizzesPage() {
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([]);
     const [selectedQuiz, setSelectedQuiz] = useState<QuizResponseDto | null>(null);
-
-    // Form state
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [questions, setQuestions] = useState<QuizQuestionRequestDto[]>([]);
-
-    // Taking quiz state
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, QuizAttemptAnswerRequestDto>>({});
     const [result, setResult] = useState<QuizAttemptResponseDto | null>(null);
@@ -88,6 +84,37 @@ export default function QuizzesPage() {
         };
     }, [groupData.id]);
 
+    const handleGetQuiz = async (quizId: string): Promise<QuizResponseDto | null> => {
+        try {
+            const res = await fetchWithAuth(
+                `${API_ROUTES.GET_QUIZ_WITH_ANSWERS}?groupId=${groupData.id}&quizId=${quizId}`,
+                {method: 'GET', credentials: 'include'}
+            );
+
+            if (!res.ok) {
+                console.error('Błąd pobierania quizu, status:', res.status);
+                return null;
+            }
+
+            const json = await res.json();
+            const raw = json?.data ?? json;
+
+            const normalized: QuizResponseDto = {
+                id: String(raw.id),
+                groupId: String(raw.groupId || groupData.id),
+                title: raw.title || '',
+                description: raw.description || undefined,
+                createdAt: raw.createdAt || new Date().toISOString(),
+                questions: Array.isArray(raw.questions) ? raw.questions : [],
+            };
+
+            return normalized;
+        } catch (error) {
+            console.error('Błąd podczas pobierania quizu:', error);
+            return null;
+        }
+    };
+
     const handleCreateQuiz = () => {
         setTitle('');
         setDescription('');
@@ -100,18 +127,24 @@ export default function QuizzesPage() {
         setTitle(quiz.title);
         setDescription(quiz.description || '');
         setQuestions(
-            quiz.questions.map((q) => ({
+            quiz.questions.map((q: any) => ({
                 Type: q.type,
                 Content: q.content,
-                Options: q.options.map((o) => ({text: o.text, isCorrect: o.isCorrect || false})),
-                CorrectTrueFalse: q.correctTrueFalse,
+                Options: Array.isArray(q.options)
+                    ? q.options.map((o: any) => ({Text: o.text, IsCorrect: !!o.isCorrect}))
+                    : [],
+                CorrectTrueFalse: typeof q.correctTrueFalse === 'boolean' ? q.correctTrueFalse : false,
             }))
         );
         setViewMode('edit');
     };
 
-    const handleTakeQuiz = (quiz: QuizResponseDto) => {
-        setSelectedQuiz(quiz);
+    const handleTakeQuiz = async (quiz: QuizResponseDto) => {
+        const fullyLoadedQuiz = await handleGetQuiz(quiz.id);
+        if (!fullyLoadedQuiz) {
+            return;
+        }
+        setSelectedQuiz(fullyLoadedQuiz);
         setCurrentQuestionIndex(0);
         setAnswers({});
         setResult(null);
@@ -200,8 +233,63 @@ export default function QuizzesPage() {
                 return;
             }
         }
+        if (viewMode === 'edit') {
+            if (!selectedQuiz) {
+                console.error('Brak wybranego quizu do edycji');
+                return;
+            }
+            if (!title.trim()) {
+                console.error('Tytuł quizu jest wymagany');
+                return;
+            }
 
-        // lokalne zachowanie dla edit / offline fallback
+            const payload = {
+                Title: title,
+                Description: description || undefined,
+                Questions: questions,
+            } as QuizRequestDto;
+
+            try {
+                const res = await fetchWithAuth(
+                    `${API_ROUTES.UPDATE_QUIZZES}?groupId=${groupData.id}&quizId=${selectedQuiz.id}`,
+                    {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(payload),
+                        credentials: 'include',
+                    }
+                );
+
+                if (!res.ok) {
+                    console.error('Błąd aktualizacji quizu, status:', res.status);
+                    return;
+                }
+
+                const json = await res.json();
+                const raw = json?.data ?? json;
+
+                const updated: QuizResponseDto = {
+                    id: String(raw.id || selectedQuiz.id),
+                    groupId: String(raw.groupId || groupData.id),
+                    title: raw.title || payload.Title,
+                    description: raw.description || payload.Description,
+                    createdAt: raw.createdAt || selectedQuiz.createdAt,
+                    questions: Array.isArray(raw.questions) ? raw.questions : payload.Questions,
+                };
+
+                setQuizzes(prev => prev.map(q => q.id === selectedQuiz.id ? updated : q));
+                setTitle('');
+                setDescription('');
+                setQuestions([]);
+                setViewMode('list');
+                setSelectedQuiz(null);
+                return;
+            } catch (error) {
+                console.error('Błąd podczas aktualizacji quizu:', error);
+                return;
+            }
+        }
+
         const quizData: QuizResponseDto = {
             id: viewMode === 'edit' && selectedQuiz ? selectedQuiz.id : Date.now().toString(),
             groupId: groupData.id,
