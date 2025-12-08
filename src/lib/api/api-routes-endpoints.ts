@@ -47,4 +47,5 @@ export const API_ROUTES = {
     PUT_RECOMMENDATIONS: '/api/group/recommendations/deleteGetPut',
     GET_QUIZZES: '/api/group/quizzes/inGroup',
     POST_QUIZZES: '/api/group/quizzes/inGroup',
+    DELETE_QUIZZES: '/api/group/quizzes/specificQuiz',
 } as const; 

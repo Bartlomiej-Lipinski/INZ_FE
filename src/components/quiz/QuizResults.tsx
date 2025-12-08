@@ -103,7 +103,7 @@ export default function QuizResults({
                                             </Typography>
                                             <Typography sx={{mb: 2}}>{question.content}</Typography>
 
-                                            {question.type === QuizQuestionType.MultipleChoice && (
+                                            {question.type === QuizQuestionType.SingleChoice && (
                                                 <Box>
                                                     {question.options.map((option) => {
                                                         const isSelected = userAnswer?.selectedOptionId === option.id;

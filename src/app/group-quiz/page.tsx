@@ -101,10 +101,10 @@ export default function QuizzesPage() {
         setDescription(quiz.description || '');
         setQuestions(
             quiz.questions.map((q) => ({
-                type: q.type,
-                content: q.content,
-                options: q.options.map((o) => ({text: o.text, isCorrect: o.isCorrect || false})),
-                correctTrueFalse: q.correctTrueFalse,
+                Type: q.type,
+                Content: q.content,
+                Options: q.options.map((o) => ({text: o.text, isCorrect: o.isCorrect || false})),
+                CorrectTrueFalse: q.correctTrueFalse,
             }))
         );
         setViewMode('edit');
@@ -118,8 +118,24 @@ export default function QuizzesPage() {
         setViewMode('take');
     };
 
-    const handleDeleteQuiz = (quizId: string) => {
-        setQuizzes(quizzes.filter((q) => q.id !== quizId));
+    const handleDeleteQuiz = async (quizId: string) => {
+        try {
+            const res = await fetchWithAuth(
+                `${API_ROUTES.DELETE_QUIZZES}?groupId=${groupData.id}&quizId=${quizId}`,
+                {
+                    method: 'DELETE',
+                    credentials: 'include',
+                }
+            );
+
+            if (!res.ok) {
+                console.error('Błąd usuwania quizu, status:', res.status);
+                return;
+            }
+            setQuizzes(prev => prev.filter(q => q.id !== quizId));
+        } catch (error) {
+            console.error('Błąd podczas usuwania quizu:', error);
+        }
     };
 
     const handleBackToList = () => {
@@ -139,9 +155,9 @@ export default function QuizzesPage() {
             }
 
             const payload = {
-                title,
-                description: description || undefined,
-                questions: questions,
+                Title: title,
+                Description: description || undefined,
+                Questions: questions,
             } as QuizRequestDto;
 
             try {
@@ -167,10 +183,10 @@ export default function QuizzesPage() {
                 const created: QuizResponseDto = {
                     id: String(createdRaw?.id ?? Date.now().toString()),
                     groupId: String(createdRaw?.groupId ?? groupData.id),
-                    title: createdRaw?.title ?? payload.title,
-                    description: createdRaw?.description ?? payload.description,
+                    title: createdRaw?.title ?? payload.Title,
+                    description: createdRaw?.description ?? payload.Description,
                     createdAt: createdRaw?.createdAt ?? new Date().toISOString(),
-                    questions: Array.isArray(createdRaw?.questions) ? createdRaw.questions : payload.questions,
+                    questions: Array.isArray(createdRaw?.questions) ? createdRaw.questions : payload.Questions,
                 };
 
                 setQuizzes(prev => [created, ...prev]);
@@ -196,15 +212,15 @@ export default function QuizzesPage() {
                 const baseQId = 'q-' + Date.now() + '-' + qIndex;
                 return {
                     id: baseQId,
-                    type: q.type,
-                    content: q.content,
-                    correctTrueFalse: q.correctTrueFalse,
-                    options: q.options
-                        ? q.options.map((o, oIndex) => ({
+                    type: q.Type,
+                    content: q.Content,
+                    correctTrueFalse: q.CorrectTrueFalse,
+                    options: q.Options
+                        ? q.Options.map((o, oIndex) => ({
                             id: 'o-' + Date.now() + '-' + qIndex + '-' + oIndex,
                             questionId: baseQId,
-                            text: o.text,
-                            isCorrect: o.isCorrect,
+                            text: o.Text,
+                            isCorrect: o.IsCorrect,
                         }))
                         : [],
                 };

@@ -10,7 +10,7 @@ export function calculateQuizScore(
         const userAnswer = answers[question.id];
         if (!userAnswer) return;
 
-        if (question.type === QuizQuestionType.MultipleChoice) {
+        if (question.type === QuizQuestionType.SingleChoice) {
             const correctOption = question.options.find((o) => o.isCorrect);
             if (userAnswer.selectedOptionId === correctOption?.id) {
                 correctCount++;
@@ -35,7 +35,7 @@ export function isAnswerCorrect(
 
     if (!question || !userAnswer) return false;
 
-    if (question.type === QuizQuestionType.MultipleChoice) {
+    if (question.type === QuizQuestionType.SingleChoice) {
         const correctOption = question.options.find((o) => o.isCorrect);
         return userAnswer.selectedOptionId === correctOption?.id;
     } else {

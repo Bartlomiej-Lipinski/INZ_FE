@@ -83,7 +83,7 @@ export default function QuizTake({
                         {currentQuestion.content}
                     </Typography>
 
-                    {currentQuestion.type === QuizQuestionType.MultipleChoice && (
+                    {currentQuestion.type === QuizQuestionType.SingleChoice && (
                         <RadioGroup
                             value={answers[currentQuestion.id]?.selectedOptionId || ''}
                             onChange={(e) => onAnswerChange(currentQuestion.id, {selectedOptionId: e.target.value})}
