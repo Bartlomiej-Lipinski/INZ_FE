@@ -13,7 +13,7 @@ import {
     Notebook,
     PieChart,
     X,
-    Settings,
+    Settings2,
     Star,
     Users
 } from 'lucide-react';
@@ -36,7 +36,7 @@ const MENU_ITEMS = [
     {key: 'quizzes', label: 'QUIZY', icon: Brain, path: '/group-quiz'},
     {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-members'},
     {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-menu/members'},
-    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
+    {key: 'options', label: 'OPCJE GRUPY', icon: Settings2, path: '/group-menu/options'},
 ] as const;
 
 interface GroupMenuProps {

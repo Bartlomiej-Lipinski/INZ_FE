@@ -1,20 +1,33 @@
 "use client";
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Box, Button, Dialog, DialogContent, DialogTitle, IconButton, TextField, Typography,} from '@mui/material';
 import {X} from 'lucide-react';
+import {validateRequiredInput} from '@/lib/zod-schemas';
 
 interface AddGroupModalProps {
     isOpen: boolean;
     onClose: () => void;
     onAdd: (name: string, color: string) => void;
+    mode?: 'add' | 'update';
+    initialGroupName?: string;
+    initialColor?: string;
 }
 
-export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
+export function AddGroupModal({
+    isOpen,
+    onClose,
+    onAdd,
+    mode = 'add',
+    initialGroupName,
+    initialColor,
+}: AddGroupModalProps) {
     const [groupName, setGroupName] = useState('');
+    const [groupNameError, setGroupNameError] = useState('');
     const [hue, setHue] = useState(0);
     const [saturation, setSaturation] = useState(100);
-    const lightness = 50;
+    const [lightness, setLightness] = useState(50);
+    const isUpdateMode = mode === 'update';
 
     const hslToHex = (h: number, s: number, l: number): string => {
         const hDecimal = h / 360;
@@ -48,17 +61,76 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     };
 
+    const hexToHsl = (hexColor: string) => {
+        const normalized = hexColor.startsWith('#') ? hexColor.slice(1) : hexColor;
+        if (!/^([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(normalized)) {
+            return null;
+        }
+
+        const hex = normalized.length === 3
+            ? normalized.split('').map((char) => char + char).join('')
+            : normalized;
+
+        const r = parseInt(hex.slice(0, 2), 16) / 255;
+        const g = parseInt(hex.slice(2, 4), 16) / 255;
+        const b = parseInt(hex.slice(4, 6), 16) / 255;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+
+        let h = 0;
+        let s = 0;
+        const l = (max + min) / 2;
+
+        if (delta !== 0) {
+            s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+
+            switch (max) {
+                case r:
+                    h = (g - b) / delta + (g < b ? 6 : 0);
+                    break;
+                case g:
+                    h = (b - r) / delta + 2;
+                    break;
+                case b:
+                    h = (r - g) / delta + 4;
+                    break;
+            }
+
+            h *= 60;
+        }
+
+        return {
+            h: h % 360,
+            s: s * 100,
+            l: l * 100,
+        };
+    };
+
     const selectedColor = hslToHex(hue, saturation, lightness);
+
+    const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setGroupName(value);
+        setGroupNameError(validateRequiredInput(value, 'Podaj nazwę grupy'));
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (groupName.trim()) {
-            onAdd(groupName, selectedColor);
-            setGroupName('');
-            setHue(0);
-            setSaturation(70);
-            onClose();
+        const validationMessage = validateRequiredInput(groupName, 'Podaj nazwę grupy');
+        setGroupNameError(validationMessage);
+        if (validationMessage) {
+            return;
         }
+
+        onAdd(groupName.trim(), selectedColor);
+        setGroupName('');
+        setGroupNameError('');
+        setHue(0);
+        setSaturation(70);
+        setLightness(50);
+        onClose();
     };
 
     const handleColorWheelClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -79,6 +151,24 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
         setHue(angle);
         setSaturation(sat);
     };
+
+    useEffect(() => {
+        if (!isUpdateMode || !isOpen) {
+            return;
+        }
+
+        setGroupName(initialGroupName ?? '');
+        setGroupNameError('');
+
+        if (initialColor) {
+            const hsl = hexToHsl(initialColor);
+            if (hsl) {
+                setHue(hsl.h);
+                setSaturation(hsl.s);
+                setLightness(hsl.l);
+            }
+        }
+    }, [initialColor, initialGroupName, isOpen, isUpdateMode]);
 
     const markerRadius = (saturation / 100) * 110;
     const markerAngle = (hue - 90) * (Math.PI / 180);
@@ -113,7 +203,9 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
                     <X size={20} />
                 </IconButton>
 
-                <DialogTitle sx={{ pb: 2 }}>Dodaj nową grupę</DialogTitle>
+                <DialogTitle sx={{ pb: 2 }}>
+                    {isUpdateMode ? 'Edycja grupy' : 'Nowa grupa'}
+                </DialogTitle>
 
                 <DialogContent>
                     <Box component="form" onSubmit={handleSubmit} sx={{ pt: 1 }}>
@@ -121,9 +213,11 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
                             fullWidth
                             label="Nazwa grupy"
                             value={groupName}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGroupName(e.target.value)}
+                            onChange={handleGroupNameChange}
                             placeholder="Wpisz nazwę grupy"
                             required
+                            error={Boolean(groupNameError)}
+                            helperText={groupNameError}
                             sx={{ mb: 3 }}
                         />
 
@@ -225,7 +319,7 @@ export function AddGroupModal({ isOpen, onClose, onAdd }: AddGroupModalProps) {
                                     },
                                 }}
                             >
-                                Dodaj grupę
+                                {isUpdateMode ? 'Zapisz' : 'Dodaj grupę'}
                             </Button>
                         </Box>
                     </Box>
