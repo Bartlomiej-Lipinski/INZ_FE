@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from 'react';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import GroupHeader from '@/components/layout/Group-header';
@@ -24,6 +24,8 @@ export default function GroupOptionsPage() {
     const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
+    const [isDeletingGroup, setIsDeletingGroup] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     const searchParamsString = searchParams.toString();
     const groupId = searchParams?.get('groupId') ?? '';
@@ -36,34 +38,37 @@ export default function GroupOptionsPage() {
     const isAdmin = user?.role === 'Admin';
     const canConfirmDelete = deleteConfirmationText.trim().toLowerCase() === 'delete';
 
-    // TO-DO: logic to leave group
+    // TO-DO: Changed endpoint to remove group member
     const handleLeaveGroupConfirm = useCallback(async () => {
-        // if (!groupId || !userId) {
-        //     console.warn("Brak wymaganych danych do opuszczenia grupy.");
-        //     return;
-        // }
+        if (!groupId || !userId) {
+            console.warn("Brak wymaganych danych do opuszczenia grupy.");
+            return;
+        }
 
-        // setIsLeavingGroup(true);
+        setIsLeavingGroup(true);
 
-        // try {
-        //     const response = await removeGroupMember(groupId, userId);
+        try {
+            const response = await removeGroupMember(groupId, userId);
 
-        //     if (response.success) {
-        //         setShowLeaveGroupConfirm(false);
-        //         router.push('/');
-        //     }
-        // } finally {
-        //     setIsLeavingGroup(false);
-        // }
+            if (response.success) {
+                setShowLeaveGroupConfirm(false);
+                router.push('/');
+            }else{
+                setActionError("Wystąpił błąd. Nie udało się opuścić grupy.");
+            }
+        } finally {
+            setIsLeavingGroup(false);
+        }
     }, [groupId, removeGroupMember, router, userId]);
 
     const handleUpdateGroup = useCallback(async (name: string, color: string) => {
         if (!groupId) {
-            console.warn('Brak identyfikatora grupy - przerwano aktualizację.');
+            setActionError('Brak identyfikatora grupy - nie można zaktualizować danych.');
             return;
         }
 
         try {
+            setActionError(null);
             const response = await fetchWithAuth(API_ROUTES.GROUP_BY_ID, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -75,25 +80,63 @@ export default function GroupOptionsPage() {
                 params.set('groupName', name);
                 params.set('groupColor', color);
                 router.replace(`${pathname}?${params.toString()}`);
+            } else {
+                const errorData = await response.json().catch(() => null);
+                const message = typeof errorData?.message === 'string'
+                    ? errorData.message
+                    : 'Nie udało się zaktualizować grupy.';
+                setActionError(message);
             }
         } catch (error) {
             console.error('Nie udało się zaktualizować grupy:', error);
+            setActionError('Wystąpił błąd podczas aktualizacji grupy. Spróbuj ponownie.');
         }
-    }, [groupId, pathname, router, searchParamsString]);
+    }, [groupId, pathname, router, searchParamsString, setActionError]);
 
     const handleCloseDeleteDialog = useCallback(() => {
         setIsDeleteDialogOpen(false);
         setDeleteConfirmationText('');
     }, []);
 
-    const handleDeleteGroup = useCallback(() => {
+    const handleDeleteGroup = useCallback(async () => {
         if (!canConfirmDelete) {
             return;
         }
 
-        console.warn('Obsługa usuwania grupy nie została jeszcze zaimplementowana.');
-        handleCloseDeleteDialog();
-    }, [canConfirmDelete, handleCloseDeleteDialog]);
+        if (!groupId) {
+            setActionError('Brak identyfikatora grupy - nie można usunąć.');
+            return;
+        }
+
+        setIsDeletingGroup(true);
+
+        try {
+            const response = await fetchWithAuth(API_ROUTES.GROUP_BY_ID, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: groupId }),
+            });
+
+            if (response.ok) {
+                setActionError(null);
+                handleCloseDeleteDialog();
+                router.push('/');
+            } else {
+                handleCloseDeleteDialog();
+                const errorData = await response.json().catch(() => null);
+                const message = typeof errorData?.message === 'string'
+                    ? errorData.message
+                    : 'Nie udało się usunąć grupy.';
+                setActionError(message);
+                console.error('Nie udało się usunąć grupy:', errorData ?? response.statusText);
+            }
+        } catch (error) {
+            console.error('Wystąpił błąd podczas usuwania grupy:', error);
+            setActionError('Wystąpił błąd podczas usuwania grupy. Spróbuj ponownie.');
+        } finally {
+            setIsDeletingGroup(false);
+        }
+    }, [canConfirmDelete, groupId, handleCloseDeleteDialog, router, setActionError]);
 
     return (
         <Box
@@ -138,6 +181,16 @@ export default function GroupOptionsPage() {
                     <Typography variant="h5" sx={{ fontWeight: 700 }}>
                         Panel akcji
                     </Typography>
+
+                    {actionError && (
+                        <Alert
+                            severity="error"
+                            onClose={() => setActionError(null)}
+                            sx={{ alignSelf: 'center', width: '100%', maxWidth: 420 }}
+                        >
+                            {actionError}
+                        </Alert>
+                    )}
 
 
                     <Box
@@ -310,7 +363,7 @@ export default function GroupOptionsPage() {
                     </Button>
                     <Button
                         onClick={handleDeleteGroup}
-                        disabled={!canConfirmDelete}
+                        disabled={!canConfirmDelete || isDeletingGroup}
                         sx={{
                             minWidth: 140,
                             bgcolor: theme.palette.error.main,
@@ -321,7 +374,7 @@ export default function GroupOptionsPage() {
                             },
                         }}
                     >
-                        Usuń grupę
+                        {isDeletingGroup ? 'Usuwanie...' : 'Usuń grupę'}
                     </Button>
                 </DialogActions>
             </Dialog>
