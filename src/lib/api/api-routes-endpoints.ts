@@ -50,4 +50,6 @@ export const API_ROUTES = {
     DELETE_QUIZZES: '/api/group/quizzes/specificQuiz',
     UPDATE_QUIZZES: '/api/group/quizzes/specificQuiz',
     GET_QUIZ_WITH_ANSWERS: '/api/group/quizzes/answers',
+    GET_QUIZ_ATTEMPTS: '/api/group/quizzes/attempts',
+    POST_QUIZ_ATTEMPT: '/api/group/quizzes/attempts',
 } as const; 

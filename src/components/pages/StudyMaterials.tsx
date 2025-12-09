@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
     Alert,
     Box,
@@ -40,6 +40,7 @@ interface StudyMaterialsPageProps {
 }
 
 export function StudyMaterialsPage({
+                                       userId,
                                        files,
                                        categories,
                                        isAdmin,
@@ -62,24 +63,6 @@ export function StudyMaterialsPage({
     const [newCategoryName, setNewCategoryName] = useState('');
     const [editingCategory, setEditingCategory] = useState<FileCategoryResponseDto | null>(null);
     const [editCategoryName, setEditCategoryName] = useState('');
-    const [currentUser, setCurrentUser] = useState<{ id: string; name: string; avatar: string } | null>(null);
-
-    useEffect(() => {
-        const userAuth = localStorage.getItem('auth:user');
-        if (userAuth) {
-            try {
-                const userData = JSON.parse(userAuth);
-                setCurrentUser({
-                    id: userData.id,
-                    name: userData.name,
-                    avatar: 'https://i.pravatar.cc/150?img=1',
-                    // userData.ProfilePIcture.id ||
-                });
-            } catch (error) {
-                console.error('Błąd parsowania danych użytkownika z localStorage:', error);
-            }
-        }
-    }, []);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -92,7 +75,7 @@ export function StudyMaterialsPage({
         if (!uploadFile || !groupData?.id) return;
 
         try {
-            if (!currentUser?.id) {
+            if (!userId) {
                 alert('Nie znaleziono danych użytkownika. Zaloguj się ponownie.');
                 return;
             }
@@ -144,7 +127,7 @@ export function StudyMaterialsPage({
             handleCloseMenu();
             return;
         }
-        if (!isAdmin && fileToDelete.uploadedById !== currentUser?.id) {
+        if (!isAdmin && fileToDelete.uploadedById !== userId) {
             alert('Nie masz uprawnień do usunięcia tego pliku.');
             handleCloseMenu();
             return;
@@ -194,7 +177,7 @@ export function StudyMaterialsPage({
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     credentials: 'include',
-                    body: JSON.stringify({str: newCategoryName}),
+                    body: JSON.stringify({newCategoryName}),
                 }
             );
 
@@ -278,7 +261,7 @@ export function StudyMaterialsPage({
     });
 
     const canDelete = (file: StoredFileResponseDto) => {
-        return isAdmin || file.uploadedById === currentUser!.id;
+        return isAdmin || file.uploadedById === userId;
     };
 
     const hasFilters: boolean = !!(searchQuery || selectedCategory !== 'all' || selectedAuthor !== 'all');

@@ -1,22 +1,19 @@
 "use client";
 
-import {useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {StudyMaterialsPage} from '@/components/pages/StudyMaterials';
 import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-material';
 import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
 import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
+import {useIsAdmin} from "@/hooks/use-isAdmin";
 
-// Mock dane - użyj jako fallback
-const MOCK_USER_ID = 'user-1';
-const MOCK_IS_ADMIN = true;
 
 export default function GroupMenuPage() {
     const searchParams = useSearchParams();
     const [files, setFiles] = useState<StoredFileResponseDto[]>([]);
     const [categories, setCategories] = useState<FileCategoryResponseDto[]>([]);
     const [loading, setLoading] = useState(true);
-
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
         const groupName = searchParams?.get('groupName') || '';
@@ -28,8 +25,56 @@ export default function GroupMenuPage() {
             color: decodeURIComponent(groupColor),
         };
     }, [searchParams]);
+    const [currentUser, setCurrentUser] = useState<{
+        id: string;
+        email: string;
+        username: string;
+        name: string;
+        surname: string;
+        birthDate?: string;
+        status?: string;
+        description?: string;
+        profilePicture?: {
+            id: string;
+            fileName?: string;
+            contentType?: string;
+            size?: number;
+            url?: string;
+        };
+        isTwoFactorEnabled?: boolean;
+    } | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const {verifyIsUserAdmin} = useIsAdmin();
 
-    const fetchMaterials = async (categoryId?: string, uploadedById?: string) => {
+    useEffect(() => {
+        const userAuth = localStorage.getItem('auth:user');
+        if (userAuth) {
+            try {
+                const userData = JSON.parse(userAuth);
+                setCurrentUser({
+                    id: userData.id,
+                    email: userData.email,
+                    username: userData.username,
+                    name: userData.name,
+                    surname: userData.surname,
+                    birthDate: userData.birthDate,
+                    status: userData.status,
+                    description: userData.description,
+                    profilePicture: userData.profilePicture,
+                    isTwoFactorEnabled: userData.isTwoFactorEnabled,
+                });
+                const checkAdmin = async () => {
+                    const response = await verifyIsUserAdmin(groupData.id);
+                    setIsAdmin(response.success && response.data === true);
+                };
+                checkAdmin();
+            } catch (error) {
+                console.error('Błąd parsowania danych użytkownika:', error);
+            }
+        }
+    }, [groupData.id]);
+
+    const fetchMaterials = useCallback(async (categoryId?: string, uploadedById?: string) => {
         if (!groupData.id) return;
 
         try {
@@ -57,9 +102,9 @@ export default function GroupMenuPage() {
             console.error('Błąd podczas pobierania materiałów:', error);
             setFiles([]);
         }
-    };
+    }, [groupData.id]);
 
-    const fetchCategories = async () => {
+    const fetchCategories = useCallback(async () => {
         if (!groupData.id) return;
 
         try {
@@ -76,13 +121,14 @@ export default function GroupMenuPage() {
                 throw new Error('Błąd podczas pobierania kategorii');
             }
 
-            const data: FileCategoryResponseDto[] = await response.json();
-            setCategories(Array.isArray(data) ? data : []);
+            const data = await response.json();
+            const body = data.data as FileCategoryResponseDto[];
+            setCategories(Array.isArray(body) ? body : []);
         } catch (error) {
             console.error('Błąd podczas pobierania kategorii:', error);
             setCategories([]);
         }
-    };
+    }, [groupData.id]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -94,9 +140,9 @@ export default function GroupMenuPage() {
         if (groupData.id) {
             loadData();
         }
-    }, [groupData.id]);
+    }, [fetchCategories, fetchMaterials, groupData.id]);
 
-    if (loading) {
+    if (loading || !currentUser) {
         return <div>Ładowanie...</div>;
     }
 
@@ -104,8 +150,8 @@ export default function GroupMenuPage() {
         <StudyMaterialsPage
             files={files}
             categories={categories}
-            userId={MOCK_USER_ID}
-            isAdmin={MOCK_IS_ADMIN}
+            userId={currentUser.id}
+            isAdmin={isAdmin}
             groupData={groupData}
             onFilesChange={setFiles}
             onCategoriesChange={setCategories}

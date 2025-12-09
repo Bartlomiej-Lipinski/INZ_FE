@@ -127,11 +127,11 @@ export default function QuizzesPage() {
         setTitle(quiz.title);
         setDescription(quiz.description || '');
         setQuestions(
-            quiz.questions.map((q: any) => ({
+            quiz.questions.map((q) => ({
                 Type: q.type,
                 Content: q.content,
                 Options: Array.isArray(q.options)
-                    ? q.options.map((o: any) => ({Text: o.text, IsCorrect: !!o.isCorrect}))
+                    ? q.options.map((o) => ({Text: o.text, IsCorrect: !!o.isCorrect}))
                     : [],
                 CorrectTrueFalse: typeof q.correctTrueFalse === 'boolean' ? q.correctTrueFalse : false,
             }))

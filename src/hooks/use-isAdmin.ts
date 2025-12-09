@@ -19,8 +19,10 @@ export function useIsAdmin() {
         setIsLoading(true);
         setError(null);
         try {
-            const url = `${API_ROUTES.IS_ADMIN}?groupid=${encodeURIComponent(groupid)}`;
-            const response = await fetchWithAuth(url, {method: 'GET',});
+            const response = await fetchWithAuth(`${API_ROUTES.IS_ADMIN}?groupid=${groupid}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
 
             const data = await response.json() as ApiResponse;
 
