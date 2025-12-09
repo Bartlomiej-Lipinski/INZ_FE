@@ -3,6 +3,7 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Button, Dialog, DialogContent, DialogTitle, IconButton, TextField, Typography,} from '@mui/material';
 import {X} from 'lucide-react';
+import {validateRequiredInput} from '@/lib/zod-schemas';
 
 interface AddGroupModalProps {
     isOpen: boolean;
@@ -22,6 +23,7 @@ export function AddGroupModal({
     initialColor,
 }: AddGroupModalProps) {
     const [groupName, setGroupName] = useState('');
+    const [groupNameError, setGroupNameError] = useState('');
     const [hue, setHue] = useState(0);
     const [saturation, setSaturation] = useState(100);
     const [lightness, setLightness] = useState(50);
@@ -108,16 +110,27 @@ export function AddGroupModal({
 
     const selectedColor = hslToHex(hue, saturation, lightness);
 
+    const handleGroupNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setGroupName(value);
+        setGroupNameError(validateRequiredInput(value, 'Podaj nazwę grupy'));
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (groupName.trim()) {
-            onAdd(groupName, selectedColor);
-            setGroupName('');
-            setHue(0);
-            setSaturation(70);
-            setLightness(50);
-            onClose();
+        const validationMessage = validateRequiredInput(groupName, 'Podaj nazwę grupy');
+        setGroupNameError(validationMessage);
+        if (validationMessage) {
+            return;
         }
+
+        onAdd(groupName.trim(), selectedColor);
+        setGroupName('');
+        setGroupNameError('');
+        setHue(0);
+        setSaturation(70);
+        setLightness(50);
+        onClose();
     };
 
     const handleColorWheelClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -145,6 +158,7 @@ export function AddGroupModal({
         }
 
         setGroupName(initialGroupName ?? '');
+        setGroupNameError('');
 
         if (initialColor) {
             const hsl = hexToHsl(initialColor);
@@ -199,9 +213,11 @@ export function AddGroupModal({
                             fullWidth
                             label="Nazwa grupy"
                             value={groupName}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setGroupName(e.target.value)}
+                            onChange={handleGroupNameChange}
                             placeholder="Wpisz nazwę grupy"
                             required
+                            error={Boolean(groupNameError)}
+                            helperText={groupNameError}
                             sx={{ mb: 3 }}
                         />
 
