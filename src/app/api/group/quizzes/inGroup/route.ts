@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {QuizzesCreate} from "@/lib/types/quizzes";
+import {QuizRequestDto} from "@/lib/types/quiz";
 
 const BASE_URL = process.env.BASE_URL;
 const QUIZZES_GET_POST = process.env.QUIZZES_GET_POST;
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const groupId = request.nextUrl.searchParams.get('groupId');
-        const quizPayLoad = await request.json() as QuizzesCreate;
+        const quizPayLoad = await request.json() as QuizRequestDto;
         if (!groupId) {
             return NextResponse.json(
                 {success: false, message: 'Brak wymaganych parametrów'},
@@ -53,7 +53,11 @@ export async function POST(request: NextRequest) {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({quizPayLoad}),
+            body: JSON.stringify({
+                Title: quizPayLoad.Title,
+                Description: quizPayLoad.Description,
+                Questions: quizPayLoad.Questions,
+            }),
             credentials: 'include',
         });
         const data = await response.json();

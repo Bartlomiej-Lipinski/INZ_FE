@@ -2,6 +2,7 @@ import {Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, L
 import {alpha, useTheme} from '@mui/material/styles';
 import {
     Bell,
+    Brain,
     CheckSquare,
     ChevronRight,
     Coffee,
@@ -32,6 +33,8 @@ const MENU_ITEMS = [
     {key: 'albums', label: 'ALBUM', icon: Images, path: '/group-albums'},
     {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study'},
     {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety'},
+    {key: 'quizzes', label: 'QUIZY', icon: Brain, path: '/group-quiz'},
+    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-members'},
     {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-menu/members'},
     {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
 ] as const;

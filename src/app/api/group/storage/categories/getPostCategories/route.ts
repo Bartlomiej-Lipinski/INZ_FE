@@ -45,7 +45,6 @@ export async function POST(request: NextRequest) {
             );
         }
         const body = await request.json();
-        const str = body.str;
         const endpoint = GET_POST_CATEGORIES?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
@@ -55,7 +54,7 @@ export async function POST(request: NextRequest) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                str
+                CategoryName: body.newCategoryName,
             }),
             credentials: 'include',
         });

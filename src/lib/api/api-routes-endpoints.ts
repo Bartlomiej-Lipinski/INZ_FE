@@ -50,4 +50,11 @@ export const API_ROUTES = {
     POST_RECOMMENDATIONS: '/api/group/recommendations/getPost',
     DELETE_RECOMMENDATIONS: '/api/group/recommendations/deleteGetPut',
     PUT_RECOMMENDATIONS: '/api/group/recommendations/deleteGetPut',
+    GET_QUIZZES: '/api/group/quizzes/inGroup',
+    POST_QUIZZES: '/api/group/quizzes/inGroup',
+    DELETE_QUIZZES: '/api/group/quizzes/specificQuiz',
+    UPDATE_QUIZZES: '/api/group/quizzes/specificQuiz',
+    GET_QUIZ_WITH_ANSWERS: '/api/group/quizzes/answers',
+    GET_QUIZ_ATTEMPTS: '/api/group/quizzes/attempts',
+    POST_QUIZ_ATTEMPT: '/api/group/quizzes/attempts',
 } as const; 
