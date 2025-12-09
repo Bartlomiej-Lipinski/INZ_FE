@@ -35,6 +35,7 @@ export function JoinGroupModal({isOpen, onClose, onJoin}: Readonly<JoinGroupModa
         try {
             const ok = await onJoin(joinCode);
             if (ok) {
+                window.alert('Prośba o dołączenie została pomyślnie wysłana. Poczekaj na akceptację od administratora.');
                 setJoinCode('');
                 setJoinError(null);
                 onClose();

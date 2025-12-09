@@ -1,26 +1,38 @@
 import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
-const BASE_URL = process.env.BASE_URL;
-const GRANT_ADMIN = process.env.GRANT_ADMIN;
-
+const BASE_URL = process.env.BASE_URL ?? '';
+const GRANT_ADMIN = process.env.GRANT_ADMIN ?? '';
 
 export async function POST(request: NextRequest) {
     try {
         const {groupId, userId} = await request.json();
+
+        if (!groupId || !userId) {
+            return NextResponse.json(
+                {success: false, message: 'Brakuje identyfikatora grupy lub użytkownika.'},
+                {status: 400},
+            );
+        }
+
+
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const response = await fetchWithAuth(`${BASE_URL}${GRANT_ADMIN}`, {
+        const sanitizedBaseUrl = BASE_URL.replace(/\/$/, '');
+        const template = GRANT_ADMIN.trim();
+        const normalizedTemplate = template.startsWith('/') ? template : `/${template}`;
+        const endpointPath = normalizedTemplate.replace('{groupId}', encodeURIComponent(groupId));
+        const targetUrl = `${sanitizedBaseUrl}${endpointPath}`;
+
+        const response = await fetchWithAuth(targetUrl, {
             method: 'POST',
             headers: {
                 'Cookie': cookieHeader,
                 'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }, body: JSON.stringify({
-                groupId: groupId,
-                userId: userId
-            }),
-            credentials: 'include'
+            },
+            body: JSON.stringify({userId}),
+            credentials: 'include',
         });
+
         const textBody = await response.text();
         const data = textBody ? JSON.parse(textBody) : {};
         return NextResponse.json(data, {status: response.status});

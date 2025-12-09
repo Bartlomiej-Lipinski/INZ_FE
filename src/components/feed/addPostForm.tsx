@@ -6,9 +6,10 @@ import {GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {FeedItemType} from "@/lib/types/FeedItemType";
 import {useImageUrl} from "@/hooks/useImageUrl";
+import { User } from '@/lib/types/user';
 
 interface AddPostFormProps {
-    user: { id: string; name: string; surname: string; username: string; profilePicture: { id: string } };
+    user: User;
     groupColor: string;
     groupId: string;
     onAddPost: (newItem: GroupFeedItemResponseDto) => void;
@@ -19,7 +20,7 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: Read
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const avatarUrl = useImageUrl(user.profilePicture.id);
+    const avatarUrl = useImageUrl(user.profilePicture?.id || undefined);
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -171,7 +172,7 @@ export default function AddPostForm({user, groupId, groupColor, onAddPost}: Read
                         disabled={isSubmitting}
                         sx={{
                             bgcolor: groupColor,
-                            color: '#9e9e9e',
+                            color: 'white',
                             '&:hover': {
                                 bgcolor: 'rgba(255, 255, 255, 0.1)',
                                 color: '#bdbdbd',

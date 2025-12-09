@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
         const description = formData.get('description') as string;
         const file = formData.get('file') as File | null;
         const groupId = formData.get('groupId') as string;
+        const title = formData.get('title') as string | null;
 
         if (!groupId) {
             return NextResponse.json(
@@ -60,6 +61,9 @@ export async function POST(request: NextRequest) {
 
         const backendFormData = new FormData();
         backendFormData.append('description', description);
+        if (title) {
+            backendFormData.append('title', title);
+        }
         if (file) {
             backendFormData.append('file', file);
         }

@@ -1,9 +1,9 @@
 "use client";
 
-import {useState} from "react";
+import {useCallback, useState} from "react";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-
+import {useAuthContext} from "@/contexts/AuthContext";
 
 interface ApiResponse {
     success: boolean;
@@ -14,8 +14,25 @@ interface ApiResponse {
 export function useIsAdmin() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const {user, setUser} = useAuthContext();
 
-    const verifyIsUserAdmin = async (groupid: string): Promise<ApiResponse> => {
+    const updateUserRole = useCallback((isAdmin: boolean) => {
+        if (!user) {
+            return;
+        }
+
+        const desiredRole = isAdmin ? 'Admin' : 'Member';
+        if (user.role === desiredRole) {
+            return;
+        }
+
+        setUser({
+            ...user,
+            role: desiredRole,
+        });
+    }, [setUser, user]);
+
+    const verifyIsUserAdmin = useCallback(async (groupid: string): Promise<ApiResponse> => {
         setIsLoading(true);
         setError(null);
         try {
@@ -27,6 +44,9 @@ export function useIsAdmin() {
             const data = await response.json() as ApiResponse;
 
             if (response.ok && data.success) {
+                if (typeof data.data === "boolean") {
+                    updateUserRole(data.data);
+                }
                 return data;
             } else {
                 setError(data.message || "Błąd weryfikacji uprawnień admina");
@@ -39,7 +59,7 @@ export function useIsAdmin() {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, [updateUserRole]);
 
     return {verifyIsUserAdmin, isLoading, error, setErrorMessage: setError};
 }
