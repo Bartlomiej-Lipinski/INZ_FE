@@ -190,7 +190,7 @@ export function AddGroupModal({
                 </IconButton>
 
                 <DialogTitle sx={{ pb: 2 }}>
-                    {isUpdateMode ? 'Zmiana danych grupy' : 'Nowa grupa'}
+                    {isUpdateMode ? 'Edycja grupy' : 'Nowa grupa'}
                 </DialogTitle>
 
                 <DialogContent>

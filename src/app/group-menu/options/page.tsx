@@ -3,7 +3,7 @@
 import { useCallback, useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import GroupHeader from '@/components/layout/Group-header';
 import { LogOut, Settings2, Trash2 } from 'lucide-react';
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -15,6 +15,7 @@ import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 export default function GroupOptionsPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const pathname = usePathname();
     const theme = useTheme();
     const { user } = useAuthContext();
     const { removeGroupMember } = useMembers();
@@ -22,6 +23,7 @@ export default function GroupOptionsPage() {
     const [isLeavingGroup, setIsLeavingGroup] = useState(false);
     const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
 
+    const searchParamsString = searchParams.toString();
     const groupId = searchParams?.get('groupId') ?? '';
     const groupNameParam = searchParams?.get('groupName') ?? '';
     const groupColorParam = searchParams?.get('groupColor') ?? '';
@@ -59,15 +61,22 @@ export default function GroupOptionsPage() {
         }
 
         try {
-            await fetchWithAuth(API_ROUTES.GROUP_BY_ID, {
+            const response = await fetchWithAuth(API_ROUTES.GROUP_BY_ID, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: groupId, name, color }),
             });
+
+            if (response.ok) {
+                const params = new URLSearchParams(searchParamsString);
+                params.set('groupName', name);
+                params.set('groupColor', color);
+                router.replace(`${pathname}?${params.toString()}`);
+            }
         } catch (error) {
             console.error('Nie udało się zaktualizować grupy:', error);
         }
-    }, [groupId]);
+    }, [groupId, pathname, router, searchParamsString]);
 
     return (
         <Box
