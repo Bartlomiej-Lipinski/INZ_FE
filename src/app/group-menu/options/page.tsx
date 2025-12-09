@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import GroupHeader from '@/components/layout/Group-header';
@@ -22,6 +22,8 @@ export default function GroupOptionsPage() {
     const [showLeaveGroupConfirm, setShowLeaveGroupConfirm] = useState(false);
     const [isLeavingGroup, setIsLeavingGroup] = useState(false);
     const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deleteConfirmationText, setDeleteConfirmationText] = useState('');
 
     const searchParamsString = searchParams.toString();
     const groupId = searchParams?.get('groupId') ?? '';
@@ -32,6 +34,7 @@ export default function GroupOptionsPage() {
     const groupName = groupNameParam ? decodeURIComponent(groupNameParam) : '';
     const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : theme.palette.primary.main;
     const isAdmin = user?.role === 'Admin';
+    const canConfirmDelete = deleteConfirmationText.trim().toLowerCase() === 'delete';
 
     // TO-DO: logic to leave group
     const handleLeaveGroupConfirm = useCallback(async () => {
@@ -77,6 +80,20 @@ export default function GroupOptionsPage() {
             console.error('Nie udało się zaktualizować grupy:', error);
         }
     }, [groupId, pathname, router, searchParamsString]);
+
+    const handleCloseDeleteDialog = useCallback(() => {
+        setIsDeleteDialogOpen(false);
+        setDeleteConfirmationText('');
+    }, []);
+
+    const handleDeleteGroup = useCallback(() => {
+        if (!canConfirmDelete) {
+            return;
+        }
+
+        console.warn('Obsługa usuwania grupy nie została jeszcze zaimplementowana.');
+        handleCloseDeleteDialog();
+    }, [canConfirmDelete, handleCloseDeleteDialog]);
 
     return (
         <Box
@@ -232,6 +249,7 @@ export default function GroupOptionsPage() {
                         <Button
                             startIcon={<Trash2 size={20} />}
                             disabled={!isAdmin}
+                            onClick={() => setIsDeleteDialogOpen(true)}
                             sx={{
                                 minHeight: 56,
                                 fontWeight: 600,
@@ -256,6 +274,58 @@ export default function GroupOptionsPage() {
                     )}
                 </Box>
             </Box>
+
+            <Dialog
+                open={isDeleteDialogOpen}
+                onClose={handleCloseDeleteDialog}
+                fullWidth
+                maxWidth="xs"
+            >
+                <DialogTitle>Usuwanie grupy</DialogTitle>
+                <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 4, pt: 1, textAlign: 'center' }}>
+                    <Typography>
+                        Jeśli na pewno chcesz usunąć grupę, wpisz&nbsp;
+                        <Typography component="span" fontWeight={700} color={theme.palette.error.main}>
+                            delete
+                        </Typography>
+                        &nbsp;w polu poniżej.
+                    </Typography>
+                    <TextField
+                        autoFocus
+                        label="Potwierdź usunięcie"
+                        placeholder="delete"
+                        fullWidth
+                        value={deleteConfirmationText}
+                        onChange={(event) => setDeleteConfirmationText(event.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                    <Button onClick={handleCloseDeleteDialog}
+                        sx={{
+                            minWidth: 120,
+                            bgcolor: groupColor || theme.palette.primary.main,
+                            color: theme.palette.getContrastText(groupColor || theme.palette.primary.main)
+                        }}>
+                        Anuluj
+                    </Button>
+                    <Button
+                        onClick={handleDeleteGroup}
+                        disabled={!canConfirmDelete}
+                        sx={{
+                            minWidth: 140,
+                            bgcolor: theme.palette.error.main,
+                            color: theme.palette.getContrastText(theme.palette.error.main),
+                            '&:disabled': {
+                                bgcolor: theme.palette.action.disabledBackground,
+                                color: theme.palette.text.disabled,
+                            },
+                        }}
+                    >
+                        Usuń grupę
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
             <AddGroupModal
                 isOpen={isEditGroupModalOpen}
                 onClose={() => setIsEditGroupModalOpen(false)}
