@@ -9,12 +9,10 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
-    IconButton,
     Menu,
     MenuItem,
-    Typography,
 } from '@mui/material';
-import { Edit2, FileText, Menu as MenuIcon, Notebook, Plus, Trash2 } from 'lucide-react';
+import { Edit2, FileText, Notebook, Plus, Trash2 } from 'lucide-react';
 import { FileCategoryResponseDto, StoredFileResponseDto } from '@/lib/types/study-material';
 import FileFilters from "@/components/pages/StudyMaterialsFilters";
 import CategoriesManager from './CategoriesManager';
@@ -23,7 +21,6 @@ import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
-import GroupMenu from "@/components/common/GroupMenu";
 import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
 import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
 import GroupHeader from '../layout/Group-header';
@@ -50,7 +47,6 @@ export function StudyMaterialsPage({
                                        onCategoriesChange,
                                    }: StudyMaterialsPageProps) {
     const groupColor = groupData?.color || '#9042fb';
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
     const [editCategoryDialogOpen, setEditCategoryDialogOpen] = useState(false);

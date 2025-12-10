@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState } from 'react';
-import GroupMenu from '@/components/common/GroupMenu';
+import GroupMenu from '@/components/common/Group-menu-drawer';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { SxProps, Theme } from '@mui/material/styles';
 import { HomeIcon, Menu as MenuIcon } from 'lucide-react';

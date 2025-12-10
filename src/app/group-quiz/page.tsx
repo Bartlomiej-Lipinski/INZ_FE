@@ -290,38 +290,6 @@ export default function QuizzesPage() {
             }
         }
 
-        const quizData: QuizResponseDto = {
-            id: viewMode === 'edit' && selectedQuiz ? selectedQuiz.id : Date.now().toString(),
-            groupId: groupData.id,
-            title,
-            description: description || undefined,
-            createdAt: viewMode === 'edit' && selectedQuiz ? selectedQuiz.createdAt : new Date().toISOString(),
-            questions: questions.map((q, qIndex) => {
-                const baseQId = 'q-' + Date.now() + '-' + qIndex;
-                return {
-                    id: baseQId,
-                    type: q.Type,
-                    content: q.Content,
-                    correctTrueFalse: q.CorrectTrueFalse,
-                    options: q.Options
-                        ? q.Options.map((o, oIndex) => ({
-                            id: 'o-' + Date.now() + '-' + qIndex + '-' + oIndex,
-                            questionId: baseQId,
-                            text: o.Text,
-                            isCorrect: o.IsCorrect,
-                        }))
-                        : [],
-                };
-            }),
-        };
-
-        if (viewMode === 'edit' && selectedQuiz) {
-            setQuizzes(prev => prev.map((q) => (q.id === selectedQuiz.id ? quizData : q)));
-        } else {
-            setQuizzes(prev => [quizData, ...prev]);
-        }
-
-        handleBackToList();
     }
 
     const handleAnswerChange = (questionId: string, answer: Partial<QuizAttemptAnswerRequestDto>) => {

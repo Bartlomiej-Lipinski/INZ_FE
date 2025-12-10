@@ -14,8 +14,8 @@ import {
 } from '@mui/material';
 import {Brain, Edit2, Menu, PlayCircle, Plus, Trash2,} from 'lucide-react';
 import {QuizResponseDto} from '@/lib/types/quiz';
-import GroupMenu from "@/components/common/GroupMenu";
 import {useSearchParams} from 'next/navigation';
+import GroupHeader from '../layout/Group-header';
 
 
 interface QuizListProps {
@@ -36,7 +36,6 @@ export default function QuizList({
                                      onDeleteQuiz,
                                  }: QuizListProps) {
     const searchParams = useSearchParams();
-    const [drawerOpen, setDrawerOpen] = React.useState(false);
     const [deleteDialog, setDeleteDialog] = React.useState<{
         open: boolean;
         quizId: string | null;
@@ -102,42 +101,13 @@ export default function QuizList({
     };
 
     return (
-        <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
+        <Box sx={{width: '100%', minHeight: '100vh'}}>
+            <GroupHeader
+                title={`Quizy`}
+                leftIcon={<Brain size={32}/>}
+            />
             <Box sx={{maxWidth: 1200, mx: 'auto'}}>
-                {/* Header */}
-                <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                    <IconButton
-                        onClick={() => setDrawerOpen(true)}
-                        sx={{
-                            bgcolor: '#8D8C8C',
-                            '&:hover': {bgcolor: '#666666'},
-                            mr: 1,
-                        }}
-                    >
-                        <Menu/>
-                    </IconButton>
 
-                    <Typography
-                        variant="h4"
-                        sx={{
-                            textAlign: 'center',
-                            flex: 1,
-                            fontWeight: 600,
-                            fontSize: {xs: '1.75rem', sm: '2rem'},
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 2,
-                        }}
-                    >
-                        <Brain size={32}/>
-                        Quizy
-                    </Typography>
-                </Box>
-
-                {/* Drawer */}
-                <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
-                           groupName={groupData.name} groupColor={groupData.color}/>
 
                 {/* Create button */}
                 <Button
