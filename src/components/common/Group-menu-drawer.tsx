@@ -38,7 +38,7 @@ const MENU_ITEMS = [
     {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
 ] as const;
 
-interface GroupMenuProps {
+interface GroupMenuDrawerProps {
     open: boolean;
     onClose: () => void;
     groupId: string;
@@ -46,7 +46,7 @@ interface GroupMenuProps {
     groupColor: string;
 }
 
-export default function GroupMenu({open, onClose, groupId, groupName, groupColor}: GroupMenuProps) {
+export default function GroupMenuDrawer({open, onClose, groupId, groupName, groupColor}: GroupMenuDrawerProps) {
     const theme = useTheme();
     const router = useRouter();
     const {setUser} = useAuthContext();
