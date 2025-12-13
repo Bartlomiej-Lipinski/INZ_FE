@@ -18,8 +18,15 @@ interface PostEvent {
 
 export async function PUT(request: NextRequest) {
     try {
-
-        const {groupId, eventId, ...eventData}: { groupId: string; eventId: string } & PostEvent = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId lub eventId w zapytaniu'},
+                {status: 400}
+            );
+        }
+        const FromData = await request.formData();
         const endpoint = EVENTS_PUT_GET_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';
@@ -27,9 +34,8 @@ export async function PUT(request: NextRequest) {
             method: 'PUT',
             headers: {
                 'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(eventData),
+            body: FromData,
             credentials: 'include',
         });
         const data = await response.json();
@@ -45,7 +51,14 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const {groupId, eventId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId lub eventId w zapytaniu'},
+                {status: 400}
+            );
+        }
         const endpoint = EVENTS_PUT_GET_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';
@@ -70,8 +83,14 @@ export async function DELETE(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
     try {
-        const groupId = request.nextUrl.searchParams.get('groupId') ?? '';
-        const eventId = request.nextUrl.searchParams.get('eventId') ?? '';
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId lub eventId w zapytaniu'},
+                {status: 400}
+            );
+        }
         const endpoint = EVENTS_PUT_GET_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';

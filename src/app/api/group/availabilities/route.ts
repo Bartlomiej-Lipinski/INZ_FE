@@ -4,20 +4,28 @@ import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 const BASE_URL = process.env.BASE_URL;
 const AVAILABILITIES_POST_DELETE = process.env.AVAILABILITIES_POST_DELETE;
 
-export async function PUT(request: NextRequest) {
+export async function POST(request: NextRequest) {
     try {
-        const {groupId, eventId, status} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId lub eventId w zapytaniu'},
+                {status: 400}
+            );
+        }
+        const {status} = await request.json();
         const endpoint = AVAILABILITIES_POST_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Cookie': cookieHeader,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                status
+                Status: status
             }),
             credentials: 'include',
         });
@@ -34,7 +42,14 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const {groupId, eventId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId lub eventId w zapytaniu'},
+                {status: 400}
+            );
+        }
         const endpoint = AVAILABILITIES_POST_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';

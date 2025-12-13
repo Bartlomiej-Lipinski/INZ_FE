@@ -35,7 +35,14 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
     try {
-        const {groupId, eventId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId lub eventId w zapytaniu'},
+                {status: 400}
+            );
+        }
         const endpoint = AVAILABILITY_POST_DELETE?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId);
         const cookieHeader = request.headers.get('cookie') ?? '';

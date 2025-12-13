@@ -18,15 +18,22 @@ interface PostEvent {
 
 export async function POST(request: NextRequest) {
     try {
-        const {groupId, ...eventData}: { groupId: string } & PostEvent = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        if (!groupId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId w zapytaniu'},
+                {status: 400}
+            );
+        }
+        const FromData = await request.formData();
+
         const endpoint = EVENTS_POST_GET?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Cookie': cookieHeader,
-                'Content-Type': 'application/json',
-            }, body: JSON.stringify(eventData),
+            }, body: FromData,
             credentials: 'include',
         });
 
