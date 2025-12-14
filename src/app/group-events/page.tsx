@@ -356,7 +356,6 @@ export default function EventsPage() {
     };
     const handleSubmitAvailabilityRange = async () => {
         if (!currentUser || !selectedEvent || selectedTimeSlots.length === 0) return;
-
         const rangesToSend = selectedTimeSlots.map(slot => ({
             availableFrom: `${slot.date}T${String(slot.startHour).padStart(2, '0')}:00:00`,
             availableTo: `${slot.date}T${String(slot.endHour).padStart(2, '0')}:00:00`,
@@ -379,7 +378,6 @@ export default function EventsPage() {
                 if (createdRanges && createdRanges.length > 0) {
                     setAvailabilityRanges(prev => [...prev, ...createdRanges]);
                 } else {
-                    // Fallback: utworzenie lokalnych obiektów jeśli backend nie zwróci danych
                     const fallbackRanges = rangesToSend.map((range, index) => ({
                         id: Date.now().toString() + Math.random() + index,
                         eventId: selectedEvent.id,

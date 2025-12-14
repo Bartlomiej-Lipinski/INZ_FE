@@ -254,7 +254,7 @@ export default function EventDetails({
                     </Button>
                 )}
 
-                {event.isAutoScheduled && !event.startDate && (
+                {event.isAutoScheduled && !event.startDate && event.user.id === currentUserId && (
                     <Button
                         variant="contained"
                         color="primary"
