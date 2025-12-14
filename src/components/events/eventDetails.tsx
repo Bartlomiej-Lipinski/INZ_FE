@@ -198,7 +198,7 @@ export default function EventDetails({
                         )}
 
                         {/* Dostępność dla automatycznego planowania */}
-                        {event.isAutoScheduled && event.rangeStart && event.rangeEnd && !event.startDate && (
+                        {event.isAutoScheduled && (
                             <Box sx={{mb: 3}}>
                                 <Typography variant="h6" sx={{mb: 2}}>
                                     Dostępność członków

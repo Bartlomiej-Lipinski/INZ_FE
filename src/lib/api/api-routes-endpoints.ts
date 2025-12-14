@@ -65,5 +65,5 @@ export const API_ROUTES = {
     POST_GROUP_EVENT: '/api/group/events/eventsPerGroup',
     DELETE_GROUP_EVENT: '/api/group/events/SingleEvents',
     UPDATE_GROUP_EVENT: '/api/group/events/SingleEvents',
-    GET_GROUP_EVENT: '/api/group/events/SingleEvent',
+    GET_GROUP_EVENT: '/api/group/events/SingleEvents',
 } as const; 

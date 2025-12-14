@@ -71,8 +71,6 @@ export default function EventsPage() {
         };
         isTwoFactorEnabled?: boolean;
     } | null>(null);
-
-    // Form state
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
@@ -82,20 +80,15 @@ export default function EventsPage() {
     const [durationMinutes, setDurationMinutes] = useState('');
     const [rangeStart, setRangeStart] = useState('');
     const [rangeEnd, setRangeEnd] = useState('');
-    // Availability state
     const [availabilityRanges, setAvailabilityRanges] = useState<AvailabilityRangeResponseDto[]>([]);
     const [selectedTimeSlots, setSelectedTimeSlots] = useState<Array<{
         date: string;
         startHour: number;
         endHour: number
     }>>([]);
-
-    // Suggestions state
     const [isPlanningFinished, setIsPlanningFinished] = useState(false);
     const [suggestions, setSuggestions] = useState<EventSuggestionResponseDto[]>([]);
     const [finalDate, setFinalDate] = useState<{ start: string; end: string } | null>(null);
-
-    // Edit mode
     const [isEditMode, setIsEditMode] = useState(false);
     const [editEventId, setEditEventId] = useState<string | null>(null);
 
@@ -163,9 +156,26 @@ export default function EventsPage() {
         setViewMode('create');
     };
 
-    const handleViewDetails = (event: EventResponseDto) => {
-        setSelectedEvent(event);
-        setViewMode('details');
+    const handleViewDetails = async (event: EventResponseDto) => {
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.GET_GROUP_EVENT}?groupId=${groupData.id}&eventId=${event.id}`,
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                }
+            );
+            if (response.ok) {
+                const data = await response.json();
+                const event = data.data as EventResponseDto;
+                setSelectedEvent(event);
+                setViewMode('details');
+            } else {
+                console.error('Błąd podczas pobierania dostępności wydarzenia');
+            }
+        } catch (error) {
+            console.error('Błąd podczas pobierania dostępności wydarzenia:', error);
+        }
     };
 
     const handleBackToList = () => {
@@ -210,7 +220,6 @@ export default function EventsPage() {
 
         try {
             if (isEditMode && editEventId) {
-                // Edycja
                 const response = await fetchWithAuth(
                     `${API_ROUTES.UPDATE_GROUP_EVENT}?groupId=${groupData.id}&eventId=${editEventId}`,
                     {
@@ -234,6 +243,34 @@ export default function EventsPage() {
             handleBackToList();
         } catch (error) {
             console.error('Błąd:', error);
+        }
+    };
+
+    const handleDeleteEvent = async (eventId?: string) => {
+        const id = eventId || selectedEvent?.id;
+        if (!id || !groupData.id) return;
+        const confirmed = window.confirm('Czy na pewno chcesz usunąć to wydarzenie?');
+        if (!confirmed) return;
+
+        try {
+            const response = await fetchWithAuth(`${API_ROUTES.DELETE_GROUP_EVENT}?groupId=${groupData.id}&eventId=${eventId}`, {
+                method: 'DELETE',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                console.error('Błąd podczas usuwania wydarzenia');
+            } else {
+                setEvents(prev => prev.filter(ev => ev.id !== id));
+                if (selectedEvent && selectedEvent.id === id) {
+                    setSelectedEvent(null);
+                    setViewMode('list');
+                }
+                setIsEditMode(false);
+                setEditEventId(null);
+            }
+        } catch (error) {
+            console.error('Błąd podczas usuwania wydarzenia:', error);
         }
     };
 
@@ -317,6 +354,51 @@ export default function EventsPage() {
         }
 
     };
+    const handleSubmitAvailabilityRange = async () => {
+        if (!currentUser || !selectedEvent || selectedTimeSlots.length === 0) return;
+
+        const rangesToSend = selectedTimeSlots.map(slot => ({
+            availableFrom: `${slot.date}T${String(slot.startHour).padStart(2, '0')}:00:00`,
+            availableTo: `${slot.date}T${String(slot.endHour).padStart(2, '0')}:00:00`,
+        }));
+
+        try {
+            const response = await fetchWithAuth(
+                `${API_ROUTES.POST_UPDATE_DELETE_EVENT_AVAILABILITY_RANGE}?groupId=${groupData.id}&eventId=${selectedEvent.id}`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(rangesToSend),
+                    credentials: 'include',
+                }
+            );
+
+            if (response && response.ok) {
+                const data = await response.json();
+                const createdRanges = data.data as AvailabilityRangeResponseDto[];
+                if (createdRanges && createdRanges.length > 0) {
+                    setAvailabilityRanges(prev => [...prev, ...createdRanges]);
+                } else {
+                    // Fallback: utworzenie lokalnych obiektów jeśli backend nie zwróci danych
+                    const fallbackRanges = rangesToSend.map((range, index) => ({
+                        id: Date.now().toString() + Math.random() + index,
+                        eventId: selectedEvent.id,
+                        user: {id: currentUser.id, email: currentUser.email, username: currentUser.username},
+                        availableFrom: range.availableFrom,
+                        availableTo: range.availableTo,
+                    }));
+                    setAvailabilityRanges(prev => [...prev, ...fallbackRanges]);
+                }
+            } else {
+                console.error('Błąd podczas zapisywania przedziałów dostępności', response);
+            }
+        } catch (err) {
+            console.error('Błąd podczas wysyłania przedziałów dostępności:', err);
+        }
+
+        setSelectedTimeSlots([]);
+        setViewMode('details');
+    };
 
 
     const handleRemoveAvailability = async () => {
@@ -395,7 +477,8 @@ export default function EventsPage() {
                             Nowe wydarzenie
                         </Button>
 
-                        <EventsList events={events} onViewDetails={handleViewDetails} currentUserId={currentUser.id}/>
+                        <EventsList events={events} onViewDetails={handleViewDetails} onDelete={handleDeleteEvent}
+                                    currentUserId={currentUser.id}/>
                     </Box>
                 </Box>
             )}
@@ -450,22 +533,7 @@ export default function EventsPage() {
                     groupColor={groupData.color}
                     onBack={() => setViewMode('details')}
                     onSlotsChange={setSelectedTimeSlots}
-                    onSubmit={() => {
-                        selectedTimeSlots.forEach((slot) => {
-                            const availFrom = `${slot.date}T${String(slot.startHour).padStart(2, '0')}:00:00`;
-                            const availTo = `${slot.date}T${String(slot.endHour).padStart(2, '0')}:00:00`;
-                            const newRange: AvailabilityRangeResponseDto = {
-                                id: Date.now().toString() + Math.random(),
-                                eventId: selectedEvent.id,
-                                user: {id: currentUser!.id, email: currentUser!.email, username: currentUser!.username},
-                                availableFrom: availFrom,
-                                availableTo: availTo,
-                            };
-                            setAvailabilityRanges([...availabilityRanges, newRange]);
-                        });
-                        setSelectedTimeSlots([]);
-                        setViewMode('details');
-                    }}
+                    onSubmit={handleSubmitAvailabilityRange}
                 />
             )}
 

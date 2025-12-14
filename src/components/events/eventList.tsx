@@ -1,14 +1,26 @@
 "use client";
 
-import {alpha, Avatar, AvatarGroup, Box, Card, CardContent, CardMedia, Chip, Typography} from '@mui/material';
-import {Calendar as CalendarIcon, MapPin} from 'lucide-react';
+import {
+    alpha,
+    Avatar,
+    AvatarGroup,
+    Box,
+    Card,
+    CardContent,
+    CardMedia,
+    Chip,
+    IconButton,
+    Typography
+} from '@mui/material';
+import {Calendar as CalendarIcon, MapPin, Trash2} from 'lucide-react';
 import {EventResponseDto} from '@/lib/types/event';
 import {useImageUrl} from "@/hooks/useImageUrl";
 
 interface EventsListProps {
     events: EventResponseDto[];
     onViewDetails: (event: EventResponseDto) => void;
-    currentUserId: string;
+    currentUserId?: string;
+    onDelete?: (eventId: string) => void;
 }
 
 function formatDateTime(date: string, startTime: string, endTime?: string): string {
@@ -60,7 +72,7 @@ function EventAvatar({user}: { user: EventResponseDto['availabilities'][0]['user
     );
 }
 
-export default function EventsList({events, onViewDetails, currentUserId}: EventsListProps) {
+export default function EventsList({events, onViewDetails, currentUserId, onDelete}: EventsListProps) {
 
     if (events.length === 0) {
         return (
@@ -78,6 +90,7 @@ export default function EventsList({events, onViewDetails, currentUserId}: Event
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
             {events.map((event) => {
                 const userAvailability = event.availabilities.find((a) => a.user.id === currentUserId);
+                const isOwner = event.user.id === currentUserId;
 
                 return (
                     <Card
@@ -93,10 +106,26 @@ export default function EventsList({events, onViewDetails, currentUserId}: Event
                         {event.imageUrl && (
                             <CardMedia component="img" height="200" image={event.imageUrl} alt={event.title}/>
                         )}
-                        <CardContent>
-                            <Typography variant="h6" sx={{fontWeight: 600, mb: 1}}>
-                                {event.title}
-                            </Typography>
+                        <CardContent sx={{position: 'relative'}}>
+                            <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
+                                <Typography variant="h6" sx={{fontWeight: 600, mb: 1}}>
+                                    {event.title}
+                                </Typography>
+                                {/* spacer */}
+                                <Box sx={{flex: 1}}/>
+                                {isOwner && onDelete && (
+                                    <IconButton
+                                        aria-label="usuń wydarzenie"
+                                        size="small"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onDelete(event.id);
+                                        }}
+                                    >
+                                        <Trash2 size={16}/>
+                                    </IconButton>
+                                )}
+                            </Box>
 
                             {event.startDate && event.endDate && (
                                 <Box sx={{display: 'flex', alignItems: 'center', gap: 1, mb: 1}}>
@@ -156,4 +185,3 @@ export default function EventsList({events, onViewDetails, currentUserId}: Event
         </Box>
     );
 }
-
