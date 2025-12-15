@@ -7,7 +7,7 @@ interface EventSuggestionsProps {
     suggestions: EventSuggestionResponseDto[];
     finalDate: { start: string; end: string } | null;
     groupColor: string;
-    onSelectDate: (start: string, end: string) => void;
+    onSelectSuggestion: (suggestion: EventSuggestionResponseDto) => void;
     onConfirm: () => void;
 }
 
@@ -15,7 +15,7 @@ export default function EventSuggestions({
                                              suggestions,
                                              finalDate,
                                              groupColor,
-                                             onSelectDate,
+                                             onSelectSuggestion,
                                              onConfirm,
                                          }: EventSuggestionsProps) {
     return (
@@ -41,7 +41,7 @@ export default function EventSuggestions({
                         <Button
                             variant={finalDate?.start === s.startTime ? 'contained' : 'outlined'}
                             sx={{mt: 1, bgcolor: finalDate?.start === s.startTime ? groupColor : 'transparent'}}
-                            onClick={() => onSelectDate(s.startTime, s.endTime)}
+                            onClick={() => onSelectSuggestion(s)}
                         >
                             Wybierz ten termin
                         </Button>

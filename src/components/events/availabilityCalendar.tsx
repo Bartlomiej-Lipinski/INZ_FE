@@ -90,6 +90,10 @@ export default function AvailabilityCalendar({
             (slot) => slot.date === dateStr && slot.startHour === hour && slot.endHour === hour + 1
         );
     };
+    const isHourInRange = (dateStr: string, hour: number): boolean => {
+        const slotDate = new Date(`${dateStr}T${String(hour).padStart(2, '0')}:00:00`);
+        return slotDate >= minDate && slotDate <= maxDate;
+    };
 
     // Sprawdź czy slot istnieje
     const slotExists = (date: string, hour: number) => selectedSlots.some(s => s.date === date && s.startHour === hour && s.endHour === hour + 1);
@@ -105,7 +109,7 @@ export default function AvailabilityCalendar({
 
     // Drag start
     const handleHourMouseDown = (date: string, hour: number, e: React.MouseEvent) => {
-        if (!isDateInRange(new Date(date))) return;
+        if (!isDateInRange(new Date(date)) || !isHourInRange(date, hour)) return;
         setIsDragging(true);
         setDragDay(date);
         setDragStart(hour);
@@ -115,7 +119,7 @@ export default function AvailabilityCalendar({
     };
     // Drag move
     const handleHourMouseEnter = (date: string, hour: number) => {
-        if (!isDragging || dragDay !== date) return;
+        if (!isDragging || dragDay !== date || !isHourInRange(date, hour)) return;
         setDragEnd(hour);
     };
     // Drag end
@@ -147,7 +151,7 @@ export default function AvailabilityCalendar({
     };
 
     const selectRange = (dateKey: string, startH: number, endH: number) => {
-        let newSlots = [...selectedSlots];
+        const newSlots = [...selectedSlots];
         for (let h = startH; h < endH; h++) {
             if (!slotExists(dateKey, h)) {
                 newSlots.push({date: dateKey, startHour: h, endHour: h + 1});
@@ -327,17 +331,18 @@ export default function AvailabilityCalendar({
                                                             sx={{
                                                                 p: 1,
                                                                 textAlign: 'center',
-                                                                cursor: 'pointer',
+                                                                cursor: isHourInRange(dateKey, hour) ? 'pointer' : 'default',
                                                                 backgroundColor: isInDrag ? (dragMode === 'add' ? groupColor + '44' : '#ffcdd2') : isSelected ? groupColor : '#e0e0e0',
                                                                 color: isInDrag ? '#000' : isSelected ? '#fff' : '#000',
                                                                 border: isSelected ? 'none' : '1px solid #e0e0e0',
                                                                 transition: 'all 0.15s',
                                                                 userSelect: 'none',
                                                                 fontWeight: 600,
-                                                                '&:hover': {
+                                                                opacity: isHourInRange(dateKey, hour) ? 1 : 0.5,
+                                                                '&:hover': isHourInRange(dateKey, hour) ? {
                                                                     backgroundColor: isSelected ? groupColor : '#d0d0d0',
                                                                     transform: 'scale(1.05)',
-                                                                },
+                                                                } : {},
                                                             }}
                                                         >
                                                             <Typography

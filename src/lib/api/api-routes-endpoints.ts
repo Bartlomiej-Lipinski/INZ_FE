@@ -66,4 +66,5 @@ export const API_ROUTES = {
     DELETE_GROUP_EVENT: '/api/group/events/SingleEvents',
     UPDATE_GROUP_EVENT: '/api/group/events/SingleEvents',
     GET_GROUP_EVENT: '/api/group/events/SingleEvents',
+    CHOOSE_BEST_BEST_DATE: '/api/group/events/chooseBestDate',
 } as const; 

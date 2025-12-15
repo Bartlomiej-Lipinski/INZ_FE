@@ -16,7 +16,6 @@ import EventDetails from '@/components/events/eventDetails';
 import EventAvailabilityView from '@/components/events/eventAvailabilityView';
 import EventSuggestions from '@/components/events/eventSuggestion';
 import GroupMenu from "@/components/common/GroupMenu";
-import {calculateBestSuggestions} from '@/lib/utils/event-utils';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 
@@ -41,6 +40,7 @@ export default function EventsPage() {
     const [events, setEvents] = useState<EventResponseDto[]>([]);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<EventResponseDto | null>(null);
+    const [selectedSuggestion, setSelectedSuggestion] = useState<EventSuggestionResponseDto | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const groupData = useMemo(() => {
@@ -211,8 +211,8 @@ export default function EventsPage() {
             formDataToSend.append('endDate', endDate);
         } else {
             formDataToSend.append('durationMinutes', durationMinutes);
-            formDataToSend.append('rangeStart', rangeStart);
-            formDataToSend.append('rangeEnd', rangeEnd);
+            formDataToSend.append('rangeStart', `${rangeStart}T00:00:00.000Z`);
+            formDataToSend.append('rangeEnd', `${rangeEnd}T23:59:59.999Z`);
         }
         if (imagePreview) {
             formDataToSend.append('file', imagePreview);
@@ -291,9 +291,7 @@ export default function EventsPage() {
 
     const handleFinishPlanning = () => {
         if (!selectedEvent || !selectedEvent.durationMinutes) return;
-        const allAvailabilities = availabilityRanges.filter(a => a.eventId === selectedEvent.id);
-        const best = calculateBestSuggestions(selectedEvent, allAvailabilities, selectedEvent.durationMinutes);
-        setSuggestions(best);
+        setSuggestions(selectedEvent.suggestions);
         setIsPlanningFinished(true);
         setViewMode('suggestions');
     };
@@ -356,10 +354,39 @@ export default function EventsPage() {
     };
     const handleSubmitAvailabilityRange = async () => {
         if (!currentUser || !selectedEvent || selectedTimeSlots.length === 0) return;
-        const rangesToSend = selectedTimeSlots.map(slot => ({
-            availableFrom: `${slot.date}T${String(slot.startHour).padStart(2, '0')}:00:00`,
-            availableTo: `${slot.date}T${String(slot.endHour).padStart(2, '0')}:00:00`,
-        }));
+        const groupedByDate = selectedTimeSlots.reduce((acc, slot) => {
+            if (!acc[slot.date]) acc[slot.date] = [];
+            acc[slot.date].push(slot);
+            return acc;
+        }, {} as Record<string, typeof selectedTimeSlots>);
+
+        const rangesToSend: AvailabilityRangeResponseDto[] = [];
+
+        Object.keys(groupedByDate).forEach(date => {
+            const slots = groupedByDate[date].sort((a, b) => a.startHour - b.startHour);
+            let currentRange: { start: number; end: number } | null = null;
+
+            slots.forEach(slot => {
+                if (!currentRange) {
+                    currentRange = {start: slot.startHour, end: slot.endHour};
+                } else if (currentRange.end === slot.startHour) {
+                    currentRange.end = slot.endHour - 1;
+                } else {
+                    rangesToSend.push({
+                        availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
+                        availableTo: `${date}T${String(currentRange.end).padStart(2, '0')}:00:00.000Z`,
+                    } as AvailabilityRangeResponseDto);
+                    currentRange = {start: slot.startHour, end: slot.endHour};
+                }
+            });
+
+            if (currentRange) {
+                rangesToSend.push({
+                    availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
+                    availableTo: `${date}T${String(currentRange.end - 1).padStart(2, '0')}:59:59.999Z`,
+                } as AvailabilityRangeResponseDto);
+            }
+        });
 
         try {
             const response = await fetchWithAuth(
@@ -540,15 +567,37 @@ export default function EventsPage() {
                     suggestions={suggestions}
                     finalDate={finalDate}
                     groupColor={groupData.color}
-                    onSelectDate={(start, end) => setFinalDate({start, end})}
-                    onConfirm={() => {
-                        if (selectedEvent && finalDate) {
-                            setEvents(events.map(ev =>
-                                ev.id === selectedEvent.id
-                                    ? {...ev, startDate: finalDate.start, endDate: finalDate.end, suggestions}
-                                    : ev
-                            ));
-                            setViewMode('details');
+                    onSelectSuggestion={(suggestion: EventSuggestionResponseDto) => {
+                        setSelectedSuggestion(suggestion);
+                        setFinalDate({start: suggestion.startTime, end: suggestion.endTime});
+                    }}
+                    onConfirm={async () => {
+                        if (!selectedEvent || !selectedSuggestion) return;
+                        try {
+                            const response = await fetchWithAuth(
+                                `${API_ROUTES.CHOOSE_BEST_EVENT_DATE}?groupId=${groupData.id}&eventId=${selectedEvent.id}&suggestionId=${selectedSuggestion.id}`,
+                                {
+                                    method: 'POST',
+                                    credentials: 'include',
+                                }
+                            );
+                            if (response.ok) {
+                                const data = await response.json();
+                                setEvents(events.map(ev =>
+                                    ev.id === selectedEvent.id
+                                        ? {
+                                            ...ev,
+                                            startDate: selectedSuggestion.startTime,
+                                            endDate: selectedSuggestion.endTime
+                                        }
+                                        : ev
+                                ));
+                                setViewMode('details');
+                            } else {
+                                console.error('Błąd podczas wyboru najlepszej daty');
+                            }
+                        } catch (error) {
+                            console.error('Błąd:', error);
                         }
                     }}
                 />

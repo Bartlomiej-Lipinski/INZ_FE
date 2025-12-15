@@ -136,7 +136,7 @@ export default function EventsList({events, onViewDetails, currentUserId, onDele
                                 </Box>
                             )}
 
-                            {event.isAutoScheduled && event.rangeStart && event.rangeEnd && !event.startDate && (
+                            {event.isAutoScheduled && (
                                 <Chip label="Planowanie terminu w toku" size="small" color="warning" sx={{mb: 1}}/>
                             )}
 

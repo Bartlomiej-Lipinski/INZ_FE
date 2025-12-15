@@ -162,7 +162,7 @@ export default function EventForm({
                             <Box sx={{display: 'flex', gap: 2}}>
                                 <TextField
                                     fullWidth
-                                    type="datetime-local"
+                                    type="date"
                                     label="Od"
                                     value={rangeStart}
                                     onChange={(e) => onRangeStartChange(e.target.value)}
@@ -170,7 +170,7 @@ export default function EventForm({
                                 />
                                 <TextField
                                     fullWidth
-                                    type="datetime-local"
+                                    type="date"
                                     label="Do"
                                     value={rangeEnd}
                                     onChange={(e) => onRangeEndChange(e.target.value)}

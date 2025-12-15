@@ -6,8 +6,15 @@ const CHOOSE_BEST_DATE_FOR_EVENT = process.env.CHOOSE_BEST_DATE_FOR_EVENT;
 
 export async function POST(request: NextRequest) {
     try {
-        const {groupId, eventId, suggestionId} = await request.json();
-
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+        const suggestionId = request.nextUrl.searchParams.get('suggestionId');
+        if (!groupId || !eventId || !suggestionId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak groupId, eventId lub suggestionId w zapytaniu'},
+                {status: 400}
+            );
+        }
         const cookieHeader = request.headers.get('cookie') ?? '';
         const endpoint = CHOOSE_BEST_DATE_FOR_EVENT?.replace('{groupId}', groupId)
             .replace('{eventId}', eventId)
