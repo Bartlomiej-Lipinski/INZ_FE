@@ -27,6 +27,7 @@ interface EventDetailsProps {
     onFinishPlanning: () => void;
     onSetAvailability: (status: EventAvailabilityStatus) => void;
     onRemoveAvailability: () => void;
+    onHandleSuggestionSelect: () => void;
 }
 
 function formatDateTime(date: string, startTime: string, endTime?: string): string {
@@ -100,6 +101,7 @@ export default function EventDetails({
                                          onFinishPlanning,
                                          onSetAvailability,
                                          onRemoveAvailability,
+                                         onHandleSuggestionSelect,
                                      }: EventDetailsProps) {
     const userAvailability = event.availabilities.find(a => a.user.id === currentUserId);
 
@@ -254,7 +256,7 @@ export default function EventDetails({
                     </Button>
                 )}
 
-                {event.isAutoScheduled && !event.startDate && event.user.id === currentUserId && event.rangeStart && event.rangeEnd && (
+                {event.isAutoScheduled && !event.startDate && event.user.id === currentUserId && event.rangeStart && event.rangeEnd && event.suggestions.length === 0 && (
                     <Button
                         variant="contained"
                         color="primary"
@@ -263,6 +265,14 @@ export default function EventDetails({
                     >
                         Zakończ planowanie
                     </Button>
+                )}
+                {event.suggestions && event.suggestions.length > 0 && event.durationMinutes && (
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        sx={{mt: 2, bgcolor: groupColor}}
+                        onClick={onHandleSuggestionSelect}
+                    >Wybierz Termin</Button>
                 )}
             </Box>
         </Box>

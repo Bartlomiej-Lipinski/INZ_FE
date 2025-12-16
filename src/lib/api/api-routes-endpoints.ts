@@ -67,4 +67,5 @@ export const API_ROUTES = {
     UPDATE_GROUP_EVENT: '/api/group/events/SingleEvents',
     GET_GROUP_EVENT: '/api/group/events/SingleEvents',
     CHOOSE_BEST_BEST_DATE: '/api/group/events/chooseBestDate',
+    CALCULATE_BEST_DATE_FOR_EVENT: '/api/group/events/calculateBestDate',
 } as const; 

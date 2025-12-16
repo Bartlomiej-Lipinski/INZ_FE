@@ -38,7 +38,8 @@ export default function EventsPage() {
     const searchParams = useSearchParams();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [events, setEvents] = useState<EventResponseDto[]>([]);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [PreviewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<EventResponseDto | null>(null);
     const [selectedSuggestion, setSelectedSuggestion] = useState<EventSuggestionResponseDto | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -273,6 +274,11 @@ export default function EventsPage() {
             console.error('Błąd podczas usuwania wydarzenia:', error);
         }
     };
+    const handleSelectSuggestion = () => {
+        setSuggestions(selectedEvent?.suggestions || []);
+        setIsPlanningFinished(true);
+        setViewMode('suggestions');
+    }
 
     const handleAddAvailability = () => {
         setViewMode('availability');
@@ -289,11 +295,29 @@ export default function EventsPage() {
         }
     };
 
-    const handleFinishPlanning = () => {
+    const handleFinishPlanning = async () => {
         if (!selectedEvent || !selectedEvent.durationMinutes) return;
-        setSuggestions(selectedEvent.suggestions);
-        setIsPlanningFinished(true);
-        setViewMode('suggestions');
+        try {
+            const response = await fetchWithAuth(`${API_ROUTES.CALCULATE_BEST_DATE_FOR_EVENT}?groupId=${groupData.id}&eventId=${selectedEvent.id}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                credentials: 'include',
+            })
+            if (response && response.ok) {
+                const data = await response.json();
+                const suggestions = data.data as EventSuggestionResponseDto[];
+                suggestions.forEach(suggestion => {
+                    suggestion.endTime = new Date(new Date(suggestion.startTime).getTime() + selectedEvent.durationMinutes! * 60000).toISOString();
+                })
+                setSuggestions(suggestions || []);
+                setIsPlanningFinished(true);
+                setViewMode('suggestions');
+            } else {
+                console.error('Błąd podczas finalizacji planowania');
+            }
+        } catch (error) {
+            console.error('Błąd podczas finalizacji planowania:', error);
+        }
     };
 
     const handleSetAvailability = async (status: EventAvailabilityStatus) => {
@@ -548,6 +572,7 @@ export default function EventsPage() {
                     onFinishPlanning={handleFinishPlanning}
                     onSetAvailability={handleSetAvailability}
                     onRemoveAvailability={handleRemoveAvailability}
+                    onHandleSuggestionSelect={handleSelectSuggestion}
                 />
             )}
 
