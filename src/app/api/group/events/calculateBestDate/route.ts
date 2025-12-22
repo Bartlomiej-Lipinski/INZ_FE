@@ -6,7 +6,16 @@ const CALCULATE_BEST_DATE_FOR_EVENT = process.env.CALCULATE_BEST_DATE_FOR_EVENT;
 
 export async function POST(request: NextRequest) {
     try {
-        const {groupId, eventId} = await request.json();
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const eventId = request.nextUrl.searchParams.get('eventId');
+
+        if (!groupId || !eventId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganych parametrów: groupId lub eventId'},
+                {status: 400}
+            );
+        }
+
         const cookieHeader = request.headers.get('cookie') ?? '';
         const endpoint = CALCULATE_BEST_DATE_FOR_EVENT?.replace('{groupId}', groupId).replace('{eventId}', eventId);
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {

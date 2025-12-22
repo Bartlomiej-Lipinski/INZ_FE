@@ -1,22 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button as MuiButton } from '@mui/material';
-import { 
-  Stack, 
-  Divider, 
-  TextField, 
-  Box, 
-  Typography, 
-  Link, 
-  CircularProgress, 
-} from '@mui/material';
+import {useState} from "react";
+import {useRouter} from "next/navigation";
+import {Box, Button as MuiButton, CircularProgress, Divider, Link, Stack, TextField, Typography} from '@mui/material';
 import Image from "next/image";
-import { IMAGES } from "@/lib/constants";
+import {IMAGES} from "@/lib/constants";
 import PasswordInput from "@/components/common/Password-input";
-import { useAuth } from "@/hooks/use-auth";
-
+import {useAuth} from "@/hooks/use-auth";
 
 
 export default function SignInForm() {
@@ -25,7 +15,6 @@ export default function SignInForm() {
   const router = useRouter();
   const { login, isLoading: hookIsLoading, error, setErrorMessage } = useAuth();
 
-  // HANDLERS
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
     if (error) setErrorMessage("");

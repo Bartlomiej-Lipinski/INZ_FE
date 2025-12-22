@@ -1,4 +1,14 @@
-import {Box, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Typography} from '@mui/material';
+import {
+    Box,
+    Drawer,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Typography
+} from '@mui/material';
 import {alpha, useTheme} from '@mui/material/styles';
 import {
     Bell,
@@ -12,16 +22,17 @@ import {
     MessageCircle,
     Notebook,
     PieChart,
-    X,
     Settings,
     Star,
-    Users
+    Users,
+    X
 } from 'lucide-react';
 import {useRouter} from 'next/navigation';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-import { clearProfilePictureCache } from '@/hooks/use-profile-picture';
-import { useAuthContext } from '@/contexts/AuthContext';
+import {clearProfilePictureCache} from '@/hooks/use-profile-picture';
+import {useAuthContext} from '@/contexts/AuthContext';
+import {clearImageCache} from "@/hooks/useImageUrl";
 
 const MENU_ITEMS = [
     {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu'},
@@ -34,11 +45,11 @@ const MENU_ITEMS = [
     {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study'},
     {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety'},
     {key: 'quizzes', label: 'QUIZY', icon: Brain, path: '/group-quiz'},
-    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-menu/members'},
+    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/members'},
     {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
 ] as const;
 
-interface GroupMenuDrawerProps {
+interface GroupMenuProps {
     open: boolean;
     onClose: () => void;
     groupId: string;
@@ -46,7 +57,7 @@ interface GroupMenuDrawerProps {
     groupColor: string;
 }
 
-export default function GroupMenuDrawer({open, onClose, groupId, groupName, groupColor}: GroupMenuDrawerProps) {
+export default function GroupMenu({open, onClose, groupId, groupName, groupColor}: GroupMenuProps) {
     const theme = useTheme();
     const router = useRouter();
     const {setUser} = useAuthContext();
@@ -70,6 +81,8 @@ export default function GroupMenuDrawer({open, onClose, groupId, groupName, grou
             if (response.ok) {
                 setUser(null);
                 clearProfilePictureCache();
+                clearImageCache();
+                localStorage.clear();
                 router.push('/');
             }
 

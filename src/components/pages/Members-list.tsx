@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
     Avatar,
     Box,
@@ -15,16 +15,16 @@ import {
     TextField,
     Typography,
 } from '@mui/material';
-import { Search, X, UserPlus, Send } from 'lucide-react';
+import {Search, Send, UserPlus, X} from 'lucide-react';
 
 import MemberItem from '@/components/common/Member-item';
-import { useMembers } from '@/hooks/use-members';
-import { useJoinRequest } from '@/hooks/use-join-request';
-import type { JoinRequest } from '@/hooks/use-join-request';
-import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
-import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
-import { useRouter } from 'next/navigation';
-import { useAuthContext } from '@/contexts/AuthContext';
+import {useMembers} from '@/hooks/use-members';
+import type {JoinRequest} from '@/hooks/use-join-request';
+import {useJoinRequest} from '@/hooks/use-join-request';
+import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
+import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
+import {useRouter} from 'next/navigation';
+import {useAuthContext} from '@/contexts/AuthContext';
 
 export default function MembersList({ groupId, groupName, groupColor }: { groupId: string | null, groupName: string, groupColor: string }) {
     const { user } = useAuthContext();
@@ -122,12 +122,11 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
         setGenerateError(null);
 
         try {
-            const response = await fetchWithAuth(API_ROUTES.GENERATE_JOIN_GROUP_CODE, {
-                method: 'POST',
+            const response = await fetchWithAuth(`${API_ROUTES.GENERATE_JOIN_GROUP_CODE}?groupId=${groupId}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ groupId }),
             });
 
             type GenerateCodeResponse = {
@@ -408,7 +407,7 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
             groupColor: encodeURIComponent(groupColor || '#9042fb'),
         });
 
-        router.push(`/group-menu/members/profile?${params.toString()}`);
+        router.push(`/profile?${params.toString()}`);
     }, [groupColor, groupId, groupName, router]);
 
     const handleCloseDialog = () => {

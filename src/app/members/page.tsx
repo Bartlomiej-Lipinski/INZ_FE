@@ -1,10 +1,10 @@
 "use client";
 import MembersList from '@/components/pages/Members-list';
-import { Box } from '@mui/material';
-import { useSearchParams } from 'next/navigation';
-import { useTheme } from '@mui/material/styles';
+import {Box} from '@mui/material';
+import {useSearchParams} from 'next/navigation';
+import {useTheme} from '@mui/material/styles';
 import GroupHeader from '@/components/layout/Group-header';
-import { Users } from 'lucide-react';
+import {Users} from 'lucide-react';
 
 
 export default function MembersPage() {
@@ -18,19 +18,25 @@ export default function MembersPage() {
     const groupColor = groupColorParam ? decodeURIComponent(groupColorParam) : theme.palette.primary.main;
 
     return (
-        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+        <Box sx={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center'
+        }}>
             <GroupHeader
                 title={
                     <>
                         {groupName ? `Członkowie grupy ` : 'Lista członków'}
-                        <span style={{ color: groupColor || 'white', fontWeight: 700 }}>{groupName}</span>
+                        <span style={{color: groupColor || 'white', fontWeight: 700}}>{groupName}</span>
                     </>
                 }
-                leftIcon={<Users size={35} color="white" />}
+                leftIcon={<Users size={35} color="white"/>}
             />
 
-            <Box sx={{ maxWidth: 1000, width: '100%'}}>
-                <MembersList groupId={groupId} groupName={groupName} groupColor={groupColor} />
+            <Box sx={{maxWidth: 1000, width: '100%'}}>
+                <MembersList groupId={groupId} groupName={groupName} groupColor={groupColor}/>
             </Box>
         </Box>
     );

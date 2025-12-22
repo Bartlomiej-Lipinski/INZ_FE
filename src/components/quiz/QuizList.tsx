@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {
     Box,
     Button,
@@ -40,47 +40,6 @@ export default function QuizList({
         open: boolean;
         quizId: string | null;
     }>({open: false, quizId: null});
-    const [currentUser, setCurrentUser] = useState<{
-        id: string;
-        email: string;
-        username: string;
-        name: string;
-        surname: string;
-        birthDate?: string;
-        status?: string;
-        description?: string;
-        profilePicture?: {
-            id: string;
-            fileName?: string;
-            contentType?: string;
-            size?: number;
-            url?: string;
-        };
-        isTwoFactorEnabled?: boolean;
-    } | null>(null);
-
-    useEffect(() => {
-        const userAuth = localStorage.getItem('auth:user');
-        if (userAuth) {
-            try {
-                const userData = JSON.parse(userAuth);
-                setCurrentUser({
-                    id: userData.id,
-                    email: userData.email,
-                    username: userData.username,
-                    name: userData.name,
-                    surname: userData.surname,
-                    birthDate: userData.birthDate,
-                    status: userData.status,
-                    description: userData.description,
-                    profilePicture: userData.profilePicture,
-                    isTwoFactorEnabled: userData.isTwoFactorEnabled,
-                });
-            } catch (error) {
-                console.error('Błąd parsowania danych użytkownika:', error);
-            }
-        }
-    }, []);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';

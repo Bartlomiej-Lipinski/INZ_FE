@@ -1,41 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-    Alert,
-    Avatar,
-    Box,
-    Button,
-    CircularProgress,
-    Divider,
-    Typography,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
-
-import type { GroupMember } from "@/lib/types/user";
-import { formatDate } from "@/lib/utils/date";
-import { getStatusLabel, STORAGE_KEYS } from "@/lib/constants";
-import { Group } from "@/lib/types/group";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { useMembers } from "@/hooks/use-members";
-import { useSearchParams } from "next/navigation";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {Alert, Box, Button, CircularProgress, Divider, IconButton, Typography,} from "@mui/material";
+import {ArrowLeftIcon,} from 'lucide-react';
+import {useTheme} from "@mui/material/styles";
+import type {GroupMember} from "@/lib/types/user";
+import {formatDate} from "@/lib/utils/date";
+import {getStatusLabel, STORAGE_KEYS} from "@/lib/constants";
+import {useAuthContext} from "@/contexts/AuthContext";
+import {useMembers} from "@/hooks/use-members";
+import {useRouter, useSearchParams} from "next/navigation";
 
 export default function MemberProfilePage() {
+    const router = useRouter();
     const theme = useTheme();
-    const { user } = useAuthContext();
+    const {user} = useAuthContext();
     const searchParams = useSearchParams();
-
-    const groupContext: Group = {
-        id: searchParams?.get("groupId") ?? "",
-        name: (() => {
-            const raw = searchParams?.get("groupName") ?? "";
-            return raw ? decodeURIComponent(raw) : "";
-        })(),
-        color: (() => {
-            const raw = searchParams?.get("groupColor") ?? "";
-            return raw ? decodeURIComponent(raw) : "";
-        })(),
-    };
     const [storedMember, setStoredMember] = useState<GroupMember | null>(null);
     const [memberLoadError, setMemberLoadError] = useState<string | null>(null);
     const [isMemberLoaded, setIsMemberLoaded] = useState(false);
@@ -51,6 +31,16 @@ export default function MemberProfilePage() {
     const [isRemovingMember, setIsRemovingMember] = useState(false);
     const [showGrantAdminConfirm, setShowGrantAdminConfirm] = useState(false);
     const [showRemoveMemberConfirm, setShowRemoveMemberConfirm] = useState(false);
+    const groupData = useMemo(() => {
+        const groupId = searchParams?.get('groupId') || '';
+        const groupName = searchParams?.get('groupName') || '';
+        const groupColor = searchParams?.get('groupColor') || '#9042fb';
+        return {
+            id: groupId,
+            name: decodeURIComponent(groupName),
+            color: decodeURIComponent(groupColor),
+        };
+    }, [searchParams]);
 
     useEffect(() => {
         if (typeof window === "undefined") {
@@ -117,7 +107,7 @@ export default function MemberProfilePage() {
     const canManageMember = user?.role === "Admin" && Boolean(normalizedMember) && normalizedMember?.id !== user?.id;
 
     const handleGrantAdmin = useCallback(async () => {
-        if (!groupContext.id || !normalizedMember?.id) {
+        if (!groupData.id || !normalizedMember?.id) {
             setErrorMessage("Brak danych grupy lub użytkownika potrzebnych do wykonania akcji.");
             return;
         }
@@ -127,7 +117,7 @@ export default function MemberProfilePage() {
         setErrorMessage(null);
 
         try {
-            const response = await grantAdminPrivileges(groupContext.id, normalizedMember.id);
+            const response = await grantAdminPrivileges(groupData.id, normalizedMember.id);
             if (response.success) {
                 setActionSuccess("Uprawnienia administratora zostały nadane.");
             }
@@ -138,13 +128,13 @@ export default function MemberProfilePage() {
         }
     }, [
         grantAdminPrivileges,
-        groupContext.id,
+        groupData.id,
         normalizedMember?.id,
         setErrorMessage,
     ]);
 
     const handleRemoveMember = useCallback(async () => {
-        if (!groupContext.id || !normalizedMember?.id) {
+        if (!groupData.id || !normalizedMember?.id) {
             setErrorMessage("Brak danych grupy lub użytkownika potrzebnych do wykonania akcji.");
             return;
         }
@@ -154,7 +144,7 @@ export default function MemberProfilePage() {
         setErrorMessage(null);
 
         try {
-            const response = await removeGroupMember(groupContext.id, normalizedMember.id);
+            const response = await removeGroupMember(groupData.id, normalizedMember.id);
             if (response.success) {
                 setActionSuccess("Użytkownik został usunięty z grupy.");
             }
@@ -164,7 +154,7 @@ export default function MemberProfilePage() {
             setIsRemovingMember(false);
         }
     }, [
-        groupContext.id,
+        groupData.id,
         normalizedMember?.id,
         removeGroupMember,
         setErrorMessage,
@@ -180,7 +170,7 @@ export default function MemberProfilePage() {
                 py: 4,
             }}
         >
-            <CircularProgress size={36} />
+            <CircularProgress size={36}/>
         </Box>
     );
 
@@ -205,7 +195,7 @@ export default function MemberProfilePage() {
                 >
 
                     <Box textAlign="center" width="100%">
-                        <Typography variant="h3" fontWeight={700} >
+                        <Typography variant="h3" fontWeight={700}>
                             {`${normalizedMember.name} ${normalizedMember.surname}`.trim() || "Nieznany członek"}
                         </Typography>
 
@@ -213,17 +203,17 @@ export default function MemberProfilePage() {
                             {normalizedMember.username ? `@${normalizedMember.username}` : "Brak pseudonimu"}
                         </Typography>
 
-                        {groupContext.name && (
+                        {groupData.name && (
                             <Typography color="text.secondary" mt={2}>
                                 {normalizedMember.isAwaitingApproval ? "Czeka na akceptację do grupy" : "Członek grupy"}{" "}
                                 <Box
                                     component="span"
                                     sx={{
-                                        color: groupContext.color || theme.palette.primary.light,
+                                        color: groupData.color || theme.palette.primary.light,
                                         fontWeight: 600,
                                     }}
                                 >
-                                    {groupContext.name}
+                                    {groupData.name}
                                 </Box>
                             </Typography>
                         )}
@@ -242,19 +232,19 @@ export default function MemberProfilePage() {
                 <Box
                     width="100%"
                     display="flex"
-                    flexDirection={{ xs: "column", sm: "row" }}
-                    alignItems={{ xs: "center", sm: "stretch" }}
+                    flexDirection={{xs: "column", sm: "row"}}
+                    alignItems={{xs: "center", sm: "stretch"}}
                 >
                     <Box
                         flex={1}
                         display="flex"
                         flexDirection="column"
                         gap={3}
-                        pr={{ xs: 0, sm: 3 }}
+                        pr={{xs: 0, sm: 3}}
                         alignItems="center"
                         textAlign="center"
                         width="100%"
-                        sx={{ minWidth: 0, maxWidth: "100%" }}
+                        sx={{minWidth: 0, maxWidth: "100%"}}
                     >
 
                         <Box width="100%">
@@ -288,7 +278,7 @@ export default function MemberProfilePage() {
                         orientation="vertical"
                         flexItem
                         sx={{
-                            display: { xs: "block", sm: "block" },
+                            display: {xs: "block", sm: "block"},
                             borderColor: "rgba(255,255,255,0.2)",
                         }}
                     />
@@ -297,7 +287,7 @@ export default function MemberProfilePage() {
                         flex={1}
                         display="flex"
                         flexDirection="column"
-                        pl={{ xs: 0, sm: 3 }}
+                        pl={{xs: 0, sm: 3}}
                         alignItems="center"
                         textAlign="center"
                         width="100%"
@@ -318,7 +308,7 @@ export default function MemberProfilePage() {
                                     paddingLeft: "10px",
                                     paddingBottom: "10px",
                                     scrollbarWidth: "thin",
-                                    scrollbarColor: `${groupContext.color} transparent`,
+                                    scrollbarColor: `${groupData.color} transparent`,
                                 }}
                             >
                                 {normalizedMember.description || "Brak opisu"}
@@ -335,7 +325,7 @@ export default function MemberProfilePage() {
             return renderLoader();
         }
 
-        if (!groupContext.id) {
+        if (!groupData.id) {
             return (
                 <Typography color="text.secondary" textAlign="center">
                     Brak kontekstu grupy. Wróć do listy członków i wybierz grupę ponownie.
@@ -345,7 +335,7 @@ export default function MemberProfilePage() {
 
         if (memberLoadError) {
             return (
-                <Alert severity="error" sx={{ width: "100%" }}>
+                <Alert severity="error" sx={{width: "100%"}}>
                     {memberLoadError}
                 </Alert>
             );
@@ -394,7 +384,7 @@ export default function MemberProfilePage() {
                 {(membersError || actionSuccess) && (
                     <Alert
                         severity={membersError ? "error" : "success"}
-                        sx={{ width: "100%" }}
+                        sx={{width: "100%"}}
                     >
                         {membersError ?? actionSuccess}
                     </Alert>
@@ -412,14 +402,14 @@ export default function MemberProfilePage() {
                         <Button
                             sx={{
                                 width: "80%",
-                                backgroundColor: groupContext.color || theme.palette.primary.main,
-                                color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.main),
+                                backgroundColor: groupData.color || theme.palette.primary.main,
+                                color: theme.palette.getContrastText(groupData.color || theme.palette.primary.main),
                             }}
                             disabled={isAwaitingApproval || isGrantingAdmin}
                             onClick={() => setShowGrantAdminConfirm(true)}
                             startIcon={
                                 isGrantingAdmin ? (
-                                    <CircularProgress size={20} color="inherit" />
+                                    <CircularProgress size={20} color="inherit"/>
                                 ) : undefined
                             }
                         >
@@ -433,9 +423,9 @@ export default function MemberProfilePage() {
                                 width: "100%",
                                 maxWidth: "90%",
                                 boxSizing: "border-box",
-                                p: { xs: 2.5, sm: 3 },
+                                p: {xs: 2.5, sm: 3},
                                 borderRadius: 2,
-                                border: `1px solid ${groupContext.color || theme.palette.primary.light}`,
+                                border: `1px solid ${groupData.color || theme.palette.primary.light}`,
                                 bgcolor: "rgba(255, 255, 255, 0.05)",
                                 display: "flex",
                                 flexDirection: "column",
@@ -450,17 +440,17 @@ export default function MemberProfilePage() {
                             <Box
                                 sx={{
                                     display: "flex",
-                                    flexDirection: { xs: "column", sm: "row" },
+                                    flexDirection: {xs: "column", sm: "row"},
                                     justifyContent: "center",
                                     alignItems: "stretch",
-                                    gap: { xs: 1.5, sm: 3 },
+                                    gap: {xs: 1.5, sm: 3},
                                     width: "100%",
                                 }}
                             >
                                 <Button
                                     fullWidth
                                     sx={{
-                                        minWidth: { xs: "auto", sm: 120 },
+                                        minWidth: {xs: "auto", sm: 120},
                                         backgroundColor: theme.palette.grey[800],
                                     }}
                                     disabled={isGrantingAdmin}
@@ -470,7 +460,7 @@ export default function MemberProfilePage() {
                                     }}
                                 >
                                     {isGrantingAdmin ? (
-                                        <CircularProgress size={18} />
+                                        <CircularProgress size={18}/>
                                     ) : (
                                         "Tak"
                                     )}
@@ -478,7 +468,11 @@ export default function MemberProfilePage() {
 
                                 <Button
                                     fullWidth
-                                    sx={{ minWidth: { xs: "auto", sm: 120 }, backgroundColor: groupContext.color || theme.palette.primary.main, color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.main) }}
+                                    sx={{
+                                        minWidth: {xs: "auto", sm: 120},
+                                        backgroundColor: groupData.color || theme.palette.primary.main,
+                                        color: theme.palette.getContrastText(groupData.color || theme.palette.primary.main)
+                                    }}
                                     onClick={() => setShowGrantAdminConfirm(false)}
                                 >
                                     Nie
@@ -498,12 +492,12 @@ export default function MemberProfilePage() {
                 <Box width="100%" display="flex" flexDirection="column" alignItems="center" gap={2}>
                     {!showRemoveMemberConfirm && (
                         <Button
-                            sx={{ width: "60%", backgroundColor: theme.palette.error.main }}
+                            sx={{width: "60%", backgroundColor: theme.palette.error.main}}
                             disabled={isAwaitingApproval || isRemovingMember}
                             onClick={() => setShowRemoveMemberConfirm(true)}
                             startIcon={
                                 isRemovingMember ? (
-                                    <CircularProgress size={20} sx={{ color: 'text.disabled' }}/>
+                                    <CircularProgress size={20} sx={{color: 'text.disabled'}}/>
                                 ) : undefined
                             }
                         >
@@ -517,7 +511,7 @@ export default function MemberProfilePage() {
                                 width: "100%",
                                 maxWidth: "90%",
                                 boxSizing: "border-box",
-                                p: { xs: 2.5, sm: 3 },
+                                p: {xs: 2.5, sm: 3},
                                 borderRadius: 2,
                                 border: `1px solid ${theme.palette.error.main}`,
                                 bgcolor: "rgba(255, 0, 0, 0.08)",
@@ -534,17 +528,17 @@ export default function MemberProfilePage() {
                             <Box
                                 sx={{
                                     display: "flex",
-                                    flexDirection: { xs: "column", sm: "row" },
+                                    flexDirection: {xs: "column", sm: "row"},
                                     justifyContent: "center",
                                     alignItems: "stretch",
-                                    gap: { xs: 1.5, sm: 3 },
+                                    gap: {xs: 1.5, sm: 3},
                                     width: "100%",
                                 }}
                             >
                                 <Button
                                     fullWidth
                                     sx={{
-                                        minWidth: { xs: "auto", sm: 120 },
+                                        minWidth: {xs: "auto", sm: 120},
                                         backgroundColor: theme.palette.grey[800],
                                     }}
                                     disabled={isRemovingMember}
@@ -554,7 +548,7 @@ export default function MemberProfilePage() {
                                     }}
                                 >
                                     {isRemovingMember ? (
-                                        <CircularProgress size={18} sx={{ color: 'white' }}/>
+                                        <CircularProgress size={18} sx={{color: 'white'}}/>
                                     ) : (
                                         "Tak"
                                     )}
@@ -562,7 +556,11 @@ export default function MemberProfilePage() {
 
                                 <Button
                                     fullWidth
-                                    sx={{ minWidth: { xs: "auto", sm: 120 }, backgroundColor: groupContext.color || theme.palette.primary.main, color: theme.palette.getContrastText(groupContext.color || theme.palette.primary.main) }}
+                                    sx={{
+                                        minWidth: {xs: "auto", sm: 120},
+                                        backgroundColor: groupData.color || theme.palette.primary.main,
+                                        color: theme.palette.getContrastText(groupData.color || theme.palette.primary.main)
+                                    }}
                                     onClick={() => setShowRemoveMemberConfirm(false)}
                                 >
                                     Nie
@@ -593,7 +591,7 @@ export default function MemberProfilePage() {
                 sx={{
                     width: "80%",
                     maxWidth: 530,
-                    px: { xs: 5, sm: 6 },
+                    px: {xs: 5, sm: 6},
                     py: 4,
                     bgcolor: "rgba(125, 125, 125, 0.25)",
                     borderRadius: 4,
@@ -605,6 +603,11 @@ export default function MemberProfilePage() {
                     alignItems: "center",
                 }}
             >
+                <Box sx={{alignSelf: 'flex-start', mb: 2}}>
+                    <IconButton onClick={() => router.back()} sx={{color: 'text.primary'}}>
+                        <ArrowLeftIcon/>
+                    </IconButton>
+                </Box>
                 {renderContent()}
                 {renderAdminActions()}
             </Box>

@@ -62,7 +62,7 @@ export default function QuizzesPage() {
 
                 const raw = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
 
-                const normalized: QuizResponseDto[] = raw.map((q: any) => ({
+                const normalized: QuizResponseDto[] = raw.map((q: QuizResponseDto) => ({
                     id: String(q.id),
                     groupId: String(q.groupId || groupData.id),
                     title: q.title || '',
@@ -76,9 +76,7 @@ export default function QuizzesPage() {
                 console.error('Błąd podczas pobierania quizów:', error);
             }
         };
-
         fetchQuizzes();
-
         return () => {
             mounted = false;
         };
@@ -122,12 +120,16 @@ export default function QuizzesPage() {
         setViewMode('create');
     };
 
-    const handleEditQuiz = (quiz: QuizResponseDto) => {
-        setSelectedQuiz(quiz);
-        setTitle(quiz.title);
-        setDescription(quiz.description || '');
+    const handleEditQuiz = async (quiz: QuizResponseDto) => {
+        const fullyLoadedQuiz = await handleGetQuiz(quiz.id);
+        if (!fullyLoadedQuiz) {
+            return;
+        }
+        setSelectedQuiz(fullyLoadedQuiz);
+        setTitle(fullyLoadedQuiz.title);
+        setDescription(fullyLoadedQuiz.description || '');
         setQuestions(
-            quiz.questions.map((q) => ({
+            fullyLoadedQuiz.questions.map((q) => ({
                 Type: q.type,
                 Content: q.content,
                 Options: Array.isArray(q.options)
@@ -214,7 +216,7 @@ export default function QuizzesPage() {
                 const createdRaw = Array.isArray(raw) ? raw[0] : raw;
 
                 const created: QuizResponseDto = {
-                    id: String(createdRaw?.id ?? Date.now().toString()),
+                    id: String(json.message),
                     groupId: String(createdRaw?.groupId ?? groupData.id),
                     title: createdRaw?.title ?? payload.Title,
                     description: createdRaw?.description ?? payload.Description,
