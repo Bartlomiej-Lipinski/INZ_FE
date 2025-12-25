@@ -26,7 +26,7 @@ export interface ExpenseRequestDto {
     phoneNumber?: string;
     bankAccount?: string;
     isEvenSplit: boolean;
-    Beneficiaries: ExpenseBeneficiaryDto[];
+    beneficiaries: ExpenseBeneficiaryDto[];
 }
 
 export interface ExpenseResponseDto {
@@ -39,7 +39,7 @@ export interface ExpenseResponseDto {
     bankAccount?: string;
     isEvenSplit: boolean;
     createdAt: string;
-    Beneficiaries: ExpenseBeneficiaryDto[];
+    beneficiaries: ExpenseBeneficiaryDto[];
 }
 
 export interface SettlementResponseDto {

@@ -4,7 +4,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {Box, Button, Card, IconButton, Typography,} from '@mui/material';
 import {DollarSign, Menu, Plus, Receipt, TrendingDown, TrendingUp,} from 'lucide-react';
-import {ExpenseRequestDto, ExpenseResponseDto} from '@/lib/types/expense';
+import {ExpenseRequestDto, ExpenseResponseDto, SettlementResponseDto} from '@/lib/types/expense';
 import {User} from '@/lib/types/user';
 import {formatCurrency, optimizeDebts} from '@/lib/utils/settlement-utils';
 import ExpenseCard from '@/components/settlements/ExpenseCard';
@@ -24,6 +24,7 @@ export default function SettlementsPage() {
     const {fetchGroupMembers} = useMembers();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [expenses, setExpenses] = useState<ExpenseResponseDto[]>([]);
+    const [settlements, setSettlements] = useState<SettlementResponseDto[]>([]);
     const [members, setMembers] = useState<User[]>([]);
     const [selectedExpense, setSelectedExpense] = useState<ExpenseResponseDto | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -112,12 +113,42 @@ export default function SettlementsPage() {
         });
     }, [groupData.id, fetchGroupMembers]);
 
+    useEffect(() => {
+        const fetchSettlements = async () => {
+            try {
+                const response = await fetchWithAuth(`${API_ROUTES.GET_ALL_SETTLEMENTS_FOR_USER_FOR_GROUP}?groupId=${groupData.id}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setSettlements(data.data || []);
+                } else {
+                    console.error('Błąd podczas pobierania rozliczeń');
+                }
+            } catch (error) {
+                console.error('Błąd podczas pobierania rozliczeń:', error);
+            }
+        };
 
-    const optimizedDebts = useMemo(() => Array.isArray(expenses) ? optimizeDebts(expenses) : [], [expenses]);
+        if (groupData.id) {
+            fetchSettlements();
+        }
+    }, [groupData.id]);
 
-    const myDebts = optimizedDebts.filter((debt) => debt.fromUserId === currentUser!.id);
 
-    const myCredits = optimizedDebts.filter((debt) => debt.toUserId === currentUser!.id);
+    const myDebts = settlements.map((s) => ({
+        id: s.id,
+        amount: s.amount,
+        toUserId: s.toUser.id,
+        toUserName: s.toUser.name,
+        fromUserId: currentUser!.id,
+        fromUserName: currentUser!.name,
+        relatedExpenses: [],
+    }));
+
+    const myCredits: optimizeDebts[] = [];
+
 
     const myBalance = useMemo(() => {
         let balance = 0;
@@ -135,7 +166,7 @@ export default function SettlementsPage() {
                 phoneNumber: expenseData.phoneNumber,
                 bankAccount: expenseData.bankAccount,
                 isEvenSplit: expenseData.isEvenSplit,
-                Beneficiaries: expenseData.Beneficiaries,
+                beneficiaries: expenseData.beneficiaries,
             };
             try {
                 const response = await fetchWithAuth(`${API_ROUTES.PUT_SPECIFIC_EXPENSE}?groupId=${groupData.id}&expenseId=${editingExpense.id}`,
@@ -159,7 +190,7 @@ export default function SettlementsPage() {
                         bankAccount: expenseData.bankAccount,
                         isEvenSplit: expenseData.isEvenSplit,
                         createdAt: editingExpense.createdAt,
-                        Beneficiaries: expenseData.Beneficiaries,
+                        beneficiaries: expenseData.beneficiaries,
                     };
                     setExpenses(expenses.map(e => e.id === editingExpense.id ? localExpense : e));
                 } else {
@@ -176,7 +207,7 @@ export default function SettlementsPage() {
                 phoneNumber: expenseData.phoneNumber,
                 bankAccount: expenseData.bankAccount,
                 isEvenSplit: expenseData.isEvenSplit,
-                Beneficiaries: expenseData.Beneficiaries,
+                beneficiaries: expenseData.beneficiaries,
             };
             try {
                 const response = await fetchWithAuth(`${API_ROUTES.POST_SETTLEMENTS_FOR_GROUP}?groupId=${groupData.id}`,
@@ -191,7 +222,7 @@ export default function SettlementsPage() {
                 if (response.ok) {
                     const data = await response.json();
                     const localExpense: ExpenseResponseDto = {
-                        id: data.expenseId,
+                        id: data.message,
                         groupId: groupData.id,
                         paidByUser: expenseData.paidByUser,
                         title: expenseData.title,
@@ -200,7 +231,7 @@ export default function SettlementsPage() {
                         bankAccount: expenseData.bankAccount,
                         isEvenSplit: expenseData.isEvenSplit,
                         createdAt: new Date().toISOString(),
-                        Beneficiaries: expenseData.Beneficiaries,
+                        beneficiaries: expenseData.beneficiaries,
                     };
                     setExpenses([localExpense, ...expenses]);
                 } else {
@@ -261,6 +292,7 @@ export default function SettlementsPage() {
             if (!response.ok) {
                 throw new Error('Błąd podczas oznaczania jako opłacone');
             }
+            setSettlements(settlements.filter(s => s.id !== debt.id));
         } catch (error) {
             console.error('Błąd podczas oznaczania jako opłacone:', error);
         }
@@ -420,6 +452,7 @@ export default function SettlementsPage() {
                 onBack={() => setViewMode('list')}
                 onEdit={() => handleEditExpense(selectedExpense)}
                 onDelete={handleDeleteExpense}
+                currentUserId={currentUser!.id}
             />
         );
     }

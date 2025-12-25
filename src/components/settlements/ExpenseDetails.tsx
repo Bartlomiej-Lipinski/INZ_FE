@@ -6,6 +6,7 @@ import {ExpenseResponseDto} from '@/lib/types/expense';
 interface ExpenseDetailsProps {
     expense: ExpenseResponseDto;
     groupColor: string;
+    currentUserId: string;
     onBack: () => void;
     onEdit: () => void;
     onDelete: () => void;
@@ -24,7 +25,14 @@ function formatDate(dateString: string): string {
     });
 }
 
-export default function ExpenseDetails({expense, groupColor, onBack, onEdit, onDelete}: ExpenseDetailsProps) {
+export default function ExpenseDetails({
+                                           expense,
+                                           groupColor,
+                                           onBack,
+                                           onEdit,
+                                           onDelete,
+                                           currentUserId
+                                       }: ExpenseDetailsProps) {
     return (
         <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
             <Box sx={{maxWidth: 800, mx: 'auto'}}>
@@ -128,6 +136,7 @@ export default function ExpenseDetails({expense, groupColor, onBack, onEdit, onD
                     </CardContent>
                 </Card>
 
+                {expense.paidByUser.id === currentUserId && (
                 <Box sx={{display: 'flex', gap: 2}}>
                     <Button
                         startIcon={<Edit2 size={20}/>}
@@ -147,6 +156,7 @@ export default function ExpenseDetails({expense, groupColor, onBack, onEdit, onD
                         Usuń
                     </Button>
                 </Box>
+                )}
             </Box>
         </Box>
     );
