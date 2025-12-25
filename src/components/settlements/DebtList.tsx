@@ -55,7 +55,7 @@ export default function DebtList({myDebts, myCredits, groupColor, onBack, onMark
                                         mb: 2
                                     }}>
                                         <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                                            <Avatar sx={{width: 48, height: 48}}>{debt.toUserName[0]}</Avatar>
+                                            <Avatar sx={{width: 48, height: 48}}>{debt.toUserName}</Avatar>
                                             <Box>
                                                 <Typography variant="body2" color="text.secondary">
                                                     Przelej dla

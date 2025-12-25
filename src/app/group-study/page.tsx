@@ -7,6 +7,7 @@ import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-
 import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
 import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
 import {useIsAdmin} from "@/hooks/use-isAdmin";
+import {Box, CircularProgress} from "@mui/material";
 
 
 export default function GroupMenuPage() {
@@ -143,7 +144,11 @@ export default function GroupMenuPage() {
     }, [fetchCategories, fetchMaterials, groupData.id]);
 
     if (loading || !currentUser) {
-        return <div>Ładowanie...</div>;
+        return (
+            <Box sx={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+                <CircularProgress/>
+            </Box>
+        );
     }
 
     return (

@@ -144,7 +144,7 @@ export default function SettlementsPage() {
         toUserName: s.toUser.name,
         fromUserId: currentUser!.id,
         fromUserName: currentUser!.name,
-        relatedExpenses: [],
+        relatedExpenses: [settlements.length],
     }));
 
     const myCredits: optimizeDebts[] = [];
@@ -166,7 +166,7 @@ export default function SettlementsPage() {
                 phoneNumber: expenseData.phoneNumber,
                 bankAccount: expenseData.bankAccount,
                 isEvenSplit: expenseData.isEvenSplit,
-                beneficiaries: expenseData.beneficiaries,
+                beneficiaries: expenseData.beneficiaries
             };
             try {
                 const response = await fetchWithAuth(`${API_ROUTES.PUT_SPECIFIC_EXPENSE}?groupId=${groupData.id}&expenseId=${editingExpense.id}`,
@@ -207,7 +207,7 @@ export default function SettlementsPage() {
                 phoneNumber: expenseData.phoneNumber,
                 bankAccount: expenseData.bankAccount,
                 isEvenSplit: expenseData.isEvenSplit,
-                beneficiaries: expenseData.beneficiaries,
+                beneficiaries: expenseData.beneficiaries
             };
             try {
                 const response = await fetchWithAuth(`${API_ROUTES.POST_SETTLEMENTS_FOR_GROUP}?groupId=${groupData.id}`,

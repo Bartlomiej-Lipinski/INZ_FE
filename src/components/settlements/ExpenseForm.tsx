@@ -48,12 +48,12 @@ export default function ExpenseForm({
     const [bankAccount, setBankAccount] = useState(editingExpense?.bankAccount || '');
     const [isEvenSplit, setIsEvenSplit] = useState(editingExpense?.isEvenSplit ?? true);
     const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
-        editingExpense?.Beneficiaries.map(b => b.userId) || [currentUserId]
+        editingExpense?.beneficiaries.map(b => b.userId) || [currentUserId]
     );
     const [customShares, setCustomShares] = useState<Record<string, string>>(() => {
         if (editingExpense && !editingExpense.isEvenSplit) {
             const shares: Record<string, string> = {};
-            editingExpense.Beneficiaries.forEach(b => {
+            editingExpense.beneficiaries.forEach(b => {
                 shares[b.userId] = (b.share || 0).toString();
             });
             return shares;
@@ -73,11 +73,11 @@ export default function ExpenseForm({
         const amountNum = parseFloat(amount);
         if (!title.trim() || !amountNum || selectedParticipants.length === 0) return;
 
-        let Beneficiaries: ExpenseBeneficiaryDto[];
+        let beneficiaries: ExpenseBeneficiaryDto[];
 
         if (isEvenSplit) {
             const perPerson = amountNum / selectedParticipants.length;
-            Beneficiaries = selectedParticipants.map((userId) => {
+            beneficiaries = selectedParticipants.map((userId) => {
                 const member = members.find((m) => m.id === userId);
                 return {
                     userId,
@@ -86,7 +86,7 @@ export default function ExpenseForm({
                 };
             });
         } else {
-            Beneficiaries = selectedParticipants.map((userId) => {
+            beneficiaries = selectedParticipants.map((userId) => {
                 const member = members.find((m) => m.id === userId);
                 return {
                     userId,
@@ -107,7 +107,7 @@ export default function ExpenseForm({
             phoneNumber: phoneNumber || undefined,
             bankAccount: bankAccount || undefined,
             isEvenSplit,
-            Beneficiaries: Beneficiaries
+            beneficiaries: beneficiaries
         });
     };
 

@@ -1,19 +1,9 @@
 "use client";
 
 import React, {useState} from 'react';
-import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Menu,
-    MenuItem,
-} from '@mui/material';
-import { Edit2, FileText, Notebook, Plus, Trash2 } from 'lucide-react';
-import { FileCategoryResponseDto, StoredFileResponseDto } from '@/lib/types/study-material';
+import {Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Menu, MenuItem,} from '@mui/material';
+import {Edit2, FileText, Notebook, Plus, Trash2} from 'lucide-react';
+import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-material';
 import FileFilters from "@/components/pages/StudyMaterialsFilters";
 import CategoriesManager from './CategoriesManager';
 import FileList from './FileList';
@@ -21,8 +11,8 @@ import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
-import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
-import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
+import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
+import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
 import GroupHeader from '../layout/Group-header';
 
 interface StudyMaterialsPageProps {
@@ -182,7 +172,7 @@ export function StudyMaterialsPage({
                 throw new Error('Błąd podczas tworzenia kategorii');
             }
 
-            const newCategory: FileCategoryResponseDto = await response.json();
+            const newCategory: FileCategoryResponseDto = {id: Date.now.toString(), name: newCategoryName};
             onCategoriesChange([...categories, newCategory]);
             setCategoryDialogOpen(false);
             setNewCategoryName('');

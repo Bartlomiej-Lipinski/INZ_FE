@@ -2,6 +2,7 @@ import {Avatar, Box, Button, Card, CardContent, Chip, Typography} from '@mui/mat
 import {alpha} from '@mui/material/styles';
 import {ArrowLeft, CreditCard, Edit2, Smartphone, Trash2} from 'lucide-react';
 import {ExpenseResponseDto} from '@/lib/types/expense';
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 interface ExpenseDetailsProps {
     expense: ExpenseResponseDto;
@@ -23,6 +24,25 @@ function formatDate(dateString: string): string {
         month: 'long',
         day: 'numeric',
     });
+}
+
+function UserAvatar({user, size, groupColor}: { user: any; size: number; groupColor?: string }) {
+    const avatarUrl = useImageUrl(user.profilePicture?.id);
+    const displayName = `${user.name} ${user.surname}`.trim() || user.username;
+
+    return (
+        <Avatar
+            src={avatarUrl || undefined}
+            title={displayName}
+            sx={{
+                width: size,
+                height: size,
+                bgcolor: groupColor || 'grey.500'
+            }}
+        >
+            {user.name?.[0]?.toUpperCase() || '?'}
+        </Avatar>
+    );
 }
 
 export default function ExpenseDetails({
@@ -76,7 +96,7 @@ export default function ExpenseDetails({
                             bgcolor: alpha('#10b981', 0.1),
                             borderRadius: 2
                         }}>
-                            <Avatar sx={{width: 48, height: 48}}>{expense.paidByUser.name[0]}</Avatar>
+                            <UserAvatar user={expense.paidByUser} size={24}/>
                             <Box sx={{flex: 1}}>
                                 <Typography variant="h6" sx={{fontWeight: 600}}>
                                     {expense.paidByUser.name} {expense.paidByUser.surname}
@@ -118,9 +138,7 @@ export default function ExpenseDetails({
                                     }}
                                 >
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                                        <Avatar sx={{width: 40, height: 40}}>
-                                            {beneficiary.user?.name?.[0] || '?'}
-                                        </Avatar>
+                                        <UserAvatar user={beneficiary.user} size={24}/>
                                         <Typography variant="body1">
                                             {beneficiary.user ? `${beneficiary.user.name} ${beneficiary.user.surname}`.trim() : 'Nieznany użytkownik'}
                                         </Typography>

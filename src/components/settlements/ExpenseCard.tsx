@@ -1,5 +1,6 @@
 import {Avatar, Box, Card, CardContent, Chip, Typography} from '@mui/material';
 import {ExpenseResponseDto} from '@/lib/types/expense';
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 interface ExpenseCardProps {
     expense: ExpenseResponseDto;
@@ -17,6 +18,25 @@ function formatDate(dateString: string): string {
         month: 'long',
         day: 'numeric',
     });
+}
+
+function UserAvatar({user, size, groupColor}: { user: any; size: number; groupColor?: string }) {
+    const avatarUrl = useImageUrl(user.profilePicture?.id);
+    const displayName = `${user.name} ${user.surname}`.trim() || user.username;
+
+    return (
+        <Avatar
+            src={avatarUrl || undefined}
+            title={displayName}
+            sx={{
+                width: size,
+                height: size,
+                bgcolor: groupColor || 'grey.500'
+            }}
+        >
+            {user.name?.[0]?.toUpperCase() || '?'}
+        </Avatar>
+    );
 }
 
 export default function ExpenseCard({expense, onClick}: ExpenseCardProps) {
@@ -47,9 +67,7 @@ export default function ExpenseCard({expense, onClick}: ExpenseCardProps) {
 
                 <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                     <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-                        <Avatar sx={{width: 32, height: 32}}>
-                            {expense.paidByUser.name[0]}
-                        </Avatar>
+                        <UserAvatar user={expense.paidByUser} size={24}/>
                         <Typography variant="body2">
                             Zapłacił/a: {expense.paidByUser.name} {expense.paidByUser.surname}
                         </Typography>
