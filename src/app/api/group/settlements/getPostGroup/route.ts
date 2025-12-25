@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from "next/server";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
-import {ExpenseCreate} from "@/lib/types/expense";
+import {ExpenseRequestDto} from "@/lib/types/expense";
 
 const BASE_URL = process.env.BASE_URL;
 const GET_POST_SETTLEMENTS = process.env.GET_POST_SETTLEMENTS;
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
                 {status: 400}
             );
         }
-        const expensePayLoad = await request.json() as ExpenseCreate;
+        const expensePayLoad = await request.json() as ExpenseRequestDto;
         const endpoint = GET_POST_SETTLEMENTS?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                expensePayLoad
+                ...expensePayLoad
             }),
             credentials: 'include',
         });

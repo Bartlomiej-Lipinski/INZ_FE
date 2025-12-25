@@ -68,4 +68,11 @@ export const API_ROUTES = {
     GET_GROUP_EVENT: '/api/group/events/SingleEvents',
     CHOOSE_BEST_BEST_DATE: '/api/group/events/chooseBestDate',
     CALCULATE_BEST_DATE_FOR_EVENT: '/api/group/events/calculateBestDate',
+    DELETE_SPECIFIC_EXPENSE: '/api/group/settlements/specificExpense',
+    PUT_SPECIFIC_EXPENSE: '/api/group/settlements/specificExpense',
+    GET_SPECIFIC_EXPENSE: '/api/group/settlements/specificExpense',
+    GET_SETTLEMENTS_FOR_GROUP: '/api/group/settlements/getPostGroup',
+    POST_SETTLEMENTS_FOR_GROUP: '/api/group/settlements/getPostGroup',
+    DELETE_SPECIFIC_SETTLEMENTS_MARK_AS_PAID: '/api/group/settlements/deleteSettlementMarkAsPaid',
+    GET_ALL_SETTLEMENTS_FOR_USER_FOR_GROUP: '/api/group/settlements/allSettlementsForUserForGroup',
 } as const; 

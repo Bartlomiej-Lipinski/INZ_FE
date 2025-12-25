@@ -2,8 +2,8 @@
 
 import React, {useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {Box, Button, Typography} from '@mui/material';
-import {Calendar as CalendarIcon, Plus} from 'lucide-react';
+import {Box, Button, IconButton, Typography} from '@mui/material';
+import {Calendar as CalendarIcon, Menu, Plus} from 'lucide-react';
 import {
     AvailabilityRangeResponseDto,
     EventAvailabilityStatus,
@@ -15,7 +15,7 @@ import EventForm from '@/components/events/EventForm';
 import EventDetails from '@/components/events/eventDetails';
 import EventAvailabilityView from '@/components/events/eventAvailabilityView';
 import EventSuggestions from '@/components/events/eventSuggestion';
-import GroupMenu from "@/components/common/GroupMenu";
+import GroupMenu from "@/components/common/Group-menu";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 
@@ -38,7 +38,7 @@ export default function EventsPage() {
     const searchParams = useSearchParams();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [events, setEvents] = useState<EventResponseDto[]>([]);
-    const [PreviewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<EventResponseDto | null>(null);
     const [selectedSuggestion, setSelectedSuggestion] = useState<EventSuggestionResponseDto | null>(null);
@@ -215,8 +215,8 @@ export default function EventsPage() {
             formDataToSend.append('rangeStart', `${rangeStart}T00:00:00.000Z`);
             formDataToSend.append('rangeEnd', `${rangeEnd}T23:59:59.999Z`);
         }
-        if (imagePreview) {
-            formDataToSend.append('file', imagePreview);
+        if (previewUrl) {
+            formDataToSend.append('file', previewUrl);
         }
 
         try {
@@ -289,7 +289,7 @@ export default function EventsPage() {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setImagePreview(reader.result as string);
+                setPreviewUrl(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -502,7 +502,12 @@ export default function EventsPage() {
                 <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
                     <Box sx={{maxWidth: 1200, mx: 'auto'}}>
                         <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                            <Button onClick={() => setDrawerOpen(true)}/>
+                            <IconButton
+                                onClick={() => setDrawerOpen(true)}
+                                sx={{bgcolor: '#8D8C8C', '&:hover': {bgcolor: '#666666'}, mr: 1}}
+                            >
+                                <Menu/>
+                            </IconButton>
                             <Typography
                                 variant="h4"
                                 sx={{
@@ -527,7 +532,7 @@ export default function EventsPage() {
                         </Button>
 
                         <EventsList events={events} onViewDetails={handleViewDetails} onDelete={handleDeleteEvent}
-                                    currentUserId={currentUser.id}/>
+                                    currentUserId={currentUser!.id}/>
                     </Box>
                 </Box>
             )}
@@ -564,7 +569,7 @@ export default function EventsPage() {
             {viewMode === 'details' && selectedEvent && (
                 <EventDetails
                     event={selectedEvent}
-                    currentUserId={currentUser.id}
+                    currentUserId={currentUser!.id}
                     groupColor={groupData.color}
                     onBack={handleBackToList}
                     onEdit={handleEditEvent}
@@ -607,7 +612,6 @@ export default function EventsPage() {
                                 }
                             );
                             if (response.ok) {
-                                const data = await response.json();
                                 setEvents(events.map(ev =>
                                     ev.id === selectedEvent.id
                                         ? {
