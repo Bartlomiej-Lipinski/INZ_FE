@@ -206,6 +206,7 @@ export default function EventsPage() {
         formDataToSend.append('title', title);
         formDataToSend.append('description', description);
         formDataToSend.append('location', location);
+        // @ts-ignore
         formDataToSend.append('isAutoScheduled', isAutoScheduled);
         if (!isAutoScheduled) {
             formDataToSend.append('startDate', startDate);
@@ -215,8 +216,8 @@ export default function EventsPage() {
             formDataToSend.append('rangeStart', `${rangeStart}T00:00:00.000Z`);
             formDataToSend.append('rangeEnd', `${rangeEnd}T23:59:59.999Z`);
         }
-        if (previewUrl) {
-            formDataToSend.append('file', previewUrl);
+        if (selectedFile) {
+            formDataToSend.append('file', selectedFile);
         }
 
         try {
@@ -292,6 +293,7 @@ export default function EventsPage() {
                 setPreviewUrl(reader.result as string);
             };
             reader.readAsDataURL(file);
+            setSelectedFile(file);
         }
     };
 
@@ -605,7 +607,7 @@ export default function EventsPage() {
                         if (!selectedEvent || !selectedSuggestion) return;
                         try {
                             const response = await fetchWithAuth(
-                                `${API_ROUTES.CHOOSE_BEST_EVENT_DATE}?groupId=${groupData.id}&eventId=${selectedEvent.id}&suggestionId=${selectedSuggestion.id}`,
+                                `${API_ROUTES.CHOOSE_BEST_EVENT_DATE}?groupId=${groupData.id}&eventId=${selectedEvent.id}&suggestionId=${selectedSuggestion.Id}`,
                                 {
                                     method: 'POST',
                                     credentials: 'include',

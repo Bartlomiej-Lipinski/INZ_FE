@@ -25,7 +25,7 @@ export interface RecommendationResponseDto {
     title: string;
     content: string;
     category?: string;
-    imageUrl?: string;
+    storedFileId?: string;
     linkUrl?: string;
     createdAt: string;
     user: UserResponseDto;

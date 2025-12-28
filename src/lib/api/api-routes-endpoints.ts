@@ -75,4 +75,5 @@ export const API_ROUTES = {
     POST_SETTLEMENTS_FOR_GROUP: '/api/group/settlements/getPostGroup',
     DELETE_SPECIFIC_SETTLEMENTS_MARK_AS_PAID: '/api/group/settlements/deleteSettlementMarkAsPaid',
     GET_ALL_SETTLEMENTS_FOR_USER_FOR_GROUP: '/api/group/settlements/allSettlementsForUserForGroup',
+    GET_CREDITS: '/api/group/settlements/getCredits',
 } as const; 

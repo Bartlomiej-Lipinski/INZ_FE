@@ -48,3 +48,7 @@ export interface SettlementResponseDto {
     toUser: User;
     amount: number;
 }
+
+export interface CreditResponseDto {
+    amount: number;
+}

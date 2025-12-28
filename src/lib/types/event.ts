@@ -60,7 +60,7 @@ export interface EventResponseDto {
     title: string;
     description?: string;
     location?: string;
-    imageUrl?: string;
+    storedFileId?: string;
     isAutoScheduled: boolean;
     rangeStart?: string;
     rangeEnd?: string;

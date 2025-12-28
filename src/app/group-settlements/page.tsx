@@ -4,9 +4,9 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {Box, Button, Card, IconButton, Typography,} from '@mui/material';
 import {DollarSign, Menu, Plus, Receipt, TrendingDown, TrendingUp,} from 'lucide-react';
-import {ExpenseRequestDto, ExpenseResponseDto, SettlementResponseDto} from '@/lib/types/expense';
+import {CreditResponseDto, ExpenseRequestDto, ExpenseResponseDto, SettlementResponseDto} from '@/lib/types/expense';
 import {User} from '@/lib/types/user';
-import {formatCurrency, optimizeDebts} from '@/lib/utils/settlement-utils';
+import {formatCurrency} from '@/lib/utils/settlement-utils';
 import ExpenseCard from '@/components/settlements/ExpenseCard';
 import ExpenseForm from '@/components/settlements/ExpenseForm';
 import ExpenseDetails from '@/components/settlements/ExpenseDetails';
@@ -25,6 +25,7 @@ export default function SettlementsPage() {
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [expenses, setExpenses] = useState<ExpenseResponseDto[]>([]);
     const [settlements, setSettlements] = useState<SettlementResponseDto[]>([]);
+    const [credits, setCredits] = useState<CreditResponseDto>();
     const [members, setMembers] = useState<User[]>([]);
     const [selectedExpense, setSelectedExpense] = useState<ExpenseResponseDto | null>(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -136,6 +137,33 @@ export default function SettlementsPage() {
         }
     }, [groupData.id]);
 
+    useEffect(() => {
+        const fetchCredits = async () => {
+            try {
+                const response = await fetchWithAuth(`${API_ROUTES.GET_CREDITS}?groupId=${groupData.id}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setCredits(data.data);
+                } else {
+                    console.error('Błąd podczas pobierania należności');
+                }
+            } catch (error) {
+                console.error('Błąd podczas pobierania należności:', error);
+            }
+        }
+        if (groupData.id) {
+            fetchCredits();
+        }
+    }, [groupData.id]);
+
+
+    const myCredits = credits;
+
+
+
 
     const myDebts = settlements.map((s) => ({
         id: s.id,
@@ -147,12 +175,13 @@ export default function SettlementsPage() {
         relatedExpenses: [settlements.length],
     }));
 
-    const myCredits: optimizeDebts[] = [];
 
 
     const myBalance = useMemo(() => {
         let balance = 0;
-        myCredits.forEach((c) => (balance += c.amount));
+        if (myCredits) {
+            balance += myCredits.amount;
+        }
         myDebts.forEach((d) => (balance -= d.amount));
         return balance;
     }, [myCredits, myDebts]);
@@ -435,7 +464,6 @@ export default function SettlementsPage() {
         return (
             <DebtList
                 myDebts={myDebts}
-                myCredits={myCredits}
                 groupColor={groupData.color}
                 onBack={() => setViewMode('list')}
                 onMarkAsPaid={handleMarkAsPaid}
