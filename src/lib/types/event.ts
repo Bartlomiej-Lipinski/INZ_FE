@@ -34,7 +34,7 @@ export interface EventAvailabilityResponseDto {
 }
 
 export interface EventSuggestionResponseDto {
-    Id: string;
+    id: string;
     startTime: string;
     endTime: string;
     availableUserCount: number;

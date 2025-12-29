@@ -35,7 +35,7 @@ export function StudyMaterialsPage({
                                        groupData,
                                        onFilesChange,
                                        onCategoriesChange,
-                                   }: StudyMaterialsPageProps) {
+                                   }: Readonly<StudyMaterialsPageProps>) {
     const groupColor = groupData?.color || '#9042fb';
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -111,12 +111,12 @@ export function StudyMaterialsPage({
             }
 
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            const url = globalThis.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = file.fileName || 'plik';
             link.click();
-            window.URL.revokeObjectURL(url);
+            globalThis.URL.revokeObjectURL(url);
         } catch (error) {
             console.error('Błąd podczas pobierania pliku:', error);
             alert('Nie udało się pobrać pliku');

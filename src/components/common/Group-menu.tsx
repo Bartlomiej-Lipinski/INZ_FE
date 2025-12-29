@@ -129,6 +129,25 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
                 <Box sx={{mt: 'auto', pt: 2, borderTop: 1, borderColor: 'divider'}}>
                     <ListItemButton
                         onClick={() => {
+                            router.push('/');
+                            onClose();
+                        }}
+                        sx={{
+                            borderRadius: 1,
+                            mb: 0.5,
+                            '&:hover': {
+                                bgcolor: alpha(groupColor, 0.2),
+                            },
+                        }}
+                    >
+                        <ListItemIcon>
+                            <Users size={24} color={groupColor ? groupColor : theme.palette.grey[500]}/>
+                        </ListItemIcon>
+                        <ListItemText primary="MOJE GRUPY"/>
+                        <ChevronRight size={20}/>
+                    </ListItemButton>
+                    <ListItemButton
+                        onClick={() => {
                             handleLogout()
                         }}
                         sx={{

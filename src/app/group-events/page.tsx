@@ -206,7 +206,6 @@ export default function EventsPage() {
         formDataToSend.append('title', title);
         formDataToSend.append('description', description);
         formDataToSend.append('location', location);
-        // @ts-ignore
         formDataToSend.append('isAutoScheduled', isAutoScheduled);
         if (!isAutoScheduled) {
             formDataToSend.append('startDate', startDate);
@@ -607,7 +606,7 @@ export default function EventsPage() {
                         if (!selectedEvent || !selectedSuggestion) return;
                         try {
                             const response = await fetchWithAuth(
-                                `${API_ROUTES.CHOOSE_BEST_EVENT_DATE}?groupId=${groupData.id}&eventId=${selectedEvent.id}&suggestionId=${selectedSuggestion.Id}`,
+                                `${API_ROUTES.CHOOSE_BEST_EVENT_DATE}?groupId=${groupData.id}&eventId=${selectedEvent.id}&suggestionId=${selectedSuggestion.id}`,
                                 {
                                     method: 'POST',
                                     credentials: 'include',
