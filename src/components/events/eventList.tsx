@@ -136,6 +136,13 @@ export default function EventsList({events, onViewDetails, currentUserId, onDele
                                             e.stopPropagation();
                                             onDelete(event.id);
                                         }}
+                                        sx={{
+                                            color: 'text.secondary',
+                                            '&:hover': {
+                                                color: 'error.main',
+                                                bgcolor: alpha('#f44336', 0.1),
+                                            },
+                                        }}
                                     >
                                         <Trash2 size={16}/>
                                     </IconButton>

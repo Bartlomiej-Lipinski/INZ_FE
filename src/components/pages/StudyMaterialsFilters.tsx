@@ -50,7 +50,18 @@ export default function FileFilters({
                     placeholder="Szukaj materiałów..."
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    sx={{mb: 2}}
+                    sx={{
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                        }
+                    }}
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -61,14 +72,24 @@ export default function FileFilters({
                 />
 
                 <Box sx={{display: 'flex', gap: 2, flexWrap: 'wrap'}}>
-                    <FormControl sx={{minWidth: 200}}>
+                    <FormControl sx={{
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                        }
+                    }} >
                         <InputLabel>Kategoria</InputLabel>
                         <Select
                             value={selectedCategory}
                             label="Kategoria"
                             onChange={(e) => onCategoryChange(e.target.value)}
                         >
-                            <MenuItem value="all">Wszystkie</MenuItem>
+                            <MenuItem value="all" >Wszystkie</MenuItem>
                             {categories.map((cat) => (
                                 <MenuItem key={cat.id} value={cat.id}>
                                     {cat.name}
@@ -77,30 +98,11 @@ export default function FileFilters({
                         </Select>
                     </FormControl>
 
-                    <FormControl sx={{minWidth: 200}}>
-                        <InputLabel>Autor</InputLabel>
-                        <Select
-                            value={selectedAuthor}
-                            label="Autor"
-                            onChange={(e) => onAuthorChange(e.target.value)}
-                        >
-                            <MenuItem value="all">Wszyscy</MenuItem>
-                            {uniqueAuthors.map((author) => (
-                                <MenuItem key={author} value={author}>
-                                    {author}
-                                </MenuItem>
-                            ))}
-                        </Select>
-                    </FormControl>
-
                     <Button
-                        variant="outlined"
                         startIcon={<FolderPlus/>}
                         onClick={onAddCategory}
                         sx={groupColor ? {
                             bgcolor: groupColor,
-                            color: '#fff',
-                            borderColor: groupColor,
                             '&:hover': {bgcolor: groupColor, opacity: 0.85}
                         } : {}}
                     >

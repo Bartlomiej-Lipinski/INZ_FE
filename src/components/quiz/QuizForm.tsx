@@ -130,7 +130,7 @@ export default function QuizForm({
     return (
         <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
             <Box sx={{maxWidth: 800, mx: 'auto'}}>
-                <Button startIcon={<ArrowLeft/>} onClick={onCancel} sx={{mb: 3}}>
+                <Button startIcon={<ArrowLeft/>} onClick={onCancel} sx={{mb: 3, bgcolor: groupColor}}>
                     Powrót do listy
                 </Button>
 
@@ -144,7 +144,18 @@ export default function QuizForm({
                         label="Tytuł quizu"
                         value={title}
                         onChange={(e) => onTitleChange(e.target.value)}
-                        sx={{mb: 2}}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -153,6 +164,17 @@ export default function QuizForm({
                         rows={3}
                         value={description}
                         onChange={(e) => onDescriptionChange(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
                 </Card>
 
@@ -174,7 +196,18 @@ export default function QuizForm({
                                 </IconButton>
                             </Box>
 
-                            <FormControl fullWidth sx={{mb: 2}}>
+                            <FormControl fullWidth sx={{
+                                mb: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                }
+                            }}>
                                 <InputLabel>Typ pytania</InputLabel>
                                 <Select
                                     value={question.Type}
@@ -193,7 +226,18 @@ export default function QuizForm({
                                 rows={2}
                                 value={question.Content}
                                 onChange={(e) => handleQuestionContentChange(qIndex, e.target.value)}
-                                sx={{mb: 2}}
+                                sx={{
+                                    mb: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 3,
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: groupColor,
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: groupColor,
+                                        },
+                                    }
+                                }}
                             />
 
                             {question.Type === QuizQuestionType.SingleChoice && question.Options && (
@@ -219,6 +263,17 @@ export default function QuizForm({
                                                 placeholder={`Odpowiedź ${oIndex + 1}`}
                                                 value={option.Text}
                                                 onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)}
+                                                sx={{
+                                                    '& .MuiOutlinedInput-root': {
+                                                        borderRadius: 3,
+                                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                            borderColor: groupColor,
+                                                        },
+                                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                            borderColor: groupColor,
+                                                        },
+                                                    }
+                                                }}
                                             />
                                             {question.Options!.length > 2 && (
                                                 <IconButton size="small"
@@ -232,7 +287,7 @@ export default function QuizForm({
                                         size="small"
                                         startIcon={<Plus size={18}/>}
                                         onClick={() => handleAddOption(qIndex)}
-                                        sx={{mt: 1}}
+                                        sx={{mt: 1, bgcolor: groupColor}}
                                     >
                                         Dodaj odpowiedź
                                     </Button>
@@ -273,7 +328,11 @@ export default function QuizForm({
                 </Box>
 
                 <Box sx={{display: 'flex', gap: 2}}>
-                    <Button variant="outlined" startIcon={<Plus size={20}/>} onClick={handleAddQuestion} fullWidth>
+                    <Button
+                            startIcon={<Plus size={20}/>}
+                            onClick={handleAddQuestion}
+                            fullWidth
+                            sx={{bgcolor: groupColor}}>
                         Dodaj pytanie
                     </Button>
                     <Button

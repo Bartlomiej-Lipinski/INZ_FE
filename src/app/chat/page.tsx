@@ -23,7 +23,16 @@ export default function ChatPage() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [message, setMessage] = useState('');
     const [userName] = useState(() => `user-${Math.floor(Math.random() * 10000)}`);
-
+    const groupData = useMemo(() => {
+        const groupId = searchParams?.get('groupId') || '';
+        const groupName = searchParams?.get('groupName') || '';
+        const groupColor = searchParams?.get('groupColor') || '#9042fb';
+        return {
+            id: groupId,
+            name: decodeURIComponent(groupName),
+            color: decodeURIComponent(groupColor),
+        };
+    }, [searchParams]);
 
     useEffect(() => {
         if (!HUB_URL) {
@@ -116,9 +125,24 @@ export default function ChatPage() {
                             placeholder="Wpisz wiadomość..."
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
+                            variant="outlined"
                             disabled={!connection}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                },
+                            }}
                         />
-                        <Button variant="contained" onClick={handleSend} disabled={!connection || !message.trim()}>
+                        <Button variant="contained"
+                                onClick={handleSend}
+                                disabled={!connection || !message.trim()}
+                                sx={{ bgcolor: groupData.color }}>
                             Wyślij
                         </Button>
                     </Box>

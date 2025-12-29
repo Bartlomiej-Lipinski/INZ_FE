@@ -260,7 +260,19 @@ export default function PollsPage() {
                             label="Pytanie"
                             value={newQuestion}
                             onChange={(e) => setNewQuestion(e.target.value)}
-                            sx={{mt: 2, mb: 3}}
+                            sx={{
+                                mb: 3,
+                                mt: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                             multiline
                             rows={2}
                         />
@@ -278,6 +290,17 @@ export default function PollsPage() {
                                         placeholder={`Opcja ${index + 1}`}
                                         value={option}
                                         onChange={(e) => handleOptionChange(index, e.target.value)}
+                                        sx={{
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 3,
+                                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: groupData.color,
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: groupData.color,
+                                                },
+                                            }
+                                        }}
                                     />
                                     {newOptions.length > 2 && (
                                         <IconButton

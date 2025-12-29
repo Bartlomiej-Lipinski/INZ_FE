@@ -24,7 +24,7 @@ export default function FileCard({file, canDelete, onOpenMenu, onDownload, group
                 <Box sx={{display: 'flex', gap: 2}}>
                     <Avatar
                         sx={{
-                            bgcolor: 'primary.main',
+                            bgcolor: groupColor,
                             width: 56,
                             height: 56,
                         }}
@@ -67,7 +67,7 @@ export default function FileCard({file, canDelete, onOpenMenu, onDownload, group
                                 <Chip
                                     label={file.fileCategory.name}
                                     size="small"
-                                    sx={{bgcolor: alpha('#2196f3', 0.1), color: '#2196f3'}}
+                                    sx={{bgcolor: groupColor, color: '#2196f3'}}
                                 />
                             )}
 
