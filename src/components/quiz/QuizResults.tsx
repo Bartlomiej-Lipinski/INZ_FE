@@ -35,7 +35,7 @@ export default function QuizResults({
     return (
         <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
             <Box sx={{maxWidth: 800, mx: 'auto'}}>
-                <Button startIcon={<ArrowLeft/>} onClick={onBackToList} sx={{mb: 3}}>
+                <Button startIcon={<ArrowLeft/>} onClick={onBackToList} sx={{mb: 3, bgcolor: groupColor}}>
                     Powrót do listy
                 </Button>
 
@@ -57,7 +57,7 @@ export default function QuizResults({
                     </Alert>
 
                     <Box sx={{display: 'flex', gap: 2, justifyContent: 'center'}}>
-                        <Button variant="outlined" startIcon={<RotateCcw size={20}/>} onClick={onRetake}>
+                        <Button startIcon={<RotateCcw size={20}/>} onClick={onRetake} sx={{bgcolor: groupColor}}>
                             Spróbuj ponownie
                         </Button>
                         <Button variant="contained" onClick={() => setShowDetails(!showDetails)}

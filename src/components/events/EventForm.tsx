@@ -84,7 +84,19 @@ export default function EventForm({
 
                 <Card sx={{borderRadius: 3, p: 3, mb: 3}}>
                     <TextField fullWidth label="Nazwa wydarzenia" value={title}
-                               onChange={(e) => onTitleChange(e.target.value)} sx={{mb: 2}}/>
+                               onChange={(e) => onTitleChange(e.target.value)}
+                               sx={{
+                                   mb: 2,
+                                   '& .MuiOutlinedInput-root': {
+                                       borderRadius: 3,
+                                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                           borderColor: groupColor,
+                                       },
+                                       '&:hover .MuiOutlinedInput-notchedOutline': {
+                                           borderColor: groupColor,
+                                       },
+                                   }
+                               }}/>
 
                     <TextField
                         fullWidth
@@ -93,11 +105,33 @@ export default function EventForm({
                         rows={3}
                         value={description}
                         onChange={(e) => onDescriptionChange(e.target.value)}
-                        sx={{mb: 2}}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
 
                     <TextField fullWidth label="Lokalizacja (opcjonalnie)" value={location}
-                               onChange={(e) => onLocationChange(e.target.value)} sx={{mb: 2}}/>
+                               onChange={(e) => onLocationChange(e.target.value)} sx={{
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                        }
+                    }}/>
 
                     {/* Zdjęcie */}
                     <Box sx={{mb: 2}}>
@@ -162,6 +196,17 @@ export default function EventForm({
                                     value={startDate}
                                     onChange={(e) => onStartDateChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                                 <TextField
                                     fullWidth
@@ -170,6 +215,17 @@ export default function EventForm({
                                     value={endDate}
                                     onChange={(e) => onEndDateChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                             </Box>
                         </Box>
@@ -183,7 +239,18 @@ export default function EventForm({
                                 label="Przewidywany czas trwania (minuty)"
                                 value={durationMinutes}
                                 onChange={(e) => onDurationMinutesChange(e.target.value)}
-                                sx={{mb: 2}}
+                                sx={{
+                                    mb: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 3,
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: groupColor,
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: groupColor,
+                                        },
+                                    }
+                                }}
                             />
 
                             <Typography variant="subtitle2" sx={{mb: 1}}>
@@ -198,6 +265,17 @@ export default function EventForm({
                                     value={rangeStart}
                                     onChange={(e) => onRangeStartChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                                 <TextField
                                     fullWidth
@@ -206,6 +284,17 @@ export default function EventForm({
                                     value={rangeEnd}
                                     onChange={(e) => onRangeEndChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                             </Box>
                         </Box>

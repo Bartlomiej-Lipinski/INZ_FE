@@ -291,6 +291,7 @@ export function StudyMaterialsPage({
                     categories={categories}
                     uniqueAuthors={uniqueAuthors}
                     onAddCategory={() => setCategoryDialogOpen(true)}
+                    groupColor={groupColor}
                 />
 
                 {/* Zarządzanie kategoriami */}
@@ -350,11 +351,10 @@ export function StudyMaterialsPage({
                     <DialogContent>
                         <Box sx={{ mt: 2 }}>
                             <Button
-                                variant="outlined"
                                 component="label"
                                 fullWidth
                                 startIcon={<FileText />}
-                                sx={{ mb: 2, py: 2 }}
+                                sx={{ mb: 2, py: 2, bgcolor: groupColor }}
                             >
                                 {uploadFile ? uploadFile.name : 'Wybierz plik'}
                                 <input
@@ -371,7 +371,17 @@ export function StudyMaterialsPage({
                                 </Alert>
                             )}
 
-                            <FormControl fullWidth>
+                            <FormControl fullWidth sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                }
+                            }}>
                                 <InputLabel>Kategoria (opcjonalna)</InputLabel>
                                 <Select
                                     value={uploadCategory}
@@ -389,7 +399,7 @@ export function StudyMaterialsPage({
                         </Box>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
-                        <Button onClick={() => setUploadDialogOpen(false)}>Anuluj</Button>
+                        <Button onClick={() => setUploadDialogOpen(false)} sx={{bgcolor: 'error.main'}}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleUploadFile}

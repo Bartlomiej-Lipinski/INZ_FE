@@ -127,7 +127,18 @@ export default function ExpenseForm({
 
                 <Card sx={{borderRadius: 3, p: 3, mb: 3}}>
                     <TextField fullWidth label="Tytuł wydatku" value={title} onChange={(e) => setTitle(e.target.value)}
-                               sx={{mb: 2}}/>
+                               sx={{
+                                   mb: 2,
+                                   '& .MuiOutlinedInput-root': {
+                                       borderRadius: 3,
+                                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                           borderColor: groupColor,
+                                       },
+                                       '&:hover .MuiOutlinedInput-notchedOutline': {
+                                           borderColor: groupColor,
+                                       },
+                                   }
+                               }}/>
 
                     <TextField
                         fullWidth
@@ -138,10 +149,32 @@ export default function ExpenseForm({
                         InputProps={{
                             endAdornment: <Typography sx={{ml: 1}}>zł</Typography>,
                         }}
-                        sx={{mb: 2}}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
 
-                    <FormControl fullWidth sx={{mb: 2}}>
+                    <FormControl fullWidth sx={{
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                        }
+                    }}>
                         <InputLabel>Kto zapłacił?</InputLabel>
                         <Select value={paidBy} label="Kto zapłacił?" onChange={(e) => setPaidBy(e.target.value)}>
                             {members.map((member) => (
@@ -160,7 +193,18 @@ export default function ExpenseForm({
                         InputProps={{
                             startAdornment: <Smartphone size={20} style={{marginRight: 8}}/>,
                         }}
-                        sx={{mb: 2}}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
 
                     <TextField
@@ -170,6 +214,17 @@ export default function ExpenseForm({
                         onChange={(e) => setBankAccount(e.target.value)}
                         InputProps={{
                             startAdornment: <CreditCard size={20} style={{marginRight: 8}}/>,
+                        }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
                         }}
                     />
                 </Card>
@@ -229,9 +284,20 @@ export default function ExpenseForm({
                                         type="number"
                                         value={customShares[userId] || ''}
                                         onChange={(e) => setCustomShares({...customShares, [userId]: e.target.value})}
-                                        sx={{mb: 1}}
                                         InputProps={{
                                             endAdornment: <Typography sx={{ml: 1}}>zł</Typography>,
+                                        }}
+                                        sx={{
+                                            mb: 1,
+                                            '& .MuiOutlinedInput-root': {
+                                                borderRadius: 3,
+                                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: groupColor,
+                                                },
+                                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: groupColor,
+                                                },
+                                            }
                                         }}
                                     />
                                 );

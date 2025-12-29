@@ -39,7 +39,7 @@ export default function QuizTake({
     return (
         <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
             <Box sx={{maxWidth: 800, mx: 'auto'}}>
-                <Button startIcon={<ArrowLeft/>} onClick={onCancel} sx={{mb: 2}}>
+                <Button startIcon={<ArrowLeft/>} onClick={onCancel} sx={{mb: 2, bgcolor: groupColor}}>
                     Zakończ quiz
                 </Button>
 
@@ -182,6 +182,7 @@ export default function QuizTake({
                         startIcon={<ChevronLeft size={20}/>}
                         onClick={onPrevious}
                         disabled={currentQuestionIndex === 0}
+                        sx={{bgcolor: groupColor}}
                     >
                         Poprzednie
                     </Button>
