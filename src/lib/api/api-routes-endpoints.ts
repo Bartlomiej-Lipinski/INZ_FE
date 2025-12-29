@@ -25,6 +25,7 @@ export const API_ROUTES = {
     GENERATE_JOIN_GROUP_CODE: '/api/group/generateJoinCode',
     POST_PROFILE_PICTURE: '/api/user/profilePicture',
     GET_FILE_BY_ID: '/api/group/storage/getFileById',
+    GET_FILE: '/api/group/storage/getPutDeleteFile',
     POST_FILE: '/api/group/storage/postFile',
     DELETE_FILE: '/api/group/storage/getPutDeleteFile',
     POST_CATEGORY: '/api/group/storage/categories/getPostCategories',

@@ -100,8 +100,27 @@ export function StudyMaterialsPage({
         }
     };
 
-    const handleDownload = (file: StoredFileResponseDto) => {
-        alert(`Pobieranie pliku: ${file.fileName}`);
+    const handleDownload = async (file: StoredFileResponseDto) => {
+        try {
+            const response = await fetchWithAuth(`${API_ROUTES.GET_FILE}?id=${file.id}&groupId=${groupData?.id}`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Błąd podczas pobierania pliku');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = file.fileName || 'plik';
+            link.click();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Błąd podczas pobierania pliku:', error);
+            alert('Nie udało się pobrać pliku');
+        }
     };
 
     const handleDeleteFile = async () => {
