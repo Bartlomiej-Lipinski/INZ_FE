@@ -530,6 +530,17 @@ export default function GroupBoardPage() {
                         onChange={(e) => setEditTitle(e.target.value)}
                         margin="normal"
                         disabled={isEditing}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -541,10 +552,21 @@ export default function GroupBoardPage() {
                         maxRows={6}
                         margin="normal"
                         disabled={isEditing}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleEditDialogClose} disabled={isEditing}>
+                    <Button onClick={handleEditDialogClose} disabled={isEditing} sx={{bgcolor: 'error.main'}}>
                         Anuluj
                     </Button>
                     <Button
