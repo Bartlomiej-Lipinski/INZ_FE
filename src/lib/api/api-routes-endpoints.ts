@@ -13,6 +13,8 @@ export const API_ROUTES = {
     USER_GROUPS: '/api/user/groups',
     GROUP_BY_ID: '/api/group',
     ADD_GROUP: '/api/group',
+    UPDATE_GROUP: '/api/group',
+    DELETE_GROUP: '/api/group',
     LOGOUT: '/api/auth/logout',
     JOIN_GROUP: '/api/group/join',
     IS_ADMIN: '/api/group/isAdmin',

@@ -31,18 +31,20 @@ import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {clearProfilePictureCache} from '@/hooks/use-profile-picture';
 import {useAuthContext} from '@/contexts/AuthContext';
 import {clearImageCache} from "@/hooks/useImageUrl";
+import {useEffect, useState} from "react";
+import {useIsAdmin} from "@/hooks/use-isAdmin";
 
 const MENU_ITEMS = [
-    {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu'},
-    {key: 'chat', label: 'CZAT', icon: MessageCircle, path: '/chat'},
-    {key: 'events', label: 'WYDARZENIA', icon: Coffee, path: '/group-events'},
-    {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, path: '/group-settlements'},
-    {key: 'recommendations', label: 'REKOMENDACJE', icon: Star, path: '/group-recommendations'},
-    {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study'},
-    {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety'},
-    {key: 'quizzes', label: 'QUIZY', icon: Brain, path: '/group-quiz'},
-    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/members'},
-    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings'},
+    {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu', adminOnly: false},
+    {key: 'chat', label: 'CZAT', icon: MessageCircle, path: '/chat', adminOnly: false},
+    {key: 'events', label: 'WYDARZENIA', icon: Coffee, path: '/group-events', adminOnly: false},
+    {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, path: '/group-settlements', adminOnly: false},
+    {key: 'recommendations', label: 'REKOMENDACJE', icon: Star, path: '/group-recommendations', adminOnly: false},
+    {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study', adminOnly: false},
+    {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety', adminOnly: false},
+    {key: 'quizzes', label: 'QUIZY', icon: Brain, path: '/group-quiz', adminOnly: false},
+    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/members', adminOnly: false},
+    {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings', adminOnly: true},
 ] as const;
 
 interface GroupMenuProps {
@@ -57,6 +59,21 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
     const theme = useTheme();
     const router = useRouter();
     const {setUser} = useAuthContext();
+    const {verifyIsUserAdmin} = useIsAdmin();
+    const [isUserAdmin, setIsUserAdmin] = useState(false);
+
+    useEffect(() => {
+        const checkAdmin = async () => {
+            const result = await verifyIsUserAdmin(groupId);
+            if (result.success && result.data) {
+                setIsUserAdmin(true);
+            }
+        };
+        if (groupId && open) {
+            checkAdmin();
+        }
+    }, [groupId, verifyIsUserAdmin, open]);
+
     const handleMenuClick = (item: typeof MENU_ITEMS[number]) => {
         const params = new URLSearchParams({
             groupId,
@@ -88,21 +105,24 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
             router.push('/');
         }
         onClose();
-    }
+    };
+
+    const visibleMenuItems = MENU_ITEMS.filter(item => !item.adminOnly || isUserAdmin);
 
     return (
-        <Drawer anchor="left" open={open} onClose={onClose} sx={{ '& .MuiDrawer-paper': { backgroundColor: theme.palette.grey[900] } }}>
+        <Drawer anchor="left" open={open} onClose={onClose}
+                sx={{'& .MuiDrawer-paper': {backgroundColor: theme.palette.grey[900]}}}>
             <Box sx={{width: 300, p: 2, display: 'flex', flexDirection: 'column', height: '100%'}} role="presentation">
                 <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2}}>
                     <Typography variant="h6" sx={{fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
-                        Menu grupy - {groupName}
+                        Menu grupy
                     </Typography>
                     <IconButton aria-label="Zamknij menu" onClick={onClose} size="small" sx={{color: 'white', mr: 1.5}}>
                         <X size={20}/>
                     </IconButton>
                 </Box>
                 <List>
-                    {MENU_ITEMS.map((item) => {
+                    {visibleMenuItems.map((item) => {
                         const ItemIcon = item.icon;
                         return (
                             <ListItem key={item.key} disablePadding>
@@ -148,7 +168,7 @@ export default function GroupMenu({open, onClose, groupId, groupName, groupColor
                     </ListItemButton>
                     <ListItemButton
                         onClick={() => {
-                            handleLogout()
+                            handleLogout();
                         }}
                         sx={{
                             borderRadius: 1,

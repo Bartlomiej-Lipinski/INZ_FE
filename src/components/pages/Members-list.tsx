@@ -9,13 +9,14 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
+    DialogContentText,
     DialogTitle,
     IconButton,
     InputAdornment,
     TextField,
     Typography,
 } from '@mui/material';
-import {Search, Send, UserPlus, X} from 'lucide-react';
+import {LogOut, Search, Send, UserPlus, X} from 'lucide-react';
 
 import MemberItem from '@/components/common/Member-item';
 import {useMembers} from '@/hooks/use-members';
@@ -46,13 +47,14 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
     const [generateError, setGenerateError] = useState<string | null>(null);
     const [copyStatus, setCopyStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [joinRequestsDialogOpen, setJoinRequestsDialogOpen] = useState(false);
+    const [leaveGroupDialogOpen, setLeaveGroupDialogOpen] = useState(false);
+    const [isLeavingGroup, setIsLeavingGroup] = useState(false);
     const [activeJoinRequestAction, setActiveJoinRequestAction] = useState<{
         userId: string;
         action: 'accept' | 'reject';
     } | null>(null);
     const router = useRouter();
     const canManageJoinRequests = user?.role === 'Admin';
-
 
     useEffect(() => {
         if (!groupId) {
@@ -142,7 +144,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                 return;
             }
 
-
             const derivedCode = extractInviteCode(payload.data);
 
             if (!derivedCode) {
@@ -173,6 +174,31 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
         setJoinRequestsDialogOpen(false);
     };
 
+    const handleLeaveGroup = async () => {
+        if (!groupId || isLeavingGroup || !user?.id) {
+            return;
+        }
+
+        setIsLeavingGroup(true);
+
+        try {
+            const response = await fetchWithAuth(`${API_ROUTES.DELETE_USER}?groupId=${groupId}&userId=${user.id}`, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Nie udało się opuścić grupy');
+            }
+
+            localStorage.removeItem('currentGroupId');
+            router.push('/');
+        } catch (err) {
+            console.error('Błąd podczas opuszczania grupy:', err);
+        } finally {
+            setIsLeavingGroup(false);
+            setLeaveGroupDialogOpen(false);
+        }
+    };
 
     const handleJoinRequestAction = async (action: 'accept' | 'reject', request: JoinRequest) => {
         if (isMutatingJoinRequest) {
@@ -355,7 +381,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                                 }}
                             >
                                 <Button
-
                                     disabled={isMutatingJoinRequest}
                                     onClick={() => handleJoinRequestAction('accept', request)}
                                     sx={(theme) => ({
@@ -554,6 +579,23 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                             member={member}
                             onClick={handleMemberClick}
                             isAwaitingApproval={pendingJoinRequestUserIds.has(member.id)}
+                            actionButton={
+                                member.id === user?.id ? (
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => setLeaveGroupDialogOpen(true)}
+                                        sx={{
+                                            color: 'error.main',
+                                            '&:hover': {
+                                                bgcolor: 'rgba(211, 47, 47, 0.1)',
+                                            },
+                                        }}
+                                        aria-label="Opuść grupę"
+                                    >
+                                        <LogOut size={20}/>
+                                    </IconButton>
+                                ) : undefined
+                            }
                         />
                     </Box>
                 ))}
@@ -580,8 +622,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                         textAlign: 'center',
                     }}
                 >
-
-
                     <TextField
                         fullWidth
                         placeholder="Wyszukaj członka"
@@ -623,8 +663,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                     />
                 </Box>
 
-
-
                 <Box
                     sx={(theme) => ({
                         width: '100%',
@@ -641,7 +679,6 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                         backdropFilter: 'blur(6px)',
                     })}
                 >
-
                     <Box
                         sx={{
                             display: 'flex',
@@ -728,6 +765,32 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
                     {renderListContent()}
                 </Box>
             </Box>
+
+            <Dialog
+                open={leaveGroupDialogOpen}
+                onClose={() => setLeaveGroupDialogOpen(false)}
+            >
+                <DialogTitle>Opuścić grupę?</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Czy na pewno chcesz opuścić grupę &ldquo;{groupName}&rdquo;? Aby ponownie dołączyć, będziesz
+                        potrzebować nowego zaproszenia.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setLeaveGroupDialogOpen(false)}>
+                        Anuluj
+                    </Button>
+                    <Button
+                        onClick={handleLeaveGroup}
+                        color="error"
+                        variant="contained"
+                        disabled={isLeavingGroup}
+                    >
+                        {isLeavingGroup ? 'Opuszczanie...' : 'Opuść grupę'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
             <Dialog
                 open={joinRequestsDialogOpen}
@@ -836,4 +899,3 @@ export default function MembersList({ groupId, groupName, groupColor }: { groupI
         </>
     );
 }
-

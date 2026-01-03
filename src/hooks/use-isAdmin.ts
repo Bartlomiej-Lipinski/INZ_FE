@@ -36,7 +36,7 @@ export function useIsAdmin() {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetchWithAuth(`${API_ROUTES.IS_ADMIN}?groupid=${groupid}`, {
+            const response = await fetchWithAuth(`${API_ROUTES.IS_ADMIN}?groupId=${groupid}`, {
                 method: 'GET',
                 credentials: 'include'
             });

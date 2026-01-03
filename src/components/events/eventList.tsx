@@ -65,10 +65,10 @@ function getStatusColor(status: number): string {
 }
 
 function EventAvatar({user}: Readonly<{ user: EventResponseDto['availabilities'][0]['user'] }>) {
-    const avatarUrl = useImageUrl(user.profilePicture?.id);
+    const avatarUrl = useImageUrl((user as any).profilePicture?.id);
     return (
         <Avatar src={avatarUrl || undefined} sx={{width: 32, height: 32}}>
-            {user.name?.[0]?.toUpperCase() || user.username[0]}
+            {(user as any).name?.[0]?.toUpperCase() || user.username[0]}
         </Avatar>
     );
 }

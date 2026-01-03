@@ -6,14 +6,14 @@ const IS_ADMIN = process.env.IS_ADMIN;
 
 export async function GET(request: NextRequest) {
     try {
-        const groupId = request.nextUrl.searchParams.get('groupid');
+        const groupId = request.nextUrl.searchParams.get('groupId');
         if (!groupId) {
             return NextResponse.json(
                 {success: false, message: 'Brak wymaganych parametrów'},
                 {status: 400}
             );
         }
-        const endpoint = IS_ADMIN?.replace('{groupid}', groupId);
+        const endpoint = IS_ADMIN?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'GET',
