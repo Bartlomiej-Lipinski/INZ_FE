@@ -22,6 +22,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {useIsAdmin} from "@/hooks/use-isAdmin";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {darken} from "@mui/system";
 
 export default function GroupSettingsPage() {
     const router = useRouter();
@@ -132,8 +133,18 @@ export default function GroupSettingsPage() {
         <Container maxWidth="md" sx={{py: 4}}>
             <Button
                 startIcon={<ArrowLeft size={20}/>}
-                onClick={() => router.back()}
-                sx={{mb: 3}}
+                onClick={() => {
+                    const params = new URLSearchParams({
+                        groupId: groupData.id,
+                        groupName: encodeURIComponent(groupName),
+                        groupColor: encodeURIComponent(selectedColor),
+                    });
+                    router.push(`/group-menu?${params.toString()}`);
+                }}
+                sx={{
+                    mb: 3,
+                    backgroundColor: darken(groupData.color, 0.2)
+                }}
             >
                 Powrót
             </Button>
@@ -200,6 +211,7 @@ export default function GroupSettingsPage() {
                             py: 1.5,
                             textTransform: 'none',
                             fontSize: '1rem',
+                            backgroundColor: darken(groupData.color, 0.2)
                         }}
                     >
                         {saving ? 'Zapisywanie...' : 'Zapisz zmiany'}
@@ -223,6 +235,7 @@ export default function GroupSettingsPage() {
                         sx={{
                             borderRadius: 2,
                             textTransform: 'none',
+                            backgroundColor: 'red',
                         }}
                     >
                         Usuń grupę
