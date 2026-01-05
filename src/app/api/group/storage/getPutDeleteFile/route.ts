@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
             credentials: 'include',
         });
 
-        const data = await response.json();
+        const data = await response.blob();
         return NextResponse.json(data, {status: response.status});
     } catch (error) {
         console.error('File retrieval API error:', error);

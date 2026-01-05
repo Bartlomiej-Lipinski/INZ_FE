@@ -1,14 +1,12 @@
 "use client";
 
-import { ReactNode, useState } from 'react';
-import GroupMenuDrawer from '@/components/common/Group-menu-drawer';
-import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { SxProps, Theme } from '@mui/material/styles';
-import { HomeIcon, Menu as MenuIcon } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import { useTheme } from '@mui/material/styles';
-import { useRouter } from 'next/navigation';
-    
+import {ReactNode, useState} from 'react';
+import GroupMenuDrawer from '@/components/common/Group-menu';
+import {Box, IconButton, Tooltip, Typography} from '@mui/material';
+import {SxProps, Theme, useTheme} from '@mui/material/styles';
+import {HomeIcon, Menu as MenuIcon} from 'lucide-react';
+import {useRouter, useSearchParams} from 'next/navigation';
+
 type GroupHeaderProps = {
     title: ReactNode;
     wrapperSx?: SxProps<Theme>;

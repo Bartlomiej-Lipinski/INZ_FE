@@ -18,6 +18,7 @@ import {Edit2, Heart, MessageCircle, MoreVertical, Send, Trash2, User} from 'luc
 import {FeedItemType} from '@/lib/types/FeedItemType';
 import {CommentResponseDto, GroupFeedItemResponseDto, UserResponseDto} from '@/lib/types/feedDtos';
 import {useImageUrl} from "@/hooks/useImageUrl";
+import Image from "next/image";
 
 
 function getItemIcon(type: FeedItemType) {
@@ -230,11 +231,12 @@ export default function FeedItem({
                 )}
                 {/* Zdjęcie */}
                 {imageUrl && (
-                    <Box sx={{mt: 2}}>
-                        <img
+                    <Box sx={{mt: 2, position: 'relative', width: '100%', height: 300}}>
+                        <Image
                             src={imageUrl}
                             alt="Post"
-                            style={{width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 12}}
+                            fill
+                            style={{objectFit: 'cover', borderRadius: 12}}
                         />
                     </Box>
                 )}

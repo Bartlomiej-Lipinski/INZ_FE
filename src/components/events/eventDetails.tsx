@@ -16,6 +16,7 @@ import {
 import {ArrowLeft, Calendar as CalendarIcon, MapPin} from 'lucide-react';
 import {EventAvailabilityStatus, EventResponseDto} from '@/lib/types/event';
 import {useImageUrl} from "@/hooks/useImageUrl";
+import React from "react";
 
 interface EventDetailsProps {
     event: EventResponseDto;
@@ -91,6 +92,18 @@ function AvailabilityItem({avail}: { avail: EventResponseDto['availabilities'][0
     );
 }
 
+function EventImage({storedFileId, alt, sx}: { storedFileId?: string; alt: string; sx?: any }) {
+    const imageUrl = useImageUrl(storedFileId);
+    return imageUrl ? (
+        <CardMedia
+            component="img"
+            image={imageUrl}
+            alt={alt}
+            sx={sx}
+        />
+    ) : null;
+}
+
 export default function EventDetails({
                                          event,
                                          currentUserId,
@@ -113,8 +126,10 @@ export default function EventDetails({
                 </Button>
 
                 <Card sx={{borderRadius: 3, mb: 3}}>
-                    {event.imageUrl &&
-                        <CardMedia component="img" height="300" image={event.imageUrl} alt={event.title}/>}
+                    {event.storedFileId &&
+                        <EventImage storedFileId={event.storedFileId} alt={event.title}
+                                    sx={{height: '100%', width: '100%'}}/>
+                    }
 
                     <CardContent sx={{p: 3}}>
                         <Typography variant="h4" sx={{fontWeight: 600, mb: 2}}>

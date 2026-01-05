@@ -15,6 +15,7 @@ import {
 import {Calendar as CalendarIcon, MapPin, Trash2} from 'lucide-react';
 import {EventResponseDto} from '@/lib/types/event';
 import {useImageUrl} from "@/hooks/useImageUrl";
+import React from "react";
 
 interface EventsListProps {
     events: EventResponseDto[];
@@ -63,16 +64,28 @@ function getStatusColor(status: number): string {
     }
 }
 
-function EventAvatar({user}: { user: EventResponseDto['availabilities'][0]['user'] }) {
-    const avatarUrl = useImageUrl(user.profilePicture?.id);
+function EventAvatar({user}: Readonly<{ user: EventResponseDto['availabilities'][0]['user'] }>) {
+    const avatarUrl = useImageUrl((user as any).profilePicture?.id);
     return (
         <Avatar src={avatarUrl || undefined} sx={{width: 32, height: 32}}>
-            {user.name?.[0]?.toUpperCase() || user.username[0]}
+            {(user as any).name?.[0]?.toUpperCase() || user.username[0]}
         </Avatar>
     );
 }
 
-export default function EventsList({events, onViewDetails, currentUserId, onDelete}: EventsListProps) {
+function EventImage({storedFileId, alt, sx}: { storedFileId?: string; alt: string; sx?: any }) {
+    const imageUrl = useImageUrl(storedFileId);
+    return imageUrl ? (
+        <CardMedia
+            component="img"
+            image={imageUrl}
+            alt={alt}
+            sx={sx}
+        />
+    ) : null;
+}
+
+export default function EventsList({events, onViewDetails, currentUserId, onDelete}: Readonly<EventsListProps>) {
 
     if (events.length === 0) {
         return (
@@ -103,8 +116,10 @@ export default function EventsList({events, onViewDetails, currentUserId, onDele
                         }}
                         onClick={() => onViewDetails(event)}
                     >
-                        {event.imageUrl && (
-                            <CardMedia component="img" height="200" image={event.imageUrl} alt={event.title}/>
+                        {event.storedFileId && (
+                            <EventImage storedFileId={event.storedFileId} alt={event.title}
+                                        sx={{height: '100%', width: '100%'}}/>
+
                         )}
                         <CardContent sx={{position: 'relative'}}>
                             <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
@@ -120,6 +135,13 @@ export default function EventsList({events, onViewDetails, currentUserId, onDele
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onDelete(event.id);
+                                        }}
+                                        sx={{
+                                            color: 'text.secondary',
+                                            '&:hover': {
+                                                color: 'error.main',
+                                                bgcolor: alpha('#f44336', 0.1),
+                                            },
                                         }}
                                     >
                                         <Trash2 size={16}/>

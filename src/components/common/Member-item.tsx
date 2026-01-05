@@ -1,21 +1,22 @@
 "use client";
 
-import { useMemo } from 'react';
-import { Avatar, Box, IconButton, Typography } from '@mui/material';
-import { alpha } from '@mui/material/styles';
-import { ChevronRight } from 'lucide-react';
+import {useMemo} from 'react';
+import {Avatar, Box, IconButton, Typography} from '@mui/material';
+import {alpha} from '@mui/material/styles';
+import {ChevronRight} from 'lucide-react';
 
-import { GroupMember } from '@/lib/types/user';
-import { STORAGE_KEYS } from '@/lib/constants';
-import { useAuthContext } from '@/contexts/AuthContext';
+import {GroupMember} from '@/lib/types/user';
+import {STORAGE_KEYS} from '@/lib/constants';
+import {useAuthContext} from '@/contexts/AuthContext';
 
 interface MemberItemProps {
   member: GroupMember;
   onClick?: () => void;
   isAwaitingApproval?: boolean;
+    actionButton?: React.ReactNode;
 }
 
-export default function MemberItem({ member, onClick, isAwaitingApproval = false }: MemberItemProps) {
+export default function MemberItem({member, onClick, isAwaitingApproval = false, actionButton}: MemberItemProps) {
   const { user } = useAuthContext();
   const storeMemberSelection = () => {
     if (typeof window === 'undefined') {
@@ -53,6 +54,7 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
       role="button"
       tabIndex={0}
       sx={(theme) => ({
+          position: 'relative',
         display: 'flex',
         alignItems: 'center',
         gap: 2.5,
@@ -71,6 +73,20 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
         },
       })}
     >
+        {actionButton && (
+            <Box
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                    position: 'absolute',
+                    top: 25,
+                    right: 80,
+                    zIndex: 1,
+                }}
+            >
+                {actionButton}
+            </Box>
+        )}
+
       <Avatar
         sx={(theme) => ({
           width: { xs: 40, sm: 48 },
@@ -119,7 +135,6 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
         >
           {member.username ? `@${member.username}` : 'Brak nazwy użytkownika'}
         </Typography>
-
       </Box>
 
       {isAwaitingApproval && (
@@ -138,8 +153,14 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
         </Typography>
       )}
 
-      {member.id === user?.id && (
-        <Typography>
+        {member.id === user?.id && !actionButton && (
+            <Typography
+                sx={{
+                    color: 'text.secondary',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                }}
+            >
           Ja
         </Typography>
       )}
@@ -147,7 +168,7 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
       <IconButton
         size="small"
         sx={{
-          color: 'text.primary',
+            color: 'grey.400',
         }}
         aria-hidden={false}
       >
@@ -156,4 +177,3 @@ export default function MemberItem({ member, onClick, isAwaitingApproval = false
     </Box>
   );
 }
-

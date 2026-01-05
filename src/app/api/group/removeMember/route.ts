@@ -6,34 +6,27 @@ const REMOVE_GROUP_MEMBER = process.env.REMOVE_GROUP_MEMBER;
 
 export async function DELETE(request: NextRequest) {
     try {
-        const {groupId, userId} = await request.json();
-
+        const groupId = request.nextUrl.searchParams.get('groupId');
+        const userId = request.nextUrl.searchParams.get('userId');
         if (!groupId || !userId) {
             return NextResponse.json(
-                {success: false, message: 'Brakuje identyfikatora grupy lub użytkownika.'},
-                {status: 400},
+                {success: false, message: 'Brak groupId lub memberId w zapytaniu'},
+                {status: 400}
             );
         }
-
         const cookieHeader = request.headers.get('cookie') ?? '';
-        const baseUrl = (BASE_URL ?? '').replace(/\/$/, '');
-        const removeRouteTemplate = REMOVE_GROUP_MEMBER ?? '';
-        const removeRoute = removeRouteTemplate
-            .replace('{groupId}', encodeURIComponent(groupId))
-            .replace('{userId}', encodeURIComponent(userId));
-        const targetUrl = `${baseUrl}${removeRoute}`;
-
-        const response = await fetch(targetUrl, {
+        const endpoint = REMOVE_GROUP_MEMBER?.replace('{groupId}', groupId)
+            .replace('{userId}', userId);
+        const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
             method: 'DELETE',
             headers: {
                 'Cookie': cookieHeader,
-                'Accept': 'application/json',
+                'Content-Type': 'application/json',
             },
             credentials: 'include',
         });
 
-        const textBody = await response.text();
-        const data = textBody ? JSON.parse(textBody) : {};
+        const data = await response.json();
 
         return NextResponse.json(data, {status: response.status});
     } catch (error) {

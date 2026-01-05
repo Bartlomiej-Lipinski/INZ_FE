@@ -1,19 +1,9 @@
 "use client";
 
 import React, {useState} from 'react';
-import {
-    Alert,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Menu,
-    MenuItem,
-} from '@mui/material';
-import { Edit2, FileText, Notebook, Plus, Trash2 } from 'lucide-react';
-import { FileCategoryResponseDto, StoredFileResponseDto } from '@/lib/types/study-material';
+import {Alert, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Menu, MenuItem,} from '@mui/material';
+import {Edit2, FileText, Notebook, Plus, Trash2} from 'lucide-react';
+import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-material';
 import FileFilters from "@/components/pages/StudyMaterialsFilters";
 import CategoriesManager from './CategoriesManager';
 import FileList from './FileList';
@@ -21,8 +11,8 @@ import TextField from '@mui/material/TextField';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
-import { API_ROUTES } from '@/lib/api/api-routes-endpoints';
-import { fetchWithAuth } from '@/lib/api/fetch-with-auth';
+import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
+import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
 import GroupHeader from '../layout/Group-header';
 
 interface StudyMaterialsPageProps {
@@ -45,7 +35,7 @@ export function StudyMaterialsPage({
                                        groupData,
                                        onFilesChange,
                                        onCategoriesChange,
-                                   }: StudyMaterialsPageProps) {
+                                   }: Readonly<StudyMaterialsPageProps>) {
     const groupColor = groupData?.color || '#9042fb';
     const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
     const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
@@ -110,8 +100,27 @@ export function StudyMaterialsPage({
         }
     };
 
-    const handleDownload = (file: StoredFileResponseDto) => {
-        alert(`Pobieranie pliku: ${file.fileName}`);
+    const handleDownload = async (file: StoredFileResponseDto) => {
+        try {
+            const response = await fetchWithAuth(`${API_ROUTES.GET_FILE}?id=${file.id}&groupId=${groupData?.id}`, {
+                method: 'GET',
+                credentials: 'include',
+            });
+            if (!response.ok) {
+                throw new Error('Błąd podczas pobierania pliku');
+            }
+
+            const blob = await response.blob();
+            const url = globalThis.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = file.fileName || 'plik';
+            link.click();
+            globalThis.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Błąd podczas pobierania pliku:', error);
+            alert('Nie udało się pobrać pliku');
+        }
     };
 
     const handleDeleteFile = async () => {
@@ -182,7 +191,7 @@ export function StudyMaterialsPage({
                 throw new Error('Błąd podczas tworzenia kategorii');
             }
 
-            const newCategory: FileCategoryResponseDto = await response.json();
+            const newCategory: FileCategoryResponseDto = {id: Date.now.toString(), name: newCategoryName};
             onCategoriesChange([...categories, newCategory]);
             setCategoryDialogOpen(false);
             setNewCategoryName('');
@@ -301,6 +310,7 @@ export function StudyMaterialsPage({
                     categories={categories}
                     uniqueAuthors={uniqueAuthors}
                     onAddCategory={() => setCategoryDialogOpen(true)}
+                    groupColor={groupColor}
                 />
 
                 {/* Zarządzanie kategoriami */}
@@ -360,11 +370,10 @@ export function StudyMaterialsPage({
                     <DialogContent>
                         <Box sx={{ mt: 2 }}>
                             <Button
-                                variant="outlined"
                                 component="label"
                                 fullWidth
                                 startIcon={<FileText />}
-                                sx={{ mb: 2, py: 2 }}
+                                sx={{ mb: 2, py: 2, bgcolor: groupColor }}
                             >
                                 {uploadFile ? uploadFile.name : 'Wybierz plik'}
                                 <input
@@ -381,7 +390,17 @@ export function StudyMaterialsPage({
                                 </Alert>
                             )}
 
-                            <FormControl fullWidth>
+                            <FormControl fullWidth sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                }
+                            }}>
                                 <InputLabel>Kategoria (opcjonalna)</InputLabel>
                                 <Select
                                     value={uploadCategory}
@@ -399,7 +418,7 @@ export function StudyMaterialsPage({
                         </Box>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
-                        <Button onClick={() => setUploadDialogOpen(false)}>Anuluj</Button>
+                        <Button onClick={() => setUploadDialogOpen(false)} sx={{bgcolor: 'error.main'}}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleUploadFile}

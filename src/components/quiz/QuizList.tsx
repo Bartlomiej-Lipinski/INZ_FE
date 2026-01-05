@@ -175,8 +175,8 @@ export default function QuizList({
                         <Typography>Czy na pewno chcesz usunąć ten quiz? Ta operacja jest nieodwracalna.</Typography>
                     </DialogContent>
                     <DialogActions sx={{px: 3, pb: 2}}>
-                        <Button onClick={() => setDeleteDialog({open: false, quizId: null})}>Anuluj</Button>
-                        <Button variant="contained" color="error" onClick={handleDeleteConfirm}>
+                        <Button onClick={() => setDeleteDialog({open: false, quizId: null})} sx={{bgcolor: groupColor}}>Anuluj</Button>
+                        <Button variant="contained" onClick={handleDeleteConfirm} sx={{bgcolor: 'error.main'}}>
                             Usuń
                         </Button>
                     </DialogActions>

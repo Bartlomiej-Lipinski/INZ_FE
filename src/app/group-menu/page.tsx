@@ -1,27 +1,18 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    TextField,
-    Typography
-} from '@mui/material';
+import React, {useEffect, useMemo, useState} from 'react';
+import {useSearchParams} from 'next/navigation';
+import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography} from '@mui/material';
+import {ArrowLeft, ArrowRight} from 'lucide-react';
 import GroupHeader from '@/components/layout/Group-header';
-import { FeedItemType } from "@/lib/types/FeedItemType";
-import { CommentResponseDto, GroupFeedItemResponseDto } from "@/lib/types/feedDtos";
-import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
+import {FeedItemType} from "@/lib/types/FeedItemType";
+import {CommentResponseDto, GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import AddPostForm from '@/components/feed/addPostForm';
 import FeedList from '@/components/feed/feedlist';
-import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { EntityType } from "@/lib/types/entityType";
-import { User } from "@/lib/types/user";
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {EntityType} from "@/lib/types/entityType";
+import {User} from "@/lib/types/user";
 
 const mapFeedItemType = (type: number | string): FeedItemType => {
     if (typeof type === 'string') return type as FeedItemType;
@@ -83,8 +74,8 @@ export default function GroupBoardPage() {
     const [items, setItems] = useState<GroupFeedItemResponseDto[]>([]);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
     const [newComment, setNewComment] = useState<Record<string, string>>({});
-    const [page] = useState(0);
-    const [pageSize] = useState(10);
+    const [page, setPage] = useState(1);
+    const [pageSize] = useState(5);
     const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
     const [menuAnchor, setMenuAnchor] = useState<{ el: HTMLElement; itemId: string } | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -502,6 +493,27 @@ export default function GroupBoardPage() {
                     onEditPost={handleEditPost}
                     onDeletePost={handleDeletePost}
                 />
+                <Box sx={{display: 'flex', justifyContent: 'center', mt: 2, gap: 1}}>
+                    <Button
+                        variant="outlined"
+                        disabled={page === 1}
+                        onClick={() => setPage(page - 1)}
+                        sx={{bgcolor: groupColor, color: 'white'}}
+                        title="Poprzednia strona"
+                    >
+                        <ArrowLeft size={20}/>
+                    </Button>
+                    <Typography sx={{alignSelf: 'center'}}>{page}</Typography>
+                    <Button
+                        variant="outlined"
+                        disabled={items.length < pageSize}
+                        onClick={() => setPage(page + 1)}
+                        sx={{bgcolor: groupColor, color: 'white'}}
+                        title="Następna strona"
+                    >
+                        <ArrowRight size={20}/>
+                    </Button>
+                </Box>
             </Box>
             <Dialog
                 open={editDialogOpen}
@@ -518,6 +530,17 @@ export default function GroupBoardPage() {
                         onChange={(e) => setEditTitle(e.target.value)}
                         margin="normal"
                         disabled={isEditing}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
                     <TextField
                         fullWidth
@@ -529,10 +552,21 @@ export default function GroupBoardPage() {
                         maxRows={6}
                         margin="normal"
                         disabled={isEditing}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleEditDialogClose} disabled={isEditing}>
+                    <Button onClick={handleEditDialogClose} disabled={isEditing} sx={{bgcolor: 'error.main'}}>
                         Anuluj
                     </Button>
                     <Button

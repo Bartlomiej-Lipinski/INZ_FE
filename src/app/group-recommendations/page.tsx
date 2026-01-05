@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useSearchParams} from 'next/navigation';
 import {
     Avatar,
     Box,
@@ -27,7 +27,7 @@ import {
     Typography,
 } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import { alpha } from '@mui/material/styles';
+import {alpha} from '@mui/material/styles';
 import {
     Edit2,
     ExternalLink,
@@ -42,11 +42,11 @@ import {
     X,
 } from 'lucide-react';
 import GroupHeader from '@/components/layout/Group-header';
-import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
-import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { EntityType } from "@/lib/types/entityType";
-import { CommentResponseDto, RecommendationResponseDto, UserResponseDto } from "@/lib/types/recommendationDtos";
-import { useImageUrl } from "@/hooks/useImageUrl";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {EntityType} from "@/lib/types/entityType";
+import {CommentResponseDto, RecommendationResponseDto, UserResponseDto} from "@/lib/types/recommendationDtos";
+import {useImageUrl} from "@/hooks/useImageUrl";
 
 const CATEGORIES = [
     'Książki',
@@ -154,6 +154,18 @@ function CommentItem({ comment }: { comment: CommentResponseDto }) {
             </Box>
         </Box>
     );
+}
+
+function RecommendationImage({storedFileId, alt, sx}: { storedFileId?: string; alt: string; sx?: any }) {
+    const imageUrl = useImageUrl(storedFileId);
+    return imageUrl ? (
+        <CardMedia
+            component="img"
+            image={imageUrl}
+            alt={alt}
+            sx={sx}
+        />
+    ) : null;
 }
 
 const ensureArray = <T,>(value: unknown): T[] => Array.isArray(value) ? value : [];
@@ -307,10 +319,10 @@ export default function RecommendationsPage() {
             title: rec.title,
             content: rec.content,
             category: rec.category || '',
-            imageUrl: rec.imageUrl || '',
+            imageUrl: rec.storedFileId || '',
             linkUrl: rec.linkUrl || '',
         });
-        setPreviewUrl(rec.imageUrl || null);
+        setPreviewUrl(rec.storedFileId || null);
         setEditDialogOpen(true);
         handleCloseMenu();
     };
@@ -339,7 +351,7 @@ export default function RecommendationsPage() {
             title: formData.title,
             content: formData.content,
             category: formData.category || undefined,
-            imageUrl: previewUrl || formData.imageUrl || undefined,
+            storedFileId: previewUrl || formData.imageUrl || undefined,
             linkUrl: formData.linkUrl || undefined,
             createdAt: new Date().toISOString(),
             user: {
@@ -429,7 +441,7 @@ export default function RecommendationsPage() {
                         title: formData.title,
                         content: formData.content,
                         category: formData.category || undefined,
-                        imageUrl: previewUrl || formData.imageUrl || undefined,
+                        storedFileId: previewUrl || formData.imageUrl || undefined,
                         linkUrl: formData.linkUrl || undefined,
                     }
                     : rec
@@ -750,14 +762,9 @@ export default function RecommendationsPage() {
 
         return (
             <Card key={rec.id} sx={{ bgcolor: 'background.paper', borderRadius: 3, position: 'relative' }}>
-                {rec.imageUrl && (
-                    <CardMedia
-                        component="img"
-                        height="200"
-                        image={rec.imageUrl}
-                        alt={rec.title}
-                        sx={{ objectFit: 'cover' }}
-                    />
+                {rec.storedFileId && (
+                    <RecommendationImage storedFileId={rec.storedFileId} alt={rec.title}
+                                         sx={{height: 200, width: '100%'}}/>
                 )}
 
                 <CardContent sx={{ p: 3 }}>
@@ -1029,7 +1036,19 @@ export default function RecommendationsPage() {
                             label="Tytuł"
                             value={formData.title}
                             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                            sx={{ mb: 2, mt: 1 }}
+                            sx={{
+                                mb: 2,
+                                mt: 1,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                         />
                         <TextField
                             fullWidth
@@ -1038,9 +1057,31 @@ export default function RecommendationsPage() {
                             rows={4}
                             value={formData.content}
                             onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                            sx={{ mb: 2 }}
+                            sx={{
+                                mb: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                         />
-                        <FormControl fullWidth sx={{ mb: 2 }}>
+                        <FormControl fullWidth sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupData.color,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupData.color,
+                                },
+                            }
+                        }}>
                             <InputLabel>Kategoria</InputLabel>
                             <Select
                                 value={formData.category}
@@ -1057,7 +1098,18 @@ export default function RecommendationsPage() {
                             label="Link (opcjonalnie)"
                             value={formData.linkUrl}
                             onChange={(e) => setFormData(prev => ({ ...prev, linkUrl: e.target.value }))}
-                            sx={{ mb: 2 }}
+                            sx={{
+                                mb: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                         />
                         <Box sx={{ mb: 2 }}>
                             <input
@@ -1070,8 +1122,8 @@ export default function RecommendationsPage() {
                             <label htmlFor="image-upload">
                                 <Button
                                     component="span"
-                                    variant="outlined"
                                     startIcon={<ImageIcon size={18} />}
+                                    sx={{bgcolor: groupData.color}}
                                 >
                                     Dodaj zdjęcie
                                 </Button>
@@ -1098,7 +1150,7 @@ export default function RecommendationsPage() {
                         )}
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
-                        <Button onClick={() => setAddDialogOpen(false)}>Anuluj</Button>
+                        <Button onClick={() => setAddDialogOpen(false)} sx={{bgcolor: 'error.main'}}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleAddRecommendation}
@@ -1119,7 +1171,19 @@ export default function RecommendationsPage() {
                             label="Tytuł"
                             value={formData.title}
                             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                            sx={{ mb: 2, mt: 1 }}
+                            sx={{
+                                mb: 2,
+                                mt: 1,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                         />
                         <TextField
                             fullWidth
@@ -1128,9 +1192,31 @@ export default function RecommendationsPage() {
                             rows={4}
                             value={formData.content}
                             onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                            sx={{ mb: 2 }}
+                            sx={{
+                                mb: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                         />
-                        <FormControl fullWidth sx={{ mb: 2 }}>
+                        <FormControl fullWidth sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupData.color,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupData.color,
+                                },
+                            }
+                        }}>
                             <InputLabel>Kategoria</InputLabel>
                             <Select
                                 value={formData.category}
@@ -1147,7 +1233,18 @@ export default function RecommendationsPage() {
                             label="Link (opcjonalnie)"
                             value={formData.linkUrl}
                             onChange={(e) => setFormData(prev => ({ ...prev, linkUrl: e.target.value }))}
-                            sx={{ mb: 2 }}
+                            sx={{
+                                mb: 2,
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupData.color,
+                                    },
+                                }
+                            }}
                         />
                         <Box sx={{ mb: 2 }}>
                             <input
@@ -1160,8 +1257,8 @@ export default function RecommendationsPage() {
                             <label htmlFor="image-upload-edit">
                                 <Button
                                     component="span"
-                                    variant="outlined"
                                     startIcon={<ImageIcon size={18} />}
+                                    sx={{bgcolor: groupData.color}}
                                 >
                                     Zmień zdjęcie
                                 </Button>
@@ -1188,7 +1285,7 @@ export default function RecommendationsPage() {
                         )}
                     </DialogContent>
                     <DialogActions sx={{ px: 3, pb: 2 }}>
-                        <Button onClick={() => setEditDialogOpen(false)}>Anuluj</Button>
+                        <Button onClick={() => setEditDialogOpen(false)} sx={{bgcolor: 'error.main'}}>Anuluj</Button>
                         <Button
                             variant="contained"
                             onClick={handleEditRecommendation}

@@ -39,8 +39,7 @@ export default function EventSuggestions({
                             Dostępnych uczestników: <b>{s.availableUserCount}</b>
                         </Typography>
                         <Button
-                            variant={finalDate?.start === s.startTime ? 'contained' : 'outlined'}
-                            sx={{mt: 1, bgcolor: finalDate?.start === s.startTime ? groupColor : 'transparent'}}
+                            sx={{mt: 1, bgcolor: groupColor }}
                             onClick={() => onSelectSuggestion(s)}
                         >
                             Wybierz ten termin

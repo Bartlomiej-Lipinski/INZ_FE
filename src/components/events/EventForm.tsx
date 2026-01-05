@@ -1,7 +1,8 @@
 "use client";
 
-import {Box, Button, Card, FormControlLabel, Radio, RadioGroup, TextField, Typography} from '@mui/material';
-import {ArrowLeft, ImageIcon} from 'lucide-react';
+import React, {useState} from 'react';
+import {Box, Button, Card, FormControlLabel, IconButton, Radio, RadioGroup, TextField, Typography} from '@mui/material';
+import {ArrowLeft, ImageIcon, X} from 'lucide-react';
 
 interface EventFormProps {
     title: string;
@@ -56,6 +57,20 @@ export default function EventForm({
                                       onSubmit,
                                       isValid,
                                   }: EventFormProps) {
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setPreviewUrl(event.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+        onImageChange(e);
+    };
+
     return (
         <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
             <Box sx={{maxWidth: 800, mx: 'auto'}}>
@@ -69,7 +84,19 @@ export default function EventForm({
 
                 <Card sx={{borderRadius: 3, p: 3, mb: 3}}>
                     <TextField fullWidth label="Nazwa wydarzenia" value={title}
-                               onChange={(e) => onTitleChange(e.target.value)} sx={{mb: 2}}/>
+                               onChange={(e) => onTitleChange(e.target.value)}
+                               sx={{
+                                   mb: 2,
+                                   '& .MuiOutlinedInput-root': {
+                                       borderRadius: 3,
+                                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                           borderColor: groupColor,
+                                       },
+                                       '&:hover .MuiOutlinedInput-notchedOutline': {
+                                           borderColor: groupColor,
+                                       },
+                                   }
+                               }}/>
 
                     <TextField
                         fullWidth
@@ -78,11 +105,33 @@ export default function EventForm({
                         rows={3}
                         value={description}
                         onChange={(e) => onDescriptionChange(e.target.value)}
-                        sx={{mb: 2}}
+                        sx={{
+                            mb: 2,
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: 3,
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: groupColor,
+                                },
+                            }
+                        }}
                     />
 
                     <TextField fullWidth label="Lokalizacja (opcjonalnie)" value={location}
-                               onChange={(e) => onLocationChange(e.target.value)} sx={{mb: 2}}/>
+                               onChange={(e) => onLocationChange(e.target.value)} sx={{
+                        mb: 2,
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 3,
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: groupColor,
+                            },
+                        }
+                    }}/>
 
                     {/* Zdjęcie */}
                     <Box sx={{mb: 2}}>
@@ -100,9 +149,25 @@ export default function EventForm({
                                 hidden
                                 accept="image/*"
                                 type="file"
-                                onChange={onImageChange}
+                                onChange={handleImageChange} // Zmień na nową funkcję
                             />
                         </Button>
+                        {previewUrl && (
+                            <Box sx={{position: 'relative', mb: 2}}>
+                                <img
+                                    src={previewUrl}
+                                    alt="Podgląd zdjęcia"
+                                    style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}
+                                />
+                                <IconButton
+                                    size="small"
+                                    onClick={() => setPreviewUrl(null)}
+                                    sx={{position: 'absolute', top: 8, right: 8, bgcolor: 'background.paper'}}
+                                >
+                                    <X size={16}/>
+                                </IconButton>
+                            </Box>
+                        )}
                     </Box>
                 </Card>
 
@@ -131,6 +196,17 @@ export default function EventForm({
                                     value={startDate}
                                     onChange={(e) => onStartDateChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                                 <TextField
                                     fullWidth
@@ -139,6 +215,17 @@ export default function EventForm({
                                     value={endDate}
                                     onChange={(e) => onEndDateChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                             </Box>
                         </Box>
@@ -152,7 +239,18 @@ export default function EventForm({
                                 label="Przewidywany czas trwania (minuty)"
                                 value={durationMinutes}
                                 onChange={(e) => onDurationMinutesChange(e.target.value)}
-                                sx={{mb: 2}}
+                                sx={{
+                                    mb: 2,
+                                    '& .MuiOutlinedInput-root': {
+                                        borderRadius: 3,
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: groupColor,
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: groupColor,
+                                        },
+                                    }
+                                }}
                             />
 
                             <Typography variant="subtitle2" sx={{mb: 1}}>
@@ -167,6 +265,17 @@ export default function EventForm({
                                     value={rangeStart}
                                     onChange={(e) => onRangeStartChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                                 <TextField
                                     fullWidth
@@ -175,6 +284,17 @@ export default function EventForm({
                                     value={rangeEnd}
                                     onChange={(e) => onRangeEndChange(e.target.value)}
                                     InputLabelProps={{shrink: true}}
+                                    sx={{
+                                        '& .MuiOutlinedInput-root': {
+                                            borderRadius: 3,
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: groupColor,
+                                            },
+                                        }
+                                    }}
                                 />
                             </Box>
                         </Box>
@@ -188,4 +308,3 @@ export default function EventForm({
         </Box>
     );
 }
-

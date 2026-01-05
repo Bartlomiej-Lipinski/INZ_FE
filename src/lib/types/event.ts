@@ -34,7 +34,7 @@ export interface EventAvailabilityResponseDto {
 }
 
 export interface EventSuggestionResponseDto {
-    Id: string;
+    id: string;
     startTime: string;
     endTime: string;
     availableUserCount: number;
@@ -60,7 +60,7 @@ export interface EventResponseDto {
     title: string;
     description?: string;
     location?: string;
-    imageUrl?: string;
+    storedFileId?: string;
     isAutoScheduled: boolean;
     rangeStart?: string;
     rangeEnd?: string;
