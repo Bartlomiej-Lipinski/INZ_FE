@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
-import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { GroupMember } from "@/lib/types/user";
+import {useCallback, useState} from "react";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {GroupMember} from "@/lib/types/user";
 
 export interface ApiResponse<T = unknown> {
     success: boolean;
@@ -123,9 +123,8 @@ export function useMembers(): UseMembersResult {
         setError(null);
 
         try {
-            const response = await fetchWithAuth(API_ROUTES.REMOVE_GROUP_MEMBER, {
-                method: "DELETE",
-                body: JSON.stringify({ groupId, userId }),
+            const response = await fetchWithAuth(`${API_ROUTES.REMOVE_GROUP_MEMBER}?groupId=${groupId}&userId=${userId}`, {
+                method: 'DELETE',
             });
 
             const data = await response.json().catch(() => ({})) as ApiResponse<unknown>;
