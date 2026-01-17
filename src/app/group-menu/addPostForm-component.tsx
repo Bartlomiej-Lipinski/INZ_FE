@@ -23,7 +23,7 @@ export default function AddPostFormComponent({user, groupId, groupColor, onAddPo
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const avatarUrl = useImageUrl(user.profilePicture?.id || undefined);
-    const {popup, hidePopup, showError, showSuccess} = usePopup();
+    const {popup, hidePopup, showError} = usePopup();
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
