@@ -2,9 +2,9 @@
 
 import SignInForm from "../components/pages/Sign-in-form";
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
-import GroupsList from "@/components/pages/Groups-list";
-import { useAuthContext } from "@/contexts/AuthContext";
-import { Box, CircularProgress } from "@mui/material";
+import GroupsListComponent from "@/components/pages/Groups-list-component";
+import {useAuthContext} from "@/contexts/AuthContext";
+import {Box, CircularProgress} from "@mui/material";
 
 export default function Page() {
   const { user, isLoading } = useAuthContext();
@@ -28,7 +28,7 @@ export default function Page() {
     return (
       <div>
         <AccountGroupsNav />
-        <GroupsList />
+          <GroupsListComponent/>
       </div>
     );
   }

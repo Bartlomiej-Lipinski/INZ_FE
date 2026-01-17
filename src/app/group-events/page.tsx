@@ -10,14 +10,16 @@ import {
     EventResponseDto,
     EventSuggestionResponseDto
 } from '@/lib/types/event';
-import EventsList from '@/components/events/eventList';
-import EventForm from '@/components/events/EventForm';
-import EventDetails from '@/components/events/eventDetails';
-import EventAvailabilityView from '@/components/events/eventAvailabilityView';
-import EventSuggestions from '@/components/events/eventSuggestion';
+import EventsList from '@/app/group-events/eventList-component';
+import EventFormComponent from '@/app/group-events/EventForm-component';
+import EventDetailsComponent from '@/app/group-events/eventDetails-component';
+import EventAvailabilityViewComponent from '@/app/group-events/eventAvailabilityView-component';
+import EventSuggestions from '@/app/group-events/eventSuggestion-component';
 import GroupMenu from "@/components/common/Group-menu";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {usePopup} from '@/hooks/usePopup';
+import Popup from '@/components/common/Popup';
 
 type ViewMode = 'list' | 'create' | 'details' | 'availability' | 'suggestions';
 
@@ -35,10 +37,10 @@ const mapStatusToInt = (status: EventAvailabilityStatus): number => {
 };
 
 export default function EventsPage() {
+    const {popup, hidePopup, showError, showSuccess} = usePopup();
     const searchParams = useSearchParams();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [events, setEvents] = useState<EventResponseDto[]>([]);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [selectedEvent, setSelectedEvent] = useState<EventResponseDto | null>(null);
     const [selectedSuggestion, setSelectedSuggestion] = useState<EventSuggestionResponseDto | null>(null);
@@ -81,7 +83,6 @@ export default function EventsPage() {
     const [durationMinutes, setDurationMinutes] = useState('');
     const [rangeStart, setRangeStart] = useState('');
     const [rangeEnd, setRangeEnd] = useState('');
-    const [availabilityRanges, setAvailabilityRanges] = useState<AvailabilityRangeResponseDto[]>([]);
     const [selectedTimeSlots, setSelectedTimeSlots] = useState<Array<{
         date: string;
         startHour: number;
@@ -111,11 +112,12 @@ export default function EventsPage() {
                     isTwoFactorEnabled: userData.isTwoFactorEnabled,
                 });
             } catch (error) {
-                console.error('Błąd parsowania danych użytkownika:', error);
+                showError('Błąd podczas wczytywania danych użytkownika');
+                console.error('Parse error:', error);
             }
         }
         setIsLoading(false);
-    }, []);
+    }, [showError]);
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -130,11 +132,12 @@ export default function EventsPage() {
                     const events = data.data as EventResponseDto[];
                     setEvents(events || []);
                 } else {
-                    console.error('Błąd podczas pobierania wydarzeń');
+                    showError('Nie udało się pobrać listy wydarzeń');
                     setEvents([]);
                 }
             } catch (error) {
-                console.error('Błąd podczas pobierania wydarzeń:', error);
+                showError('Błąd połączenia podczas pobierania wydarzeń');
+                console.error('Fetch events error:', error);
                 setEvents([]);
             }
         };
@@ -142,7 +145,7 @@ export default function EventsPage() {
         if (!isLoading && currentUser) {
             fetchEvents();
         }
-    }, [groupData.id, currentUser, isLoading]);
+    }, [groupData.id, currentUser, isLoading, showError]);
 
     const handleCreateEvent = () => {
         setTitle('');
@@ -168,14 +171,15 @@ export default function EventsPage() {
             );
             if (response.ok) {
                 const data = await response.json();
-                const event = data.data as EventResponseDto;
-                setSelectedEvent(event);
+                const eventData = data.data as EventResponseDto;
+                setSelectedEvent(eventData);
                 setViewMode('details');
             } else {
-                console.error('Błąd podczas pobierania dostępności wydarzenia');
+                showError('Nie udało się pobrać szczegółów wydarzenia');
             }
         } catch (error) {
-            console.error('Błąd podczas pobierania dostępności wydarzenia:', error);
+            showError('Błąd podczas wczytywania szczegółów wydarzenia');
+            console.error('Fetch event details error:', error);
         }
     };
 
@@ -206,7 +210,8 @@ export default function EventsPage() {
         formDataToSend.append('title', title);
         formDataToSend.append('description', description);
         formDataToSend.append('location', location);
-        formDataToSend.append('isAutoScheduled', isAutoScheduled);
+        formDataToSend.append('isAutoScheduled', String(isAutoScheduled));
+
         if (!isAutoScheduled) {
             formDataToSend.append('startDate', startDate);
             formDataToSend.append('endDate', endDate);
@@ -215,6 +220,7 @@ export default function EventsPage() {
             formDataToSend.append('rangeStart', `${rangeStart}T00:00:00.000Z`);
             formDataToSend.append('rangeEnd', `${rangeEnd}T23:59:59.999Z`);
         }
+
         if (selectedFile) {
             formDataToSend.append('file', selectedFile);
         }
@@ -229,7 +235,11 @@ export default function EventsPage() {
                         credentials: 'include',
                     }
                 );
-                if (!response.ok) throw new Error('Błąd podczas edycji wydarzenia');
+                if (!response.ok) {
+                    showError('Nie udało się zaktualizować wydarzenia');
+                    return;
+                }
+                showSuccess('Wydarzenie zostało zaktualizowane');
             } else {
                 const response = await fetchWithAuth(
                     `${API_ROUTES.POST_GROUP_EVENT}?groupId=${groupData.id}`,
@@ -239,41 +249,54 @@ export default function EventsPage() {
                         credentials: 'include',
                     }
                 );
-                if (!response.ok) throw new Error('Błąd podczas tworzenia wydarzenia');
+                if (!response.ok) {
+                    showError('Nie udało się utworzyć wydarzenia');
+                    return;
+                }
+                showSuccess('Wydarzenie zostało utworzone');
             }
             handleBackToList();
         } catch (error) {
-            console.error('Błąd:', error);
+            showError('Błąd podczas zapisywania wydarzenia');
+            console.error('Submit event error:', error);
         }
     };
 
     const handleDeleteEvent = async (eventId?: string) => {
         const id = eventId || selectedEvent?.id;
         if (!id || !groupData.id) return;
+
         const confirmed = window.confirm('Czy na pewno chcesz usunąć to wydarzenie?');
         if (!confirmed) return;
 
         try {
-            const response = await fetchWithAuth(`${API_ROUTES.DELETE_GROUP_EVENT}?groupId=${groupData.id}&eventId=${eventId}`, {
-                method: 'DELETE',
-                credentials: 'include',
-            });
+            const response = await fetchWithAuth(
+                `${API_ROUTES.DELETE_GROUP_EVENT}?groupId=${groupData.id}&eventId=${id}`,
+                {
+                    method: 'DELETE',
+                    credentials: 'include',
+                }
+            );
 
             if (!response.ok) {
-                console.error('Błąd podczas usuwania wydarzenia');
-            } else {
-                setEvents(prev => prev.filter(ev => ev.id !== id));
-                if (selectedEvent && selectedEvent.id === id) {
-                    setSelectedEvent(null);
-                    setViewMode('list');
-                }
-                setIsEditMode(false);
-                setEditEventId(null);
+                showError('Nie udało się usunąć wydarzenia');
+                return;
             }
+
+            setEvents(prev => prev.filter(ev => ev.id !== id));
+            if (selectedEvent && selectedEvent.id === id) {
+                setSelectedEvent(null);
+                setViewMode('list');
+            }
+            setIsEditMode(false);
+            setEditEventId(null);
+            showSuccess('Wydarzenie zostało usunięte');
         } catch (error) {
-            console.error('Błąd podczas usuwania wydarzenia:', error);
+            showError('Błąd podczas usuwania wydarzenia');
+            console.error('Delete event error:', error);
         }
     };
+
     const handleSelectSuggestion = () => {
         setSuggestions(selectedEvent?.suggestions || []);
         setIsPlanningFinished(true);
@@ -289,7 +312,7 @@ export default function EventsPage() {
         if (file) {
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreviewUrl(reader.result as string);
+                // Można dodać preview jeśli potrzebne
             };
             reader.readAsDataURL(file);
             setSelectedFile(file);
@@ -298,31 +321,40 @@ export default function EventsPage() {
 
     const handleFinishPlanning = async () => {
         if (!selectedEvent || !selectedEvent.durationMinutes) return;
+
         try {
-            const response = await fetchWithAuth(`${API_ROUTES.CALCULATE_BEST_DATE_FOR_EVENT}?groupId=${groupData.id}&eventId=${selectedEvent.id}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include',
-            })
+            const response = await fetchWithAuth(
+                `${API_ROUTES.CALCULATE_BEST_DATE_FOR_EVENT}?groupId=${groupData.id}&eventId=${selectedEvent.id}`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                }
+            );
+
             if (response && response.ok) {
                 const data = await response.json();
-                const suggestions = data.data as EventSuggestionResponseDto[];
-                suggestions.forEach(suggestion => {
-                    suggestion.endTime = new Date(new Date(suggestion.startTime).getTime() + selectedEvent.durationMinutes! * 60000).toISOString();
-                })
-                setSuggestions(suggestions || []);
+                const suggestionsData = data.data as EventSuggestionResponseDto[];
+                suggestionsData.forEach(suggestion => {
+                    suggestion.endTime = new Date(
+                        new Date(suggestion.startTime).getTime() + selectedEvent.durationMinutes! * 60000
+                    ).toISOString();
+                });
+                setSuggestions(suggestionsData || []);
                 setIsPlanningFinished(true);
                 setViewMode('suggestions');
             } else {
-                console.error('Błąd podczas finalizacji planowania');
+                showError('Nie udało się wygenerować propozycji terminów');
             }
         } catch (error) {
-            console.error('Błąd podczas finalizacji planowania:', error);
+            showError('Błąd podczas generowania propozycji terminów');
+            console.error('Finish planning error:', error);
         }
     };
 
     const handleSetAvailability = async (status: EventAvailabilityStatus) => {
         if (!selectedEvent || !currentUser) return;
+
         const userDto = {
             id: currentUser.id,
             email: currentUser.email,
@@ -335,50 +367,61 @@ export default function EventsPage() {
             profilePicture: currentUser.profilePicture,
             isTwoFactorEnabled: currentUser.isTwoFactorEnabled,
         };
+
         try {
-            const response = await fetchWithAuth(`${API_ROUTES.POST_UPDATE_EVENT_DELETE_AVAILABILITY}?groupId=${groupData.id}&eventId=${selectedEvent.id}`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({status: mapStatusToInt(status)}),
-                credentials: 'include',
-            });
+            const response = await fetchWithAuth(
+                `${API_ROUTES.POST_UPDATE_EVENT_DELETE_AVAILABILITY}?groupId=${groupData.id}&eventId=${selectedEvent.id}`,
+                {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: mapStatusToInt(status)}),
+                    credentials: 'include',
+                }
+            );
+
             if (response && !response.ok) {
-                console.error('Błąd podczas ustawiania dostępności');
-            } else {
-                setEvents(events.map(ev => {
-                    if (ev.id !== selectedEvent.id) return ev;
-                    const filtered = ev.availabilities.filter(a => a.user.id !== currentUser.id);
-                    return {
-                        ...ev,
-                        availabilities: [
-                            ...filtered,
-                            {
-                                user: userDto,
-                                status,
-                                createdAt: new Date().toISOString(),
-                            },
-                        ],
-                    };
-                }));
-                setSelectedEvent(prev => prev ? {
-                    ...prev,
+                showError('Nie udało się zaktualizować dostępności');
+                return;
+            }
+
+            setEvents(events.map(ev => {
+                if (ev.id !== selectedEvent.id) return ev;
+                const filtered = ev.availabilities.filter(a => a.user.id !== currentUser.id);
+                return {
+                    ...ev,
                     availabilities: [
-                        ...prev.availabilities.filter(a => a.user.id !== currentUser.id),
+                        ...filtered,
                         {
                             user: userDto,
                             status,
                             createdAt: new Date().toISOString(),
                         },
                     ],
-                } : prev);
-            }
-        } catch (error) {
-            console.error('Błąd podczas wysyłania availability:', error);
-        }
+                };
+            }));
 
+            setSelectedEvent(prev => prev ? {
+                ...prev,
+                availabilities: [
+                    ...prev.availabilities.filter(a => a.user.id !== currentUser.id),
+                    {
+                        user: userDto,
+                        status,
+                        createdAt: new Date().toISOString(),
+                    },
+                ],
+            } : prev);
+
+            showSuccess('Dostępność została zaktualizowana');
+        } catch (error) {
+            showError('Błąd podczas aktualizacji dostępności');
+            console.error('Set availability error:', error);
+        }
     };
+
     const handleSubmitAvailabilityRange = async () => {
         if (!currentUser || !selectedEvent || selectedTimeSlots.length === 0) return;
+
         const groupedByDate = selectedTimeSlots.reduce((acc, slot) => {
             if (!acc[slot.date]) acc[slot.date] = [];
             acc[slot.date].push(slot);
@@ -395,7 +438,7 @@ export default function EventsPage() {
                 if (!currentRange) {
                     currentRange = {start: slot.startHour, end: slot.endHour};
                 } else if (currentRange.end === slot.startHour) {
-                    currentRange.end = slot.endHour - 1;
+                    currentRange.end = slot.endHour;
                 } else {
                     rangesToSend.push({
                         availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
@@ -408,7 +451,7 @@ export default function EventsPage() {
             if (currentRange) {
                 rangesToSend.push({
                     availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
-                    availableTo: `${date}T${String(currentRange.end - 1).padStart(2, '0')}:59:59.999Z`,
+                    availableTo: `${date}T${String(currentRange.end).padStart(2, '0')}:59:59.999Z`,
                 } as AvailabilityRangeResponseDto);
             }
         });
@@ -425,57 +468,56 @@ export default function EventsPage() {
             );
 
             if (response && response.ok) {
-                const data = await response.json();
-                const createdRanges = data.data as AvailabilityRangeResponseDto[];
-                if (createdRanges && createdRanges.length > 0) {
-                    setAvailabilityRanges(prev => [...prev, ...createdRanges]);
-                } else {
-                    const fallbackRanges = rangesToSend.map((range, index) => ({
-                        id: Date.now().toString() + Math.random() + index,
-                        eventId: selectedEvent.id,
-                        user: {id: currentUser.id, email: currentUser.email, username: currentUser.username},
-                        availableFrom: range.availableFrom,
-                        availableTo: range.availableTo,
-                    }));
-                    setAvailabilityRanges(prev => [...prev, ...fallbackRanges]);
-                }
+                showSuccess('Przedziały dostępności zostały zapisane');
             } else {
-                console.error('Błąd podczas zapisywania przedziałów dostępności', response);
+                showError('Nie udało się zapisać przedziałów dostępności');
+                return;
             }
         } catch (err) {
-            console.error('Błąd podczas wysyłania przedziałów dostępności:', err);
+            showError('Błąd podczas zapisywania przedziałów dostępności');
+            console.error('Submit availability range error:', err);
+            return;
         }
 
         setSelectedTimeSlots([]);
         setViewMode('details');
     };
 
-
     const handleRemoveAvailability = async () => {
         if (!selectedEvent || !currentUser) return;
+
         try {
-            const response = await fetchWithAuth(`${API_ROUTES.POST_UPDATE_EVENT_DELETE_AVAILABILITY}?groupId=${groupData.id}&eventId=${selectedEvent.id}`, {
-                method: 'DELETE',
-                headers: {'Content-Type': 'application/json'},
-                credentials: 'include',
-            });
+            const response = await fetchWithAuth(
+                `${API_ROUTES.POST_UPDATE_EVENT_DELETE_AVAILABILITY}?groupId=${groupData.id}&eventId=${selectedEvent.id}`,
+                {
+                    method: 'DELETE',
+                    headers: {'Content-Type': 'application/json'},
+                    credentials: 'include',
+                }
+            );
+
             if (response && !response.ok) {
-                console.error('Błąd podczas ustawiania dostępności');
-            } else {
-                setEvents(events.map(ev => {
-                    if (ev.id !== selectedEvent.id) return ev;
-                    return {
-                        ...ev,
-                        availabilities: ev.availabilities.filter(a => a.user.id !== currentUser.id),
-                    };
-                }));
-                setSelectedEvent(prev => prev ? {
-                    ...prev,
-                    availabilities: prev.availabilities.filter(a => a.user.id !== currentUser.id),
-                } : prev);
+                showError('Nie udało się usunąć dostępności');
+                return;
             }
+
+            setEvents(events.map(ev => {
+                if (ev.id !== selectedEvent.id) return ev;
+                return {
+                    ...ev,
+                    availabilities: ev.availabilities.filter(a => a.user.id !== currentUser.id),
+                };
+            }));
+
+            setSelectedEvent(prev => prev ? {
+                ...prev,
+                availabilities: prev.availabilities.filter(a => a.user.id !== currentUser.id),
+            } : prev);
+
+            showSuccess('Dostępność została usunięta');
         } catch (error) {
-            console.error('Błąd podczas wysyłania availability:', error);
+            showError('Błąd podczas usuwania dostępności');
+            console.error('Remove availability error:', error);
         }
     };
 
@@ -495,9 +537,22 @@ export default function EventsPage() {
 
     return (
         <>
-            <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
-                       groupName={groupData.name}
-                       groupColor={groupData.color}/>
+            {popup.isOpen && (
+                <Popup
+                    type={popup.type}
+                    title={popup.title}
+                    message={popup.message}
+                    onClose={hidePopup}
+                />
+            )}
+
+            <GroupMenu
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+                groupId={groupData.id}
+                groupName={groupData.name}
+                groupColor={groupData.color}
+            />
 
             {viewMode === 'list' && (
                 <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
@@ -527,19 +582,27 @@ export default function EventsPage() {
                             </Typography>
                         </Box>
 
-                        <Button variant="contained" startIcon={<Plus size={20}/>} onClick={handleCreateEvent}
-                                sx={{mb: 3, bgcolor: groupData.color}}>
+                        <Button
+                            variant="contained"
+                            startIcon={<Plus size={20}/>}
+                            onClick={handleCreateEvent}
+                            sx={{mb: 3, bgcolor: groupData.color}}
+                        >
                             Nowe wydarzenie
                         </Button>
 
-                        <EventsList events={events} onViewDetails={handleViewDetails} onDelete={handleDeleteEvent}
-                                    currentUserId={currentUser!.id}/>
+                        <EventsList
+                            events={events}
+                            onViewDetails={handleViewDetails}
+                            onDelete={handleDeleteEvent}
+                            currentUserId={currentUser!.id}
+                        />
                     </Box>
                 </Box>
             )}
 
             {viewMode === 'create' && (
-                <EventForm
+                <EventFormComponent
                     title={title}
                     description={description}
                     location={location}
@@ -568,7 +631,7 @@ export default function EventsPage() {
             )}
 
             {viewMode === 'details' && selectedEvent && (
-                <EventDetails
+                <EventDetailsComponent
                     event={selectedEvent}
                     currentUserId={currentUser!.id}
                     groupColor={groupData.color}
@@ -583,7 +646,7 @@ export default function EventsPage() {
             )}
 
             {viewMode === 'availability' && selectedEvent && (
-                <EventAvailabilityView
+                <EventAvailabilityViewComponent
                     event={selectedEvent}
                     selectedTimeSlots={selectedTimeSlots}
                     groupColor={groupData.color}
@@ -604,6 +667,7 @@ export default function EventsPage() {
                     }}
                     onConfirm={async () => {
                         if (!selectedEvent || !selectedSuggestion) return;
+
                         try {
                             const response = await fetchWithAuth(
                                 `${API_ROUTES.CHOOSE_BEST_EVENT_DATE}?groupId=${groupData.id}&eventId=${selectedEvent.id}&suggestionId=${selectedSuggestion.id}`,
@@ -612,6 +676,7 @@ export default function EventsPage() {
                                     credentials: 'include',
                                 }
                             );
+
                             if (response.ok) {
                                 setEvents(events.map(ev =>
                                     ev.id === selectedEvent.id
@@ -623,11 +688,13 @@ export default function EventsPage() {
                                         : ev
                                 ));
                                 setViewMode('details');
+                                showSuccess('Termin wydarzenia został wybrany');
                             } else {
-                                console.error('Błąd podczas wyboru najlepszej daty');
+                                showError('Nie udało się wybrać terminu wydarzenia');
                             }
                         } catch (error) {
-                            console.error('Błąd:', error);
+                            showError('Błąd podczas wybierania terminu');
+                            console.error('Choose date error:', error);
                         }
                     }}
                 />
@@ -635,4 +702,3 @@ export default function EventsPage() {
         </>
     );
 }
-

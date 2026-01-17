@@ -7,19 +7,22 @@ import {DollarSign, Menu, Plus, Receipt, TrendingDown, TrendingUp,} from 'lucide
 import {CreditResponseDto, ExpenseRequestDto, ExpenseResponseDto, SettlementResponseDto} from '@/lib/types/expense';
 import {User} from '@/lib/types/user';
 import {formatCurrency} from '@/lib/utils/settlement-utils';
-import ExpenseCard from '@/components/settlements/ExpenseCard';
-import ExpenseForm from '@/components/settlements/ExpenseForm';
-import ExpenseDetails from '@/components/settlements/ExpenseDetails';
-import DebtList from '@/components/settlements/DebtList';
+import ExpenseCardComponent from '@/app/group-settlements/ExpenseCard-component';
+import ExpenseFormComponent from '@/app/group-settlements/ExpenseForm-component';
+import ExpenseDetailsComponent from '@/app/group-settlements/ExpenseDetails-component';
+import DebtListComponent from '@/app/group-settlements/DebtList-component';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import GroupMenu from "@/components/common/Group-menu";
 import {useMembers} from "@/hooks/use-members";
+import {usePopup} from '@/hooks/usePopup';
+import Popup from '@/components/common/Popup';
 
 
 type ViewMode = 'list' | 'addExpense' | 'myDebts' | 'expenseDetails';
 
 export default function SettlementsPage() {
+    const {popup, hidePopup, showError, showSuccess} = usePopup();
     const searchParams = useSearchParams();
     const {fetchGroupMembers} = useMembers();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -78,6 +81,7 @@ export default function SettlementsPage() {
                 });
             } catch (error) {
                 console.error('Błąd parsowania danych użytkownika:', error);
+                showError('Błąd podczas wczytywania danych użytkownika');
             }
         }
     }, []);
@@ -95,8 +99,10 @@ export default function SettlementsPage() {
                     setExpenses(payload);
                 } else {
                     console.error('Błąd podczas pobierania wydatków');
+                    showError('Nie udało się pobrać wydatków');
                 }
             } catch (error) {
+                showError('Nie udało się pobrać wydatków');
                 console.error('Błąd podczas pobierania wydatków:', error);
             }
         };
@@ -126,9 +132,11 @@ export default function SettlementsPage() {
                     setSettlements(data.data || []);
                 } else {
                     console.error('Błąd podczas pobierania rozliczeń');
+                    showError('Błąd połączenia podczas pobierania rozliczeń');
                 }
             } catch (error) {
                 console.error('Błąd podczas pobierania rozliczeń:', error);
+                showError('Błąd połączenia podczas pobierania rozliczeń');
             }
         };
 
@@ -149,9 +157,11 @@ export default function SettlementsPage() {
                     setCredits(data.data);
                 } else {
                     console.error('Błąd podczas pobierania należności');
+                    showError('Nie udało się pobrać należności');
                 }
             } catch (error) {
                 console.error('Błąd podczas pobierania należności:', error);
+                showError('Nie udało się pobrać należności');
             }
         }
         if (groupData.id) {
@@ -163,8 +173,6 @@ export default function SettlementsPage() {
     const myCredits = credits;
 
 
-
-
     const myDebts = settlements.map((s) => ({
         id: s.id,
         amount: s.amount,
@@ -174,7 +182,6 @@ export default function SettlementsPage() {
         fromUserName: currentUser!.name,
         relatedExpenses: [settlements.length],
     }));
-
 
 
     const myBalance = useMemo(() => {
@@ -223,9 +230,11 @@ export default function SettlementsPage() {
                     };
                     setExpenses(expenses.map(e => e.id === editingExpense.id ? localExpense : e));
                 } else {
+                    showError('Błąd podczas edytowania wydatku');
                     throw new Error('Błąd podczas edytowania wydatku');
                 }
             } catch (error) {
+                showError('Błąd podczas edytowania wydatku');
                 console.error('Błąd podczas edytowania wydatku:', error);
             }
         } else {
@@ -267,6 +276,7 @@ export default function SettlementsPage() {
                     throw new Error('Błąd podczas dodawania wydatku');
                 }
             } catch (error) {
+                showError('Błąd podczas dodawania wydatku');
                 console.error('Błąd podczas dodawania wydatku:', error);
             }
         }
@@ -302,6 +312,7 @@ export default function SettlementsPage() {
                     throw new Error('Błąd podczas usuwania wydatku');
                 }
             } catch (error) {
+                showError('Błąd podczas usuwania wydatku');
                 console.error('Błąd podczas usuwania wydatku:', error);
             }
             setViewMode('list');
@@ -319,169 +330,207 @@ export default function SettlementsPage() {
             );
 
             if (!response.ok) {
+
                 throw new Error('Błąd podczas oznaczania jako opłacone');
             }
             setSettlements(settlements.filter(s => s.id !== debt.id));
         } catch (error) {
+            showError('Błąd podczas oznaczania jako opłacone');
             console.error('Błąd podczas oznaczania jako opłacone:', error);
         }
-        alert(`Oznaczono jako opłacone: ${formatCurrency(debt.amount)} dla ${debt.toUserName}`);
+        showSuccess(`Oznaczono jako opłacone: ${formatCurrency(debt.amount)} dla ${debt.toUserName}`);
     };
 
-    // Lista wydatków i saldo
     if (viewMode === 'list') {
         return (
-            <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
-                <Box sx={{maxWidth: 1200, mx: 'auto'}}>
-                    <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
-                        <IconButton
-                            onClick={() => setDrawerOpen(true)}
-                            sx={{bgcolor: '#8D8C8C', '&:hover': {bgcolor: '#666666'}, mr: 1}}
-                        >
-                            <Menu/>
-                        </IconButton>
+            <>
+                {popup.isOpen && (
+                    <Popup
+                        type={popup.type}
+                        title={popup.title}
+                        message={popup.message}
+                        onClose={hidePopup}
+                    />
+                )}
+                <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
+                    <Box sx={{maxWidth: 1200, mx: 'auto'}}>
+                        <Box sx={{display: 'flex', alignItems: 'center', mb: 4}}>
+                            <IconButton
+                                onClick={() => setDrawerOpen(true)}
+                                sx={{bgcolor: '#8D8C8C', '&:hover': {bgcolor: '#666666'}, mr: 1}}
+                            >
+                                <Menu/>
+                            </IconButton>
 
-                        <Typography
-                            variant="h4"
+                            <Typography
+                                variant="h4"
+                                sx={{
+                                    textAlign: 'center',
+                                    flex: 1,
+                                    fontWeight: 600,
+                                    fontSize: {xs: '1.75rem', sm: '2rem'},
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 2,
+                                }}
+                            >
+                                <DollarSign size={32}/>
+                                Rozliczenia
+                            </Typography>
+                        </Box>
+
+                        <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
+                                   groupName={groupData.name}
+                                   groupColor={groupData.color}/>
+
+                        <Card
                             sx={{
-                                textAlign: 'center',
-                                flex: 1,
-                                fontWeight: 600,
-                                fontSize: {xs: '1.75rem', sm: '2rem'},
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 2,
+                                borderRadius: 3,
+                                p: 3,
+                                mb: 3,
+                                background: myBalance >= 0 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                color: 'white',
                             }}
                         >
-                            <DollarSign size={32}/>
-                            Rozliczenia
-                        </Typography>
-                    </Box>
-
-                    <GroupMenu open={drawerOpen} onClose={() => setDrawerOpen(false)} groupId={groupData.id}
-                               groupName={groupData.name}
-                               groupColor={groupData.color}/>
-
-                    {/* Saldo użytkownika */}
-                    <Card
-                        sx={{
-                            borderRadius: 3,
-                            p: 3,
-                            mb: 3,
-                            background: myBalance >= 0 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                            color: 'white',
-                        }}
-                    >
-                        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                            <Box>
-                                <Typography variant="body2" sx={{opacity: 0.9, mb: 0.5}}>
-                                    Twoje saldo
-                                </Typography>
-                                <Typography variant="h3" sx={{fontWeight: 700}}>
-                                    {formatCurrency(Math.abs(myBalance))}
-                                </Typography>
-                                <Typography variant="body2" sx={{opacity: 0.9, mt: 0.5}}>
-                                    {myBalance >= 0 ? 'Należy Ci się' : 'Jesteś dłużny/a'}
-                                </Typography>
+                            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                                <Box>
+                                    <Typography variant="body2" sx={{opacity: 0.9, mb: 0.5}}>
+                                        Twoje saldo
+                                    </Typography>
+                                    <Typography variant="h3" sx={{fontWeight: 700}}>
+                                        {formatCurrency(Math.abs(myBalance))}
+                                    </Typography>
+                                    <Typography variant="body2" sx={{opacity: 0.9, mt: 0.5}}>
+                                        {myBalance >= 0 ? 'Należy Ci się' : 'Jesteś dłużny/a'}
+                                    </Typography>
+                                </Box>
+                                {myBalance >= 0 ? <TrendingUp size={64}/> : <TrendingDown size={64}/>}
                             </Box>
-                            {myBalance >= 0 ? <TrendingUp size={64}/> : <TrendingDown size={64}/>}
-                        </Box>
-                    </Card>
-
-                    {/* Akcje */}
-                    <Box sx={{display: 'flex', gap: 2, mb: 3}}>
-                        <Button variant="contained" startIcon={<Plus size={20}/>}
-                                onClick={() => setViewMode('addExpense')} fullWidth sx={{bgcolor: groupData.color}}>
-                            Dodaj wydatek
-                        </Button>
-                        <Button startIcon={<Receipt size={20}/>} onClick={() => setViewMode('myDebts')} fullWidth
-                                sx={{bgcolor: groupData.color}}>
-                            Moje należności ({myDebts.length})
-                        </Button>
-                    </Box>
-
-                    {/* Lista wydatków */}
-                    <Typography variant="h6" sx={{mb: 2, fontWeight: 600}}>
-                        Historia wydatków
-                    </Typography>
-
-                    {expenses.length === 0 ? (
-                        <Card sx={{borderRadius: 3, p: 4, textAlign: 'center'}}>
-                            <Receipt size={64} style={{opacity: 0.5, margin: '0 auto 16px'}}/>
-                            <Typography variant="h6" sx={{mb: 1}}>
-                                Brak wydatków
-                            </Typography>
-                            <Typography color="text.secondary">Dodaj pierwszy wydatek grupy</Typography>
                         </Card>
-                    ) : (
-                        <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
-                            {expenses.map((expense) => (
-                                <ExpenseCard
-                                    key={expense.id}
-                                    expense={expense}
-                                    onClick={async () => {
-                                        try {
-                                            const response = await fetchWithAuth(`${API_ROUTES.GET_SPECIFIC_EXPENSE}?groupId=${groupData.id}&expenseId=${expense.id}`, {
-                                                method: 'GET',
-                                                credentials: 'include',
-                                            });
-                                            if (!response.ok) {
-                                                console.error('Błąd podczas pobierania szczegółów wydatku');
-                                                return;
-                                            }
-                                            setSelectedExpense(expense);
-                                            setViewMode('expenseDetails');
-                                        } catch (error) {
-                                            console.error('Błąd podczas pobierania szczegółów wydatku:', error);
-                                        }
-                                    }}
-                                />
-                            ))}
+
+                        <Box sx={{display: 'flex', gap: 2, mb: 3}}>
+                            <Button variant="contained" startIcon={<Plus size={20}/>}
+                                    onClick={() => setViewMode('addExpense')} fullWidth sx={{bgcolor: groupData.color}}>
+                                Dodaj wydatek
+                            </Button>
+                            <Button startIcon={<Receipt size={20}/>} onClick={() => setViewMode('myDebts')} fullWidth
+                                    sx={{bgcolor: groupData.color}}>
+                                Moje należności ({myDebts.length})
+                            </Button>
                         </Box>
-                    )}
+
+                        <Typography variant="h6" sx={{mb: 2, fontWeight: 600}}>
+                            Historia wydatków
+                        </Typography>
+
+                        {expenses.length === 0 ? (
+                            <Card sx={{borderRadius: 3, p: 4, textAlign: 'center'}}>
+                                <Receipt size={64} style={{opacity: 0.5, margin: '0 auto 16px'}}/>
+                                <Typography variant="h6" sx={{mb: 1}}>
+                                    Brak wydatków
+                                </Typography>
+                                <Typography color="text.secondary">Dodaj pierwszy wydatek grupy</Typography>
+                            </Card>
+                        ) : (
+                            <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
+                                {expenses.map((expense) => (
+                                    <ExpenseCardComponent
+                                        key={expense.id}
+                                        expense={expense}
+                                        onClick={async () => {
+                                            try {
+                                                const response = await fetchWithAuth(`${API_ROUTES.GET_SPECIFIC_EXPENSE}?groupId=${groupData.id}&expenseId=${expense.id}`, {
+                                                    method: 'GET',
+                                                    credentials: 'include',
+                                                });
+                                                if (!response.ok) {
+                                                    showError('Błąd podczas pobierania szczegółów wydatku');
+                                                    console.error('Błąd podczas pobierania szczegółów wydatku');
+                                                    return;
+                                                }
+                                                setSelectedExpense(expense);
+                                                setViewMode('expenseDetails');
+                                            } catch (error) {
+                                                showError('Błąd podczas pobierania szczegółów wydatku');
+                                                console.error('Błąd podczas pobierania szczegółów wydatku:', error);
+                                            }
+                                        }}
+                                    />
+                                ))}
+                            </Box>
+                        )}
+                    </Box>
                 </Box>
-            </Box>
+            </>
         );
     }
 
-    // Dodawanie/edycja wydatku
     if (viewMode === 'addExpense') {
         return (
-            <ExpenseForm
-                members={members}
-                currentUserId={currentUser!.id}
-                groupColor={groupData.color}
-                editingExpense={editingExpense}
-                onSave={handleSaveExpense}
-                onCancel={handleCancelForm}
-            />
+            <>
+                {popup.isOpen && (
+                    <Popup
+                        type={popup.type}
+                        title={popup.title}
+                        message={popup.message}
+                        onClose={hidePopup}
+                    />
+                )}
+
+                <ExpenseFormComponent
+                    members={members}
+                    currentUserId={currentUser?.id || ''}
+                    groupColor={groupData.color}
+                    onSave={handleSaveExpense}
+                    onCancel={handleCancelForm}
+                    editingExpense={editingExpense}
+                />
+            </>
         );
     }
 
-    // Moje należności
     if (viewMode === 'myDebts') {
         return (
-            <DebtList
-                myDebts={myDebts}
-                groupColor={groupData.color}
-                onBack={() => setViewMode('list')}
-                onMarkAsPaid={handleMarkAsPaid}
-            />
+            <>
+                {popup.isOpen && (
+                    <Popup
+                        type={popup.type}
+                        title={popup.title}
+                        message={popup.message}
+                        onClose={hidePopup}
+                    />
+                )}
+                <DebtListComponent
+                    myDebts={myDebts}
+                    groupColor={groupData.color}
+                    onBack={() => setViewMode('list')}
+                    onMarkAsPaid={handleMarkAsPaid}
+                />
+            </>
         );
     }
 
-    // Szczegóły wydatku
     if (viewMode === 'expenseDetails' && selectedExpense) {
         return (
-            <ExpenseDetails
-                expense={selectedExpense}
-                groupColor={groupData.color}
-                onBack={() => setViewMode('list')}
-                onEdit={() => handleEditExpense(selectedExpense)}
-                onDelete={handleDeleteExpense}
-                currentUserId={currentUser!.id}
-            />
+            <>
+                {popup.isOpen && (
+                    <Popup
+                        type={popup.type}
+                        title={popup.title}
+                        message={popup.message}
+                        onClose={hidePopup}
+                    />
+                )}
+                <ExpenseDetailsComponent
+                    expense={selectedExpense}
+                    groupColor={groupData.color}
+                    onBack={() => setViewMode('list')}
+                    onEdit={() => handleEditExpense(selectedExpense)}
+                    onDelete={handleDeleteExpense}
+                    currentUserId={currentUser!.id}
+                />
+            </>
         );
     }
 

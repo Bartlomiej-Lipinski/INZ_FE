@@ -2,7 +2,7 @@
 
 import {Alert, Box, Button, Card, Typography} from '@mui/material';
 import {ArrowLeft} from 'lucide-react';
-import AvailabilityCalendar from '@/components/events/availabilityCalendar';
+import AvailabilityCalendarComponent from '@/app/group-events/availabilityCalendar-component';
 import {EventResponseDto} from '@/lib/types/event';
 
 interface EventAvailabilityViewProps {
@@ -14,7 +14,7 @@ interface EventAvailabilityViewProps {
     onSubmit: () => void;
 }
 
-export default function EventAvailabilityView({
+export default function EventAvailabilityViewComponent({
                                                   event,
                                                   selectedTimeSlots,
                                                   groupColor,
@@ -41,7 +41,7 @@ export default function EventAvailabilityView({
                         czasowych.
                     </Alert>
 
-                    <AvailabilityCalendar
+                    <AvailabilityCalendarComponent
                         rangeStart={event.rangeStart || new Date().toISOString()}
                         rangeEnd={event.rangeEnd || new Date().toISOString()}
                         selectedSlots={selectedTimeSlots}

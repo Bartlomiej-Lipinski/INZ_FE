@@ -1,5 +1,5 @@
 "use client";
-import MembersList from '@/components/pages/Members-list';
+import MembersListComponent from '@/app/group-members/Members-list-component';
 import {Box} from '@mui/material';
 import {useSearchParams} from 'next/navigation';
 import {useTheme} from '@mui/material/styles';
@@ -36,7 +36,7 @@ export default function MembersPage() {
             />
 
             <Box sx={{maxWidth: 1000, width: '100%'}}>
-                <MembersList groupId={groupId} groupName={groupName} groupColor={groupColor}/>
+                <MembersListComponent groupId={groupId} groupName={groupName} groupColor={groupColor}/>
             </Box>
         </Box>
     );

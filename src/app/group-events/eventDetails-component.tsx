@@ -104,7 +104,7 @@ function EventImage({storedFileId, alt, sx}: { storedFileId?: string; alt: strin
     ) : null;
 }
 
-export default function EventDetails({
+export default function EventDetailsComponent({
                                          event,
                                          currentUserId,
                                          groupColor,

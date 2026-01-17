@@ -12,7 +12,7 @@ interface PollCardProps {
     currentUserId: string;
 }
 
-export default function PollCard({poll, onVote, onDelete, groupColor, isOwner, currentUserId}: PollCardProps) {
+export default function PollCardComponent({poll, onVote, onDelete, groupColor, isOwner, currentUserId}: PollCardProps) {
     const totalVotes = poll.options.reduce((sum, opt) => sum + opt.votedUsersIds.length, 0);
     const userVotedOption = poll.options.find(opt => opt.votedUsersIds.includes(currentUserId));
 

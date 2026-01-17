@@ -8,11 +8,13 @@ import GroupHeader from '@/components/layout/Group-header';
 import {FeedItemType} from "@/lib/types/FeedItemType";
 import {CommentResponseDto, GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
-import AddPostForm from '@/components/feed/addPostForm';
-import FeedList from '@/components/feed/feedlist';
+import AddPostFormComponent from '@/app/group-menu/addPostForm-component';
+import FeedListComponent from '@/app/group-menu/feedList-component';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {EntityType} from "@/lib/types/entityType";
 import {User} from "@/lib/types/user";
+import {usePopup} from '@/hooks/usePopup';
+import Popup from '@/components/common/Popup';
 
 const mapFeedItemType = (type: number | string): FeedItemType => {
     if (typeof type === 'string') return type as FeedItemType;
@@ -70,6 +72,7 @@ const normalizeStoredUser = (data: StoredUser | null | undefined): CurrentUser |
 };
 
 export default function GroupBoardPage() {
+    const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [items, setItems] = useState<GroupFeedItemResponseDto[]>([]);
     const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
@@ -88,6 +91,7 @@ export default function GroupBoardPage() {
     useEffect(() => {
         const userAuth = localStorage.getItem('auth:user');
         if (!userAuth) {
+            showError('Nie znaleziono danych użytkownika');
             return;
         }
 
@@ -96,12 +100,15 @@ export default function GroupBoardPage() {
             const normalized = normalizeStoredUser(rawUser);
             if (normalized) {
                 setCurrentUser(normalized);
+            } else {
+                showError('Nieprawidłowe dane użytkownika');
             }
         } catch (error) {
             console.error('Błąd parsowania danych użytkownika:', error);
+            showError('Błąd podczas wczytywania danych użytkownika');
             setCurrentUser(null);
         }
-    }, []);
+    }, [showError]);
 
     const groupData = useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
@@ -136,21 +143,26 @@ export default function GroupBoardPage() {
 
                     setItems(mappedItems);
                 } else {
-                    console.error('Błąd podczas pobierania feedu nie respons ok');
+                    const errorData = await response.json().catch(() => ({}));
+                    showError(errorData.message || 'Nie udało się pobrać feedu');
                     setItems([]);
                 }
             } catch (error) {
                 console.error('Błąd podczas pobierania feedu:', error);
+                showError('Błąd połączenia podczas pobierania feedu');
                 setItems([]);
             }
         };
         fetchFeedItems();
-    }, [groupData.id, page, pageSize]);
+    }, [groupData.id, page, pageSize, showError]);
 
     const groupColor = groupData?.color || '#1976d2';
 
     const handleLike = async (itemId: string) => {
-        if (!currentUser) return;
+        if (!currentUser) {
+            showError('Musisz być zalogowany, aby reagować');
+            return;
+        }
 
         const item = items.find(i => i.id === itemId);
         if (!item) return;
@@ -202,6 +214,7 @@ export default function GroupBoardPage() {
             }
         } catch (error) {
             console.error('Błąd:', error);
+            showError('Nie udało się dodać reakcji');
             setItems(previousItems);
         }
     };
@@ -219,9 +232,16 @@ export default function GroupBoardPage() {
     };
 
     const handleAddComment = async (itemId: string) => {
-        if (!currentUser) return;
+        if (!currentUser) {
+            showError('Musisz być zalogowany, aby komentować');
+            return;
+        }
+
         const content = newComment[itemId]?.trim();
-        if (!content) return;
+        if (!content) {
+            showError('Komentarz nie może być pusty');
+            return;
+        }
 
         const tempComment: CommentResponseDto = {
             id: `temp-${Date.now()}`,
@@ -286,7 +306,7 @@ export default function GroupBoardPage() {
                             ...item,
                             reactions: Array.isArray(item.reactions) ? item.reactions : [],
                             comments: Array.isArray(item.comments)
-                                ? item.comments.map((c) => c.id === tempComment.id ? savedComment : c)
+                                ? item.comments.map(c => c.id === tempComment.id ? savedComment : c)
                                 : [savedComment]
                         }
                         : item
@@ -294,6 +314,7 @@ export default function GroupBoardPage() {
             );
         } catch (error) {
             console.error('Błąd podczas dodawania komentarza:', error);
+            showError('Nie udało się dodać komentarza');
 
             setItems((prevItems) =>
                 prevItems.map((item) =>
@@ -302,7 +323,7 @@ export default function GroupBoardPage() {
                             ...item,
                             reactions: Array.isArray(item.reactions) ? item.reactions : [],
                             comments: Array.isArray(item.comments)
-                                ? item.comments.filter((c) => c.id !== tempComment.id)
+                                ? item.comments.filter(c => c.id !== tempComment.id)
                                 : []
                         }
                         : item
@@ -343,12 +364,14 @@ export default function GroupBoardPage() {
     };
 
     const handleEditSubmit = async () => {
-        if (!editingPost || !editContent.trim()) return;
+        if (!editingPost || !editContent.trim()) {
+            showError('Treść posta nie może być pusta');
+            return;
+        }
 
         setIsEditing(true);
         const previousItems = [...items];
 
-        // Optymistyczna aktualizacja
         setItems(prevItems =>
             prevItems.map(item =>
                 item.id === editingPost.id
@@ -372,12 +395,14 @@ export default function GroupBoardPage() {
             );
 
             if (!response.ok) {
-                throw new Error('Błąd podczas edycji posta');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Błąd podczas edycji posta');
             }
 
             handleEditDialogClose();
         } catch (error) {
             console.error('Błąd podczas edycji posta:', error);
+            showError(error instanceof Error ? error.message : 'Nie udało się edytować posta');
             setItems(previousItems);
         } finally {
             setIsEditing(false);
@@ -389,6 +414,9 @@ export default function GroupBoardPage() {
 
         const itemId = menuAnchor.itemId;
         handleCloseMenu();
+
+        const confirmed = window.confirm('Czy na pewno chcesz usunąć ten post?');
+        if (!confirmed) return;
 
         const previousItems = [...items];
 
@@ -405,10 +433,12 @@ export default function GroupBoardPage() {
             );
 
             if (!response.ok) {
-                throw new Error('Błąd podczas usuwania posta');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Błąd podczas usuwania posta');
             }
         } catch (error) {
             console.error('Błąd podczas usuwania posta:', error);
+            showError(error instanceof Error ? error.message : 'Nie udało się usunąć posta');
             setItems(previousItems);
         }
     };
@@ -429,156 +459,167 @@ export default function GroupBoardPage() {
     }
 
     return (
-        <Box
-            sx={{
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-            }}
-        >
-            <GroupHeader
-                title={groupData?.name?.trim() || "Tablica grupy"}
-            />
-
-            <Box sx={{ width: "90%", maxWidth: 700 }}>
-                <AddPostForm
-                    user={currentUser}
-                    groupColor={groupColor}
-                    groupId={groupData.id}
-                    onAddPost={(newItem) => {
-                        const tempPost: GroupFeedItemResponseDto = {
-                            ...newItem,
-                            id: newItem.id || `temp-${Date.now()}`,
-                            user: {
-                                id: currentUser.id,
-                                name: currentUser.name,
-                                surname: currentUser.surname,
-                                username: currentUser.username,
-                                profilePicture: currentUser.profilePicture ? {
-                                    id: currentUser.profilePicture.id,
-                                    fileName: currentUser.profilePicture.fileName || '',
-                                    contentType: currentUser.profilePicture.contentType || '',
-                                    size: currentUser.profilePicture.size || 0,
-                                } : undefined,
-                            },
-                            reactions: [],
-                            comments: [],
-                            createdAt: new Date().toISOString(),
-                            type: newItem.type || FeedItemType.POST,
-                            description: newItem.description || '',
-                            title: newItem.title,
-                            storedFileId: newItem.storedFileId,
-                        };
-
-                        setItems((prevItems) => [tempPost, ...prevItems]);
-                    }}
+        <>
+            {popup.isOpen && (
+                <Popup
+                    type={popup.type}
+                    title={popup.title}
+                    message={popup.message}
+                    onClose={hidePopup}
                 />
+            )}
 
-
-                <FeedList
-                    items={items}
-                    groupColor={groupColor}
-                    expandedComments={expandedComments}
-                    userId={currentUser.id}
-                    onLike={handleLike}
-                    onToggleComments={toggleComments}
-                    onOpenMenu={handleOpenMenu}
-                    newComment={newComment}
-                    onCommentChange={(id, value) => setNewComment({ ...newComment, [id]: value })}
-                    onAddComment={handleAddComment}
-                    menuAnchor={menuAnchor}
-                    onCloseMenu={handleCloseMenu}
-                    onEditPost={handleEditPost}
-                    onDeletePost={handleDeletePost}
-                />
-                <Box sx={{display: 'flex', justifyContent: 'center', mt: 2, gap: 1}}>
-                    <Button
-                        variant="outlined"
-                        disabled={page === 1}
-                        onClick={() => setPage(page - 1)}
-                        sx={{bgcolor: groupColor, color: 'white'}}
-                        title="Poprzednia strona"
-                    >
-                        <ArrowLeft size={20}/>
-                    </Button>
-                    <Typography sx={{alignSelf: 'center'}}>{page}</Typography>
-                    <Button
-                        variant="outlined"
-                        disabled={items.length < pageSize}
-                        onClick={() => setPage(page + 1)}
-                        sx={{bgcolor: groupColor, color: 'white'}}
-                        title="Następna strona"
-                    >
-                        <ArrowRight size={20}/>
-                    </Button>
-                </Box>
-            </Box>
-            <Dialog
-                open={editDialogOpen}
-                onClose={handleEditDialogClose}
-                fullWidth
-                maxWidth="sm"
+            <Box
+                sx={{
+                    width: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
             >
-                <DialogTitle>Edytuj post</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        fullWidth
-                        label="Tytuł (opcjonalnie)"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        margin="normal"
-                        disabled={isEditing}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                borderRadius: 3,
-                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: groupColor,
+                <GroupHeader
+                    title={groupData?.name?.trim() || "Tablica grupy"}
+                />
+
+                <Box sx={{width: "90%", maxWidth: 700}}>
+                    <AddPostFormComponent
+                        user={currentUser}
+                        groupColor={groupColor}
+                        groupId={groupData.id}
+                        onAddPost={(newItem) => {
+                            const tempPost: GroupFeedItemResponseDto = {
+                                ...newItem,
+                                id: newItem.id || `temp-${Date.now()}`,
+                                user: {
+                                    id: currentUser.id,
+                                    name: currentUser.name,
+                                    surname: currentUser.surname,
+                                    username: currentUser.username,
+                                    profilePicture: currentUser.profilePicture ? {
+                                        id: currentUser.profilePicture.id,
+                                        fileName: currentUser.profilePicture.fileName || '',
+                                        contentType: currentUser.profilePicture.contentType || '',
+                                        size: currentUser.profilePicture.size || 0,
+                                    } : undefined,
                                 },
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: groupColor,
-                                },
-                            }
+                                reactions: [],
+                                comments: [],
+                                createdAt: new Date().toISOString(),
+                                type: newItem.type || FeedItemType.POST,
+                                description: newItem.description || '',
+                                title: newItem.title,
+                                storedFileId: newItem.storedFileId,
+                            };
+
+                            setItems((prevItems) => [tempPost, ...prevItems]);
                         }}
                     />
-                    <TextField
-                        fullWidth
-                        label="Treść"
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        multiline
-                        minRows={3}
-                        maxRows={6}
-                        margin="normal"
-                        disabled={isEditing}
-                        sx={{
-                            '& .MuiOutlinedInput-root': {
-                                borderRadius: 3,
-                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: groupColor,
-                                },
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: groupColor,
-                                },
-                            }
-                        }}
+
+
+                    <FeedListComponent
+                        items={items}
+                        groupColor={groupColor}
+                        expandedComments={expandedComments}
+                        userId={currentUser.id}
+                        onLike={handleLike}
+                        onToggleComments={toggleComments}
+                        onOpenMenu={handleOpenMenu}
+                        newComment={newComment}
+                        onCommentChange={(id, value) => setNewComment({...newComment, [id]: value})}
+                        onAddComment={handleAddComment}
+                        menuAnchor={menuAnchor}
+                        onCloseMenu={handleCloseMenu}
+                        onEditPost={handleEditPost}
+                        onDeletePost={handleDeletePost}
                     />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleEditDialogClose} disabled={isEditing} sx={{bgcolor: 'error.main'}}>
-                        Anuluj
-                    </Button>
-                    <Button
-                        onClick={handleEditSubmit}
-                        variant="contained"
-                        disabled={!editContent.trim() || isEditing}
-                        sx={{ bgcolor: groupColor }}
-                    >
-                        {isEditing ? 'Zapisywanie...' : 'Zapisz'}
-                    </Button>
-                </DialogActions>
-            </Dialog>
-        </Box>
+                    <Box sx={{display: 'flex', justifyContent: 'center', mt: 2, gap: 1}}>
+                        <Button
+                            variant="outlined"
+                            disabled={page === 1}
+                            onClick={() => setPage(page - 1)}
+                            sx={{bgcolor: groupColor, color: 'white'}}
+                            title="Poprzednia strona"
+                        >
+                            <ArrowLeft size={20}/>
+                        </Button>
+                        <Typography sx={{alignSelf: 'center'}}>{page}</Typography>
+                        <Button
+                            variant="outlined"
+                            disabled={items.length < pageSize}
+                            onClick={() => setPage(page + 1)}
+                            sx={{bgcolor: groupColor, color: 'white'}}
+                            title="Następna strona"
+                        >
+                            <ArrowRight size={20}/>
+                        </Button>
+                    </Box>
+                </Box>
+                <Dialog
+                    open={editDialogOpen}
+                    onClose={handleEditDialogClose}
+                    fullWidth
+                    maxWidth="sm"
+                >
+                    <DialogTitle>Edytuj post</DialogTitle>
+                    <DialogContent>
+                        <TextField
+                            fullWidth
+                            label="Tytuł (opcjonalnie)"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            margin="normal"
+                            disabled={isEditing}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                }
+                            }}
+                        />
+                        <TextField
+                            fullWidth
+                            label="Treść"
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            multiline
+                            minRows={3}
+                            maxRows={6}
+                            margin="normal"
+                            disabled={isEditing}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 3,
+                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        borderColor: groupColor,
+                                    },
+                                }
+                            }}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleEditDialogClose} disabled={isEditing} sx={{bgcolor: 'error.main'}}>
+                            Anuluj
+                        </Button>
+                        <Button
+                            onClick={handleEditSubmit}
+                            variant="contained"
+                            disabled={!editContent.trim() || isEditing}
+                            sx={{bgcolor: groupColor}}
+                        >
+                            {isEditing ? 'Zapisywanie...' : 'Zapisz'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+            </Box>
+        </>
     );
 }

@@ -123,7 +123,7 @@ interface FeedItemProps {
     onDeletePost: () => void;
 }
 
-export default function FeedItem({
+export default function FeedItemComponent({
                                      item,
                                      userId,
                                      currentUser,

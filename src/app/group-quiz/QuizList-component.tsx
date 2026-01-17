@@ -12,10 +12,10 @@ import {
     IconButton,
     Typography,
 } from '@mui/material';
-import {Brain, Edit2, Menu, PlayCircle, Plus, Trash2,} from 'lucide-react';
+import {Brain, Edit2, PlayCircle, Plus, Trash2,} from 'lucide-react';
 import {QuizResponseDto} from '@/lib/types/quiz';
 import {useSearchParams} from 'next/navigation';
-import GroupHeader from '../layout/Group-header';
+import GroupHeader from '../../components/layout/Group-header';
 
 
 interface QuizListProps {
@@ -27,7 +27,7 @@ interface QuizListProps {
     onDeleteQuiz: (quizId: string) => void;
 }
 
-export default function QuizList({
+export default function QuizListComponent({
                                      quizzes,
                                      groupColor,
                                      onCreateQuiz,
@@ -40,8 +40,7 @@ export default function QuizList({
         open: boolean;
         quizId: string | null;
     }>({open: false, quizId: null});
-
-    const groupData = useMemo(() => {
+    useMemo(() => {
         const groupId = searchParams?.get('groupId') || '';
         const groupName = searchParams?.get('groupName') || '';
         const groupColor = searchParams?.get('groupColor') || '#9042fb';

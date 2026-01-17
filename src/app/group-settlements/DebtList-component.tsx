@@ -21,7 +21,7 @@ function formatCurrency(amount: number): string {
     return `${amount.toFixed(2)} zł`;
 }
 
-export default function DebtList({myDebts, groupColor, onBack, onMarkAsPaid}: DebtListProps) {
+export default function DebtListComponent({myDebts, groupColor, onBack, onMarkAsPaid}: DebtListProps) {
     return (
         <Box sx={{width: '100%', minHeight: '100vh', px: {xs: 2, sm: 3}, py: {xs: 3, sm: 4}}}>
             <Box sx={{maxWidth: 800, mx: 'auto'}}>

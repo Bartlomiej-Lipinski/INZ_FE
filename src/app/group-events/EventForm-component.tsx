@@ -31,7 +31,7 @@ interface EventFormProps {
     isValid: boolean;
 }
 
-export default function EventForm({
+export default function EventFormComponent({
                                       title,
                                       description,
                                       location,
