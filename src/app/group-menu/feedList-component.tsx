@@ -1,6 +1,6 @@
 import React from 'react';
 import {GroupFeedItemResponseDto} from "@/lib/types/feedDtos";
-import FeedItem from "@/components/feed/feedItem";
+import FeedItemComponent from "@/app/group-menu/feedItem-component";
 
 interface FeedListProps {
     items: GroupFeedItemResponseDto[];
@@ -19,7 +19,7 @@ interface FeedListProps {
     onDeletePost: () => void;
 }
 
-export default function FeedList({
+export default function FeedListComponent({
                                      items,
                                      userId,
                                      groupColor,
@@ -39,7 +39,7 @@ export default function FeedList({
         <div>
             {items.map(item => (
                 <div key={item.id} style={{marginBottom: '16px'}}>
-                    <FeedItem
+                    <FeedItemComponent
                         item={item}
                         userId={userId}
                         groupColor={groupColor}

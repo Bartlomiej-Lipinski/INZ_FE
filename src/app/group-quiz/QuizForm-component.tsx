@@ -30,7 +30,7 @@ interface QuizFormProps {
     onCancel: () => void;
 }
 
-export default function QuizForm({
+export default function QuizFormComponent({
                                      mode,
                                      title,
                                      description,

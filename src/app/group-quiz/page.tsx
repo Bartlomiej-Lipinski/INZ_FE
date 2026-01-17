@@ -11,15 +11,18 @@ import {
     ViewMode,
 } from '@/lib/types/quiz';
 import {calculateQuizScore} from '@/lib/utils/quiz';
-import QuizList from '@/components/quiz/QuizList';
-import QuizForm from '@/components/quiz/QuizForm';
-import QuizTake from '@/components/quiz/QuizTake';
-import QuizResults from '@/components/quiz/QuizResults';
+import QuizListComponent from '@/app/group-quiz/QuizList-component';
+import QuizFormComponent from '@/app/group-quiz/QuizForm-component';
+import QuizTakeComponent from '@/app/group-quiz/QuizTake-component';
+import QuizResultsComponent from '@/app/group-quiz/QuizResults-component';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {usePopup} from '@/hooks/usePopup';
+import Popup from '@/components/common/Popup';
 
 
 export default function QuizzesPage() {
+    const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
     const [quizzes, setQuizzes] = useState<QuizResponseDto[]>([]);
@@ -54,7 +57,7 @@ export default function QuizzesPage() {
                 );
 
                 if (!res.ok) {
-                    console.error('Błąd pobierania quizów, status:', res.status);
+                    showError('Nie udało się pobrać quizów');
                     return;
                 }
 
@@ -74,6 +77,7 @@ export default function QuizzesPage() {
                 if (mounted) setQuizzes(normalized);
             } catch (error) {
                 console.error('Błąd podczas pobierania quizów:', error);
+                showError('Błąd połączenia podczas pobierania quizów');
             }
         };
         fetchQuizzes();
@@ -90,7 +94,7 @@ export default function QuizzesPage() {
             );
 
             if (!res.ok) {
-                console.error('Błąd pobierania quizu, status:', res.status);
+                showError('Nie udało się pobrać quizu');
                 return null;
             }
 
@@ -109,6 +113,7 @@ export default function QuizzesPage() {
             return normalized;
         } catch (error) {
             console.error('Błąd podczas pobierania quizu:', error);
+            showError('Błąd połączenia podczas pobierania quizu');
             return null;
         }
     };
@@ -164,12 +169,13 @@ export default function QuizzesPage() {
             );
 
             if (!res.ok) {
-                console.error('Błąd usuwania quizu, status:', res.status);
+                showError('Nie udało się usunąć quizu');
                 return;
             }
             setQuizzes(prev => prev.filter(q => q.id !== quizId));
         } catch (error) {
             console.error('Błąd podczas usuwania quizu:', error);
+            showError('Błąd podczas usuwania quizu');
         }
     };
 
@@ -181,11 +187,11 @@ export default function QuizzesPage() {
     async function handleSubmitQuiz() {
         if (viewMode === 'create') {
             if (!groupData.id) {
-                console.error('Brak groupId');
+                showError('Brak identyfikatora grupy');
                 return;
             }
             if (!title.trim()) {
-                console.error('Tytuł quizu jest wymagany');
+                showError('Tytuł quizu jest wymagany');
                 return;
             }
 
@@ -207,7 +213,8 @@ export default function QuizzesPage() {
                 );
 
                 if (!res.ok) {
-                    console.error('Błąd tworzenia quizu, status:', res.status);
+                    const errorData = await res.json().catch(() => ({}));
+                    showError(errorData.message || 'Nie udało się utworzyć quizu');
                     return;
                 }
 
@@ -232,16 +239,21 @@ export default function QuizzesPage() {
                 return;
             } catch (error) {
                 console.error('Błąd podczas tworzenia quizu:', error);
+                showError('Błąd podczas tworzenia quizu');
                 return;
             }
         }
         if (viewMode === 'edit') {
             if (!selectedQuiz) {
-                console.error('Brak wybranego quizu do edycji');
+                showError('Brak wybranego quizu do edycji');
                 return;
             }
             if (!title.trim()) {
-                console.error('Tytuł quizu jest wymagany');
+                showError('Tytuł quizu jest wymagany');
+                return;
+            }
+            if (questions.length === 0) {
+                showError('Quiz musi zawierać przynajmniej jedno pytanie');
                 return;
             }
 
@@ -263,7 +275,8 @@ export default function QuizzesPage() {
                 );
 
                 if (!res.ok) {
-                    console.error('Błąd aktualizacji quizu, status:', res.status);
+                    const errorData = await res.json().catch(() => ({}));
+                    showError(errorData.message || 'Nie udało się zaktualizować quizu');
                     return;
                 }
 
@@ -287,8 +300,8 @@ export default function QuizzesPage() {
                 setSelectedQuiz(null);
                 return;
             } catch (error) {
-                console.error('Błąd podczas aktualizacji quizu:', error);
-                return;
+                console.error('Błąd podczas edycji quizu:', error);
+                showError('Błąd podczas edycji quizu');
             }
         }
 
@@ -328,66 +341,68 @@ export default function QuizzesPage() {
         setViewMode('take');
     };
 
-    // Render appropriate view
-    if (viewMode === 'list') {
-        return (
-            <QuizList
-                quizzes={quizzes}
-                groupColor={groupData.color}
-                onCreateQuiz={handleCreateQuiz}
-                onEditQuiz={handleEditQuiz}
-                onTakeQuiz={handleTakeQuiz}
-                onDeleteQuiz={handleDeleteQuiz}
-            />
-        );
-    }
+    return (
+        <>
+            {popup.isOpen && (
+                <Popup
+                    type={popup.type}
+                    title={popup.title}
+                    message={popup.message}
+                    onClose={hidePopup}
+                />
+            )}
 
-    if (viewMode === 'create' || viewMode === 'edit') {
-        return (
-            <QuizForm
-                mode={viewMode}
-                title={title}
-                description={description}
-                questions={questions}
-                groupColor={groupData.color}
-                onTitleChange={setTitle}
-                onDescriptionChange={setDescription}
-                onQuestionsChange={setQuestions}
-                onSubmit={handleSubmitQuiz}
-                onCancel={handleBackToList}
-            />
-        );
-    }
+            {viewMode === 'list' && (
+                <QuizListComponent
+                    quizzes={quizzes}
+                    groupColor={groupData.color}
+                    onCreateQuiz={handleCreateQuiz}
+                    onEditQuiz={handleEditQuiz}
+                    onTakeQuiz={handleTakeQuiz}
+                    onDeleteQuiz={handleDeleteQuiz}
+                />
+            )}
 
-    if (viewMode === 'take' && selectedQuiz) {
-        return (
-            <QuizTake
-                quiz={selectedQuiz}
-                currentQuestionIndex={currentQuestionIndex}
-                answers={answers}
-                groupColor={groupData.color}
-                onAnswerChange={handleAnswerChange}
-                onNext={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
-                onPrevious={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
-                onSubmit={handleSubmitAttempt}
-                onCancel={handleBackToList}
-                onQuestionSelect={setCurrentQuestionIndex}
-            />
-        );
-    }
+            {(viewMode === 'create' || viewMode === 'edit') && (
+                <QuizFormComponent
+                    mode={viewMode}
+                    title={title}
+                    description={description}
+                    questions={questions}
+                    groupColor={groupData.color}
+                    onTitleChange={setTitle}
+                    onDescriptionChange={setDescription}
+                    onQuestionsChange={setQuestions}
+                    onSubmit={handleSubmitQuiz}
+                    onCancel={handleBackToList}
+                />
+            )}
 
-    if (viewMode === 'results' && result && selectedQuiz) {
-        return (
-            <QuizResults
-                quiz={selectedQuiz}
-                result={result}
-                answers={answers}
-                groupColor={groupData.color}
-                onRetake={handleRetake}
-                onBackToList={handleBackToList}
-            />
-        );
-    }
+            {viewMode === 'take' && selectedQuiz && (
+                <QuizTakeComponent
+                    quiz={selectedQuiz}
+                    currentQuestionIndex={currentQuestionIndex}
+                    answers={answers}
+                    groupColor={groupData.color}
+                    onAnswerChange={handleAnswerChange}
+                    onNext={() => setCurrentQuestionIndex(currentQuestionIndex + 1)}
+                    onPrevious={() => setCurrentQuestionIndex(currentQuestionIndex - 1)}
+                    onSubmit={handleSubmitAttempt}
+                    onCancel={handleBackToList}
+                    onQuestionSelect={setCurrentQuestionIndex}
+                />
+            )}
 
-    return null;
+            {viewMode === 'results' && result && selectedQuiz && (
+                <QuizResultsComponent
+                    quiz={selectedQuiz}
+                    result={result}
+                    answers={answers}
+                    groupColor={groupData.color}
+                    onRetake={handleRetake}
+                    onBackToList={handleBackToList}
+                />
+            )}
+        </>
+    );
 }

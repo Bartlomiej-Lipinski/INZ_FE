@@ -41,9 +41,9 @@ const MENU_ITEMS = [
     {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, path: '/group-settlements', adminOnly: false},
     {key: 'recommendations', label: 'REKOMENDACJE', icon: Star, path: '/group-recommendations', adminOnly: false},
     {key: 'study', label: 'NAUKA', icon: Notebook, path: '/group-study', adminOnly: false},
-    {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/ankiety', adminOnly: false},
+    {key: 'polls', label: 'ANKIETY', icon: PieChart, path: '/group-polls', adminOnly: false},
     {key: 'quizzes', label: 'QUIZY', icon: Brain, path: '/group-quiz', adminOnly: false},
-    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/members', adminOnly: false},
+    {key: 'members', label: 'CZŁONKOWIE', icon: Users, path: '/group-members', adminOnly: false},
     {key: 'settings', label: 'OPCJE GRUPY', icon: Settings, path: '/group-settings', adminOnly: true},
 ] as const;
 

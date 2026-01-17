@@ -31,7 +31,7 @@ interface AvailabilityCalendarProps {
     groupColor?: string;
 }
 
-export default function AvailabilityCalendar({
+export default function AvailabilityCalendarComponent({
                                                  rangeStart,
                                                  rangeEnd,
                                                  selectedSlots,

@@ -14,7 +14,7 @@ interface FileListProps {
     groupColor: string;
 }
 
-export default function FileList({
+export default function FileListComponent({
                                      files,
                                      hasFilters,
                                      canDeleteFile,

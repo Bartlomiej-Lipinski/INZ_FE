@@ -17,7 +17,7 @@ interface QuizTakeProps {
     onQuestionSelect: (index: number) => void;
 }
 
-export default function QuizTake({
+export default function QuizTakeComponent({
                                      quiz,
                                      currentQuestionIndex,
                                      answers,

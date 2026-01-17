@@ -12,7 +12,7 @@ interface CategoriesManagerProps {
     onOpenMenu: (event: React.MouseEvent<HTMLElement>, categoryId: string) => void;
 }
 
-export default function CategoriesManager({
+export default function CategoriesManagerComponent({
                                               categories,
                                               files,
                                               isAdmin,

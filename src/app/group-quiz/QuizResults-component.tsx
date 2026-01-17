@@ -19,7 +19,7 @@ interface QuizResultsProps {
     onBackToList: () => void;
 }
 
-export default function QuizResults({
+export default function QuizResultsComponent({
                                         quiz,
                                         result,
                                         answers,

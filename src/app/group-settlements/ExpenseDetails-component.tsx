@@ -45,7 +45,7 @@ function UserAvatar({user, size, groupColor}: { user: any; size: number; groupCo
     );
 }
 
-export default function ExpenseDetails({
+export default function ExpenseDetailsComponent({
                                            expense,
                                            groupColor,
                                            onBack,

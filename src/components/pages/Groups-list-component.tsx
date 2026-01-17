@@ -1,15 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography, } from '@mui/material';
-import { Search, X } from 'lucide-react';
-import { Group } from '@/lib/types/group';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography,} from '@mui/material';
+import {Search, X} from 'lucide-react';
+import {Group} from '@/lib/types/group';
 import GroupItem from '@/components/common/Group-item';
-import { fetchWithAuth } from "@/lib/api/fetch-with-auth";
-import { API_ROUTES } from "@/lib/api/api-routes-endpoints";
-import { AddGroupModal } from '@/components/modals/add-group-modal';
-import { JoinGroupModal } from '@/components/modals/join-group-modal';
-import { useRouter } from 'next/navigation';
+import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
+import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
+import {AddGroupModal} from '@/components/modals/add-group-modal';
+import {JoinGroupModal} from '@/components/modals/join-group-modal';
+import {useRouter} from 'next/navigation';
 
 
 interface ApiResponse {
@@ -18,7 +18,7 @@ interface ApiResponse {
     message?: string;
 }
 
-export default function GroupsList() {
+export default function GroupsListComponent() {
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(true);
     const [groups, setGroups] = useState<Group[]>([]);

@@ -2,15 +2,17 @@
 
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
-import {StudyMaterialsPage} from '@/components/pages/StudyMaterials';
+import {StudyMaterialsPage} from '@/app/group-study/StudyMaterials-component';
 import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-material';
 import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
 import {fetchWithAuth} from '@/lib/api/fetch-with-auth';
 import {useIsAdmin} from "@/hooks/use-isAdmin";
 import {Box, CircularProgress} from "@mui/material";
-
+import {usePopup} from '@/hooks/usePopup';
+import Popup from '@/components/common/Popup';
 
 export default function GroupMenuPage() {
+    const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [files, setFiles] = useState<StoredFileResponseDto[]>([]);
     const [categories, setCategories] = useState<FileCategoryResponseDto[]>([]);
@@ -65,15 +67,21 @@ export default function GroupMenuPage() {
                     isTwoFactorEnabled: userData.isTwoFactorEnabled,
                 });
                 const checkAdmin = async () => {
-                    const response = await verifyIsUserAdmin(groupData.id);
-                    setIsAdmin(response.success && response.data === true);
+                    try {
+                        const response = await verifyIsUserAdmin(groupData.id);
+                        setIsAdmin(response.success && response.data === true);
+                    } catch (error) {
+                        showError('Nie udało się sprawdzić uprawnień');
+                        console.error('Błąd podczas weryfikacji uprawnień admina:', error);
+                    }
                 };
                 checkAdmin();
             } catch (error) {
+                showError('Błąd podczas wczytywania danych użytkownika');
                 console.error('Błąd parsowania danych użytkownika:', error);
             }
         }
-    }, [groupData.id]);
+    }, [groupData.id, showError, verifyIsUserAdmin]);
 
     const fetchMaterials = useCallback(async (categoryId?: string, uploadedById?: string) => {
         if (!groupData.id) return;
@@ -100,10 +108,11 @@ export default function GroupMenuPage() {
             const files = data.data as StoredFileResponseDto[];
             setFiles(Array.isArray(files) ? files : [files]);
         } catch (error) {
+            showError('Błąd podczas pobierania materiałów');
             console.error('Błąd podczas pobierania materiałów:', error);
             setFiles([]);
         }
-    }, [groupData.id]);
+    }, [groupData.id, showError]);
 
     const fetchCategories = useCallback(async () => {
         if (!groupData.id) return;
@@ -126,10 +135,11 @@ export default function GroupMenuPage() {
             const body = data.data as FileCategoryResponseDto[];
             setCategories(Array.isArray(body) ? body : []);
         } catch (error) {
+            showError('Błąd podczas pobierania kategorii');
             console.error('Błąd podczas pobierania kategorii:', error);
             setCategories([]);
         }
-    }, [groupData.id]);
+    }, [groupData.id, showError]);
 
     useEffect(() => {
         const loadData = async () => {
@@ -152,16 +162,26 @@ export default function GroupMenuPage() {
     }
 
     return (
-        <StudyMaterialsPage
-            files={files}
-            categories={categories}
-            userId={currentUser.id}
-            isAdmin={isAdmin}
-            groupData={groupData}
-            onFilesChange={setFiles}
-            onCategoriesChange={setCategories}
-            onRefreshMaterials={fetchMaterials}
-            onRefreshCategories={fetchCategories}
-        />
+        <>
+            {popup.isOpen && (
+                <Popup
+                    type={popup.type}
+                    title={popup.title}
+                    message={popup.message}
+                    onClose={hidePopup}
+                />
+            )}
+            <StudyMaterialsPage
+                files={files}
+                categories={categories}
+                userId={currentUser.id}
+                isAdmin={isAdmin}
+                groupData={groupData}
+                onFilesChange={setFiles}
+                onCategoriesChange={setCategories}
+                onRefreshMaterials={fetchMaterials}
+                onRefreshCategories={fetchCategories}
+            />
+        </>
     );
 }

@@ -33,7 +33,7 @@ function formatCurrency(amount: number): string {
     return `${amount.toFixed(2)} zł`;
 }
 
-export default function ExpenseForm({
+export default function ExpenseFormComponent({
                                         members,
                                         currentUserId,
                                         groupColor,

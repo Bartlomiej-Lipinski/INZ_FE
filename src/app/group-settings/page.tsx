@@ -24,7 +24,7 @@ import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {darken} from "@mui/system";
 
-export default function GroupSettingsPage() {
+export default function Page() {
     const router = useRouter();
     const {verifyIsUserAdmin} = useIsAdmin();
     const searchParams = useSearchParams();

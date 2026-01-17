@@ -27,7 +27,11 @@ import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
 import {useRouter} from 'next/navigation';
 import {useAuthContext} from '@/contexts/AuthContext';
 
-export default function MembersList({ groupId, groupName, groupColor }: { groupId: string | null, groupName: string, groupColor: string }) {
+export default function MembersListComponent({groupId, groupName, groupColor}: {
+    groupId: string | null,
+    groupName: string,
+    groupColor: string
+}) {
     const { user } = useAuthContext();
     const { members, isLoading, error, fetchGroupMembers } = useMembers();
     const {

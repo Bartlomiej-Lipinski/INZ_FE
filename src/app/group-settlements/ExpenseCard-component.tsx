@@ -39,7 +39,7 @@ function UserAvatar({user, size, groupColor}: { user: any; size: number; groupCo
     );
 }
 
-export default function ExpenseCard({expense, onClick}: ExpenseCardProps) {
+export default function ExpenseCardComponent({expense, onClick}: ExpenseCardProps) {
     return (
         <Card
             sx={{
