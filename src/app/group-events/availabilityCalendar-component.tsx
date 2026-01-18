@@ -205,7 +205,7 @@ export default function AvailabilityCalendarComponent({
                     const isExpanded = expandedDay === dateKey;
 
                     return (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={dateKey}>
+                        <Grid component={div} xs={12} sm={6} md={4} lg={3} key={dateKey}>
                             <Card
                                 sx={{
                                     p: 0,
