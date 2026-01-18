@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useState} from 'react';
-import {Box, Button, Card, Chip, Grid, IconButton, Paper, Typography,} from '@mui/material';
+import {Box, Button, Card, Chip, Grid, Grid2, IconButton, Paper, Typography,} from '@mui/material';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {
     addWeeks,
