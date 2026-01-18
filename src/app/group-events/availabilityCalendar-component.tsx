@@ -36,7 +36,7 @@ export default function AvailabilityCalendarComponent({
                                                  rangeEnd,
                                                  selectedSlots,
                                                  onSlotsChange,
-                                                 groupColor = '#7c3aed', // Domyślny kolor
+                                                          groupColor = '#7c3aed',
                                              }: AvailabilityCalendarProps) {
     const [weekStart, setWeekStart] = useState<Date>(() => {
         const start = new Date(rangeStart);
@@ -205,7 +205,7 @@ export default function AvailabilityCalendarComponent({
                     const isExpanded = expandedDay === dateKey;
 
                     return (
-                        <Grid item xs={12} sm={6} md={4} lg={3.43} key={dateKey}>
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={dateKey}>
                             <Card
                                 sx={{
                                     p: 0,
