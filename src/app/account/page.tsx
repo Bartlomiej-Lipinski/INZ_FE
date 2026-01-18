@@ -3,22 +3,22 @@
 import AccountGroupsNav from "@/components/layout/Account-groups-nav";
 import {useAuthContext} from "@/contexts/AuthContext";
 import {
-    Alert,
-    Avatar,
-    Box,
-    Button,
-    ButtonBase,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Divider,
-    IconButton,
-    MenuItem,
-    Slider,
-    TextField,
-    Typography,
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  ButtonBase,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Divider,
+  IconButton,
+  MenuItem,
+  Slider,
+  TextField,
+  Typography,
 } from "@mui/material";
 import {ChangeEvent, DragEvent, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {useTheme} from "@mui/material/styles";
@@ -26,13 +26,9 @@ import {Camera, ChevronRight, Settings} from "lucide-react";
 import {useRouter} from "next/navigation";
 import {formatDate, formatDateForInput} from "@/lib/utils/date";
 import {getCroppedFile} from "@/lib/utils/image";
-import {
-    getStatusLabel,
-    STATUS_OPTIONS,
-    ALLOWED_PROFILE_PHOTO_TYPES,
-} from "@/lib/constants";
+import {ALLOWED_PROFILE_PHOTO_TYPES, getStatusLabel, STATUS_OPTIONS,} from "@/lib/constants";
 import {useUser} from "@/hooks/use-user";
-import {useProfilePicture, clearProfilePictureCache} from "@/hooks/use-profile-picture";
+import {clearProfilePictureCache, useProfilePicture} from "@/hooks/use-profile-picture";
 import {useAvatarManager} from "@/hooks/use-avatar-manager";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
@@ -438,7 +434,7 @@ export default function AccountPage() {
     const payload = {
       name: normalizedFormValues.name,
       surname: normalizedFormValues.surname,
-      username: normalizedFormValues.username || null,
+      username: normalizedFormValues.username || "",
       status: normalizedFormValues.status === "" ? null : normalizedFormValues.status,
       description: normalizedFormValues.description || null,
       birthDate: new Date(formValues.birthDate),
