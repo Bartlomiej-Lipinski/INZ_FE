@@ -196,7 +196,7 @@ export default function AvailabilityCalendarComponent({
             </Box>
 
             {/* Days Grid */}
-            <Grid container spacing={1} sx={{mb: 3}}>
+            <Grid2 container spacing={1} sx={{mb: 3}}>
                 {weekDays.map((day) => {
                     const dateKey = getDateKey(day);
                     const inRange = isDateInRange(day);
@@ -205,7 +205,7 @@ export default function AvailabilityCalendarComponent({
                     const isExpanded = expandedDay === dateKey;
 
                     return (
-                        <Grid component="div" xs={12} sm={6} md={4} lg={3} key={dateKey}>
+                        <Grid component item xs={12} sm={6} md={4} lg={3} key={dateKey}>
                             <Card
                                 sx={{
                                     p: 0,
@@ -378,7 +378,7 @@ export default function AvailabilityCalendarComponent({
                         </Grid>
                     );
                 })}
-            </Grid>
+            </Grid2>
 
             {/* Selected Slots Summary */}
             {selectedSlots.length > 0 && (
