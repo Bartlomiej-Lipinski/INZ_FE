@@ -7,6 +7,14 @@ const GET_POST_TIMELINE = process.env.GET_POST_TIMELINE;
 export async function GET(request: NextRequest) {
     try {
         const groupId = request.nextUrl.searchParams.get('groupId');
+
+        if (!groupId) {
+            return NextResponse.json(
+                {success: false, message: 'Brak wymaganego parametru groupId'},
+                {status: 400}
+            );
+        }
+
         const endpoint = GET_POST_TIMELINE?.replace('{groupId}', groupId);
         const cookieHeader = request.headers.get('cookie') ?? '';
         const response = await fetchWithAuth(`${BASE_URL}${endpoint}`, {
