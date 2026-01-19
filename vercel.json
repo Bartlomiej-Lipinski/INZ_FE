@@ -1,0 +1,11 @@
+{
+  "security": {
+    "protection": {
+      "enabled": true,
+      "mode": "sso",
+      "exclude": [
+        "/api/*"
+      ]
+    }
+  }
+}
