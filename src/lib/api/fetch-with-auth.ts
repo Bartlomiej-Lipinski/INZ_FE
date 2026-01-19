@@ -13,11 +13,27 @@ export function setLogoutCallback(callback: () => void) {
   logoutCallback = callback;
 }
 
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
+export function setLogoutCallback(callback: () => void) {
+  logoutCallback = callback;
+}
+
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
     const response = await fetch(API_ROUTES.REFRESH, {
       method: 'POST',
-      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${refreshToken}`,
+      },
     });
 
     if (response.ok) {
@@ -60,16 +76,17 @@ export async function fetchWithAuth(
   url: string, 
   options: RequestInit = {}
 ): Promise<Response> {
+  const accessToken = getCookie('access_token');
   const requestOptions: RequestInit = {
     ...options,
     method: options.method,
-    credentials: 'include',
       headers: {
           ...options.headers,
           ...(options.body instanceof FormData
                   ? {}
                   : {'Content-Type': 'application/json'}
           ),
+        ...(accessToken ? {'Authorization': `Bearer ${accessToken}`} : {}),
       },
   };
 
