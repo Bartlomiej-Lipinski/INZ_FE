@@ -8,7 +8,7 @@ export interface UserResponseDto {
     id: string;
     username: string;
     email: string;
-    profilePictureUrl?: {
+    profilePicture?: {
         id: string;
     }
 }
