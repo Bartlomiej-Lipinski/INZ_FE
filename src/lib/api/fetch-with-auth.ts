@@ -20,10 +20,20 @@ function getCookie(name: string): string | null {
 function deleteCookie(name: string) {
   if (typeof document === 'undefined') return;
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}`;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname}`;
 }
 
-function removeVercelJwt() {
+async function removeVercelJwtAndWait() {
   deleteCookie('_vercel_jwt');
+
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  let attempts = 0;
+  while (getCookie('_vercel_jwt') !== null && attempts < 10) {
+    await new Promise(resolve => setTimeout(resolve, 10));
+    attempts++;
+  }
 }
 
 function restoreVercelJwt(token: string | null) {
@@ -39,7 +49,7 @@ export function setLogoutCallback(callback: () => void) {
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
     const vercelJwt = getCookie('_vercel_jwt');
-    removeVercelJwt();
+    await removeVercelJwtAndWait();
 
     const response = await fetch(API_ROUTES.REFRESH, {
       method: 'POST',
@@ -90,7 +100,7 @@ export async function fetchWithAuth(
   options: RequestInit = {}
 ): Promise<Response> {
   const vercelJwt = getCookie('_vercel_jwt');
-  removeVercelJwt();
+  await removeVercelJwtAndWait();
 
   const requestOptions: RequestInit = {
     ...options,
@@ -116,13 +126,17 @@ export async function fetchWithAuth(
     if (isRefreshing) {
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({
-          resolve: () => {
+          resolve: async () => {
             const vJwt = getCookie('_vercel_jwt');
-            removeVercelJwt();
-            fetch(url, requestOptions).then((res) => {
+            await removeVercelJwtAndWait();
+            try {
+              const res = await fetch(url, requestOptions);
               restoreVercelJwt(vJwt);
               resolve(res);
-            }).catch(reject);
+            } catch (e) {
+              restoreVercelJwt(vJwt);
+              reject(e);
+            }
           },
           reject
         });
@@ -152,7 +166,7 @@ export async function fetchWithAuth(
         processQueue(null);
 
         const vJwt = getCookie('_vercel_jwt');
-        removeVercelJwt();
+        await removeVercelJwtAndWait();
         response = await fetch(url, requestOptions);
         restoreVercelJwt(vJwt);
 
