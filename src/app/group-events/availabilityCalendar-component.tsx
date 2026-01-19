@@ -2,7 +2,7 @@
 
 import React, {useState} from 'react';
 import {Box, Button, Card, Chip, Grid, IconButton, Paper, Typography,} from '@mui/material';
-import Grid2 from '@mui/material/Unstable_Grid2';
+// import Grid2 from '@mui/material/Unstable_Grid2';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import {
     addWeeks,
@@ -197,7 +197,7 @@ export default function AvailabilityCalendarComponent({
             </Box>
 
             {/* Days Grid */}
-            <Grid2 container spacing={1} sx={{mb: 3}}>
+            <Grid container spacing={1} sx={{mb: 3}}>
                 {weekDays.map((day) => {
                     const dateKey = getDateKey(day);
                     const inRange = isDateInRange(day);
@@ -379,7 +379,7 @@ export default function AvailabilityCalendarComponent({
                         </Grid>
                     );
                 })}
-            </Grid2>
+            </Grid>
 
             {/* Selected Slots Summary */}
             {selectedSlots.length > 0 && (
