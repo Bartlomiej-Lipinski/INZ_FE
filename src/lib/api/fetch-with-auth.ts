@@ -1,4 +1,5 @@
 import {API_ROUTES} from "./api-routes-endpoints";
+import {cookies} from 'next/headers';
 
 let isRefreshing = false;
 let refreshPromise: Promise<{ success: boolean; noRefreshToken?: boolean }> | null = null;
