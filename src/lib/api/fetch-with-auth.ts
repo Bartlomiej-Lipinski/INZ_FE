@@ -1,5 +1,4 @@
 import {API_ROUTES} from "./api-routes-endpoints";
-import {cookies} from 'next/headers';
 
 let isRefreshing = false;
 let refreshPromise: Promise<{ success: boolean; noRefreshToken?: boolean }> | null = null;
@@ -9,11 +8,18 @@ let failedQueue: Array<{
 }> = [];
 let logoutCallback: (() => void) | null = null;
 
-function extractAuthCookies(): string {
-  const cookieStore = cookies();
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
 
-  const accessToken = cookieStore.get('access_token')?.value;
-  const refreshToken = cookieStore.get('refresh_token')?.value;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
+function extractAuthCookies(): string {
+  const accessToken = getCookie('access_token');
+  const refreshToken = getCookie('refresh_token');
 
   const result: string[] = [];
 
