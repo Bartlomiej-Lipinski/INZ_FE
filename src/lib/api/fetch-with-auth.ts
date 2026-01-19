@@ -8,11 +8,6 @@ let failedQueue: Array<{
 }> = [];
 let logoutCallback: (() => void) | null = null;
 
-
-export function setLogoutCallback(callback: () => void) {
-  logoutCallback = callback;
-}
-
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
 
@@ -28,6 +23,12 @@ export function setLogoutCallback(callback: () => void) {
 
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
+    const refreshToken = getCookie('refresh_token');
+
+    if (!refreshToken) {
+      return {success: false, noRefreshToken: true};
+    }
+
     const response = await fetch(API_ROUTES.REFRESH, {
       method: 'POST',
       headers: {
@@ -39,7 +40,6 @@ async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?
     if (response.ok) {
       return { success: true };
     } else {
-
       if (response.status === 401) {
         try {
           const data = await response.json();
@@ -67,45 +67,51 @@ function processQueue(error: unknown) {
       resolve();
     }
   });
-  
+
   failedQueue = [];
 }
 
-
 export async function fetchWithAuth(
-  url: string, 
+    url: string,
   options: RequestInit = {}
 ): Promise<Response> {
   const accessToken = getCookie('access_token');
+
   const requestOptions: RequestInit = {
     ...options,
     method: options.method,
-      headers: {
-          ...options.headers,
-          ...(options.body instanceof FormData
-                  ? {}
-                  : {'Content-Type': 'application/json'}
-          ),
-        ...(accessToken ? {'Authorization': `Bearer ${accessToken}`} : {}),
-      },
+    headers: {
+      ...options.headers,
+      ...(options.body instanceof FormData
+              ? {}
+              : {'Content-Type': 'application/json'}
+      ),
+      ...(accessToken ? {'Authorization': `Bearer ${accessToken}`} : {}),
+    },
   };
 
-
   let response = await fetch(url, requestOptions);
-
 
   if (response.ok) {
     return response;
   }
 
-    if (response.status === 401 || response.status === 403 || response.status === 500) {
+  if (response.status === 401 || response.status === 403 || response.status === 500) {
     if (isRefreshing) {
       return new Promise<Response>((resolve, reject) => {
-        failedQueue.push({ 
+        failedQueue.push({
           resolve: () => {
-            fetch(url, requestOptions).then(resolve).catch(reject);
-          }, 
-          reject 
+            const newAccessToken = getCookie('access_token');
+            const retryOptions = {
+              ...requestOptions,
+              headers: {
+                ...requestOptions.headers,
+                ...(newAccessToken ? {'Authorization': `Bearer ${newAccessToken}`} : {}),
+              },
+            };
+            fetch(url, retryOptions).then(resolve).catch(reject);
+          },
+          reject
         });
       });
     }
@@ -115,7 +121,7 @@ export async function fetchWithAuth(
 
     try {
       const result = await refreshPromise;
-      
+
       if (result.noRefreshToken) {
         if (logoutCallback) {
           logoutCallback();
@@ -128,11 +134,20 @@ export async function fetchWithAuth(
         processQueue(new Error('Brak refresh token - sesja wygasła'));
         return response;
       }
-      
+
       if (result.success) {
         processQueue(null);
-        
-        response = await fetch(url, requestOptions);
+
+        const newAccessToken = getCookie('access_token');
+        const retryOptions = {
+          ...requestOptions,
+          headers: {
+            ...requestOptions.headers,
+            ...(newAccessToken ? {'Authorization': `Bearer ${newAccessToken}`} : {}),
+          },
+        };
+
+        response = await fetch(url, retryOptions);
         return response;
       } else {
         processQueue(new Error('Nie udało się odświeżyć tokena'));
@@ -148,5 +163,3 @@ export async function fetchWithAuth(
 
   return response;
 }
-
-
