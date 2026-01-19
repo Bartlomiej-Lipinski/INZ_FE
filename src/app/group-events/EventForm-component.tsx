@@ -3,6 +3,7 @@
 import React, {useState} from 'react';
 import {Box, Button, Card, FormControlLabel, IconButton, Radio, RadioGroup, TextField, Typography} from '@mui/material';
 import {ArrowLeft, ImageIcon, X} from 'lucide-react';
+import Image from 'next/image';
 
 interface EventFormProps {
     title: string;
