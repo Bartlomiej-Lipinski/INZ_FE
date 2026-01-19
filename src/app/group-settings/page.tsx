@@ -18,13 +18,13 @@ import {
 } from '@mui/material';
 import {ArrowLeft, Trash2} from 'lucide-react';
 import {useRouter, useSearchParams} from 'next/navigation';
-import {useEffect, useMemo, useState} from 'react';
+import {Suspense, useEffect, useMemo, useState} from 'react';
 import {useIsAdmin} from "@/hooks/use-isAdmin";
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 import {API_ROUTES} from "@/lib/api/api-routes-endpoints";
 import {darken} from "@mui/system";
 
-export default function Page() {
+function GroupSettingsPageContent() {
     const router = useRouter();
     const {verifyIsUserAdmin} = useIsAdmin();
     const searchParams = useSearchParams();
@@ -266,3 +266,12 @@ export default function Page() {
         </Container>
     );
 }
+
+export default function GroupSettingsPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <GroupSettingsPageContent />
+        </Suspense>
+    );
+}
+

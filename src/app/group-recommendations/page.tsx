@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {
     Avatar,
@@ -195,7 +195,7 @@ const normalizeRecommendations = (items: unknown): RecommendationResponseDto[] =
     return items.map((item) => normalizeRecommendation(item as RecommendationResponseDto));
 };
 
-export default function RecommendationsPage() {
+function RecommendationsPageContent() {
     const searchParams = useSearchParams();
     const [recommendations, setRecommendations] = useState<RecommendationResponseDto[]>([]);
     const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationResponseDto | null>(null);
@@ -1300,3 +1300,12 @@ export default function RecommendationsPage() {
         </Box>
     );
 }
+
+export default function RecommendationsPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <RecommendationsPageContent />
+        </Suspense>
+    );
+}
+

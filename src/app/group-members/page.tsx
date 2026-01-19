@@ -1,4 +1,5 @@
 "use client";
+import {Suspense} from 'react';
 import MembersListComponent from '@/app/group-members/Members-list-component';
 import {Box} from '@mui/material';
 import {useSearchParams} from 'next/navigation';
@@ -7,7 +8,7 @@ import GroupHeader from '@/components/layout/Group-header';
 import {Users} from 'lucide-react';
 
 
-export default function MembersPage() {
+function MembersPageContent() {
     const searchParams = useSearchParams();
     const theme = useTheme();
     const groupId = searchParams?.get('groupId') ?? '';
@@ -41,3 +42,12 @@ export default function MembersPage() {
         </Box>
     );
 }
+
+export default function MembersPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <MembersPageContent />
+        </Suspense>
+    );
+}
+

@@ -1,6 +1,6 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {
     Box,
@@ -23,7 +23,7 @@ import GroupHeader from '@/components/layout/Group-header';
 import {usePopup} from '@/hooks/usePopup';
 import Popup from '@/components/common/Popup';
 
-export default function PollsPage() {
+function PollsPageContent() {
     const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [polls, setPolls] = useState<PollResponseDto[]>([]);
@@ -396,3 +396,12 @@ export default function PollsPage() {
         </>
     );
 }
+
+export default function PollsPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <PollsPageContent />
+        </Suspense>
+    );
+}
+

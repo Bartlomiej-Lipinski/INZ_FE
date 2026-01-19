@@ -1,11 +1,11 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {Suspense, useState} from 'react';
 import {Box, Button, CircularProgress, TextField, Typography} from '@mui/material';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {API_ROUTES} from '@/lib/api/api-routes-endpoints';
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token') ?? '';
@@ -122,3 +122,12 @@ export default function ResetPasswordPage() {
         </Box>
     );
 }
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <ResetPasswordPageContent />
+        </Suspense>
+    );
+}
+

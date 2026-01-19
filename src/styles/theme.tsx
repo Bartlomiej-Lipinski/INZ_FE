@@ -5,7 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import {CacheProvider} from '@emotion/react';
 import createCache from '@emotion/cache';
 import {useSearchParams, useServerInsertedHTML} from 'next/navigation';
-import {type ReactNode, useEffect, useMemo} from 'react';
+import {type ReactNode, Suspense, useEffect, useMemo} from 'react';
 
 
 const customColors = {
@@ -364,7 +364,7 @@ export function ThemeProvider({children}: { children: ReactNode }) {
 }
 
 
-export function GroupThemeUpdater() {
+function GroupThemeUpdaterContent() {
     const searchParams = useSearchParams();
     const groupColor = searchParams?.get('groupColor');
 
@@ -382,3 +382,12 @@ export function GroupThemeUpdater() {
 
     return null;
 }
+
+export function GroupThemeUpdater() {
+    return (
+        <Suspense fallback={null}>
+            <GroupThemeUpdaterContent />
+        </Suspense>
+    );
+}
+

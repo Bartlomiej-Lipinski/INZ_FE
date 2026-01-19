@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {Suspense, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {
     QuizAttemptAnswerRequestDto,
@@ -21,7 +21,7 @@ import {usePopup} from '@/hooks/usePopup';
 import Popup from '@/components/common/Popup';
 
 
-export default function QuizzesPage() {
+function QuizzesPageContent() {
     const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -406,3 +406,12 @@ export default function QuizzesPage() {
         </>
     );
 }
+
+export default function QuizzesPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <QuizzesPageContent />
+        </Suspense>
+    );
+}
+

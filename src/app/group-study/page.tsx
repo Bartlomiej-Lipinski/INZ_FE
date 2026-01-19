@@ -1,6 +1,6 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {StudyMaterialsPage} from '@/app/group-study/StudyMaterials-component';
 import {FileCategoryResponseDto, StoredFileResponseDto} from '@/lib/types/study-material';
@@ -11,7 +11,7 @@ import {Box, CircularProgress} from "@mui/material";
 import {usePopup} from '@/hooks/usePopup';
 import Popup from '@/components/common/Popup';
 
-export default function GroupMenuPage() {
+function GroupStudyPageContent() {
     const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [files, setFiles] = useState<StoredFileResponseDto[]>([]);
@@ -185,3 +185,12 @@ export default function GroupMenuPage() {
         </>
     );
 }
+
+export default function GroupStudyPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <GroupStudyPageContent />
+        </Suspense>
+    );
+}
+

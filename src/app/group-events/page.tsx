@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {Suspense, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {Box, Button, IconButton, Typography} from '@mui/material';
 import {Calendar as CalendarIcon, Menu, Plus} from 'lucide-react';
@@ -36,7 +36,7 @@ const mapStatusToInt = (status: EventAvailabilityStatus): number => {
     }
 };
 
-export default function EventsPage() {
+function EventsPageContent() {
     const {popup, hidePopup, showError, showSuccess} = usePopup();
     const searchParams = useSearchParams();
     const [viewMode, setViewMode] = useState<ViewMode>('list');
@@ -702,3 +702,12 @@ export default function EventsPage() {
         </>
     );
 }
+
+export default function EventsPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <EventsPageContent />
+        </Suspense>
+    );
+}
+

@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {Suspense, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {Box, Button, Card, IconButton, Typography,} from '@mui/material';
 import {DollarSign, Menu, Plus, Receipt, TrendingDown, TrendingUp,} from 'lucide-react';
@@ -21,7 +21,7 @@ import Popup from '@/components/common/Popup';
 
 type ViewMode = 'list' | 'addExpense' | 'myDebts' | 'expenseDetails';
 
-export default function SettlementsPage() {
+function SettlementsPageContent() {
     const {popup, hidePopup, showError, showSuccess} = usePopup();
     const searchParams = useSearchParams();
     const {fetchGroupMembers} = useMembers();
@@ -537,3 +537,10 @@ export default function SettlementsPage() {
     return null;
 }
 
+export default function SettlementsPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <SettlementsPageContent />
+        </Suspense>
+    );
+}

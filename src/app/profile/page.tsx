@@ -1,6 +1,6 @@
 "use client";
 
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import {Suspense, useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {Alert, Box, Button, CircularProgress, Divider, IconButton, Typography,} from "@mui/material";
 import {ArrowLeftIcon,} from 'lucide-react';
 import {useTheme} from "@mui/material/styles";
@@ -11,7 +11,7 @@ import {useAuthContext} from "@/contexts/AuthContext";
 import {useMembers} from "@/hooks/use-members";
 import {useRouter, useSearchParams} from "next/navigation";
 
-export default function MemberProfilePage() {
+function MemberProfilePageContent() {
     const router = useRouter();
     const theme = useTheme();
     const {user} = useAuthContext();
@@ -615,3 +615,10 @@ export default function MemberProfilePage() {
     );
 }
 
+export default function MemberProfilePage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <MemberProfilePageContent />
+        </Suspense>
+    );
+}

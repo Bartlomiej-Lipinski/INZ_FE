@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {Suspense, useEffect, useMemo, useState} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography} from '@mui/material';
 import {ArrowLeft, ArrowRight} from 'lucide-react';
@@ -71,7 +71,7 @@ const normalizeStoredUser = (data: StoredUser | null | undefined): CurrentUser |
     };
 };
 
-export default function GroupBoardPage() {
+function GroupBoardPageContent() {
     const {popup, hidePopup, showError} = usePopup();
     const searchParams = useSearchParams();
     const [items, setItems] = useState<GroupFeedItemResponseDto[]>([]);
@@ -623,3 +623,12 @@ export default function GroupBoardPage() {
         </>
     );
 }
+
+export default function GroupBoardPage() {
+    return (
+        <Suspense fallback={<div>Ładowanie...</div>}>
+            <GroupBoardPageContent />
+        </Suspense>
+    );
+}
+
