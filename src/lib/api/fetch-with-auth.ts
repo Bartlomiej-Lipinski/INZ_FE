@@ -17,21 +17,19 @@ function getCookie(name: string): string | null {
   return null;
 }
 
-function extractAuthCookies(): string {
-  const accessToken = getCookie('access_token');
-  const refreshToken = getCookie('refresh_token');
+function deleteCookie(name: string) {
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+}
 
-  const result: string[] = [];
+function removeVercelJwt() {
+  deleteCookie('_vercel_jwt');
+}
 
-  if (accessToken) {
-    result.push(`access_token=${accessToken}`);
+function restoreVercelJwt(token: string | null) {
+  if (token && typeof document !== 'undefined') {
+    document.cookie = `_vercel_jwt=${token}; path=/;`;
   }
-
-  if (refreshToken) {
-    result.push(`refresh_token=${refreshToken}`);
-  }
-
-  return result.join('; ');
 }
 
 export function setLogoutCallback(callback: () => void) {
@@ -40,19 +38,22 @@ export function setLogoutCallback(callback: () => void) {
 
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
+    const vercelJwt = getCookie('_vercel_jwt');
+    removeVercelJwt();
+
     const response = await fetch(API_ROUTES.REFRESH, {
       method: 'POST',
       credentials: 'include',
       headers: {
-        'Cookie': extractAuthCookies(),
-        Accept: 'application/json',
+        'Content-Type': 'application/json',
       }
     });
+
+    restoreVercelJwt(vercelJwt);
 
     if (response.ok) {
       return { success: true };
     } else {
-
       if (response.status === 401) {
         try {
           const data = await response.json();
@@ -84,13 +85,12 @@ function processQueue(error: unknown) {
   failedQueue = [];
 }
 
-
 export async function fetchWithAuth(
     url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-
-  const authCookies = extractAuthCookies();
+  const vercelJwt = getCookie('_vercel_jwt');
+  removeVercelJwt();
 
   const requestOptions: RequestInit = {
     ...options,
@@ -98,7 +98,6 @@ export async function fetchWithAuth(
     credentials: 'include',
     headers: {
       ...options.headers,
-      ...(authCookies ? {'Cookie': authCookies} : {}),
       ...(options.body instanceof FormData
               ? {}
               : {'Content-Type': 'application/json'}
@@ -106,9 +105,8 @@ export async function fetchWithAuth(
     },
   };
 
-
   let response = await fetch(url, requestOptions);
-
+  restoreVercelJwt(vercelJwt);
 
   if (response.ok) {
     return response;
@@ -119,7 +117,12 @@ export async function fetchWithAuth(
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({
           resolve: () => {
-            fetch(url, requestOptions).then(resolve).catch(reject);
+            const vJwt = getCookie('_vercel_jwt');
+            removeVercelJwt();
+            fetch(url, requestOptions).then((res) => {
+              restoreVercelJwt(vJwt);
+              resolve(res);
+            }).catch(reject);
           },
           reject
         });
@@ -148,7 +151,11 @@ export async function fetchWithAuth(
       if (result.success) {
         processQueue(null);
 
+        const vJwt = getCookie('_vercel_jwt');
+        removeVercelJwt();
         response = await fetch(url, requestOptions);
+        restoreVercelJwt(vJwt);
+
         return response;
       } else {
         processQueue(new Error('Nie udało się odświeżyć tokena'));
@@ -164,5 +171,3 @@ export async function fetchWithAuth(
 
   return response;
 }
-
-
