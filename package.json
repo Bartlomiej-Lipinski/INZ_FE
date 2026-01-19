@@ -15,7 +15,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@microsoft/signalr": "^10.0.0",
-    "@mui/material": "^7.3.4",
+    "@mui/material": "^6.0.0",
     "@types/react-google-recaptcha": "^2.1.9",
     "date-fns": "^4.1.0",
     "lucide-react": "^0.525.0",
