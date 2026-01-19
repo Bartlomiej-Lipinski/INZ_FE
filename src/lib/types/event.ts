@@ -8,6 +8,9 @@ export interface UserResponseDto {
     id: string;
     username: string;
     email: string;
+    profilePictureUrl?: {
+        id: string;
+    }
 }
 
 export interface AvailabilityRangeRequestDto {
