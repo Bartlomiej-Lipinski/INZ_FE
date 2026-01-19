@@ -149,16 +149,13 @@ export default function EventFormComponent({
                                 hidden
                                 accept="image/*"
                                 type="file"
-                                onChange={handleImageChange} // Zmień na nową funkcję
+                                onChange={handleImageChange}
                             />
                         </Button>
                         {previewUrl && (
                             <Box sx={{position: 'relative', mb: 2}}>
-                                <img
-                                    src={previewUrl}
-                                    alt="Podgląd zdjęcia"
-                                    style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}
-                                />
+                                <Image src={previewUrl} alt="Podgląd zdjęcia" width={800} height={200}
+                                       style={{width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8}}/>
                                 <IconButton
                                     size="small"
                                     onClick={() => setPreviewUrl(null)}
