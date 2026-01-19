@@ -1009,8 +1009,8 @@ export default function RecommendationsPage() {
 
                 <Grid container spacing={3}>
                     {filteredRecommendations.map(rec => (
-                        <Grid size={{ xs: 12, md: 4 }} key={rec.id}>
-                            {renderRecommendationCard(rec)}
+                        <Grid xs={12} md={4} key={rec.id}>
+                        {renderRecommendationCard(rec)}
                         </Grid>
                     ))}
                 </Grid>

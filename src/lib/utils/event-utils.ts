@@ -84,7 +84,8 @@ export const calculateBestSuggestions = (
         if (unique.length === 3) break;
     }
 
-    return unique.map(s => ({
+    return unique.map((s, index) => ({
+        id: `${s.start.getTime()}-${index}`,
         startTime: s.start.toISOString(),
         endTime: s.end.toISOString(),
         availableUserCount: s.availableUserIds.length,
