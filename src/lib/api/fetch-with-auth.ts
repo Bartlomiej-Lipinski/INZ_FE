@@ -8,13 +8,23 @@ let failedQueue: Array<{
 }> = [];
 let logoutCallback: (() => void) | null = null;
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
+function extractAuthCookies(): string {
+  const cookieStore = cookies();
 
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
+  const accessToken = cookieStore.get('access_token')?.value;
+  const refreshToken = cookieStore.get('refresh_token')?.value;
+
+  const result: string[] = [];
+
+  if (accessToken) {
+    result.push(`access_token=${accessToken}`);
+  }
+
+  if (refreshToken) {
+    result.push(`refresh_token=${refreshToken}`);
+  }
+
+  return result.join('; ');
 }
 
 export function setLogoutCallback(callback: () => void) {
@@ -23,23 +33,19 @@ export function setLogoutCallback(callback: () => void) {
 
 async function refreshAccessToken(): Promise<{ success: boolean; noRefreshToken?: boolean }> {
   try {
-    const refreshToken = getCookie('refresh_token');
-
-    if (!refreshToken) {
-      return {success: false, noRefreshToken: true};
-    }
-
     const response = await fetch(API_ROUTES.REFRESH, {
       method: 'POST',
+      credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${refreshToken}`,
-      },
+        'Cookie': extractAuthCookies(),
+        Accept: 'application/json',
+      }
     });
 
     if (response.ok) {
       return { success: true };
     } else {
+
       if (response.status === 401) {
         try {
           const data = await response.json();
@@ -71,26 +77,31 @@ function processQueue(error: unknown) {
   failedQueue = [];
 }
 
+
 export async function fetchWithAuth(
     url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const accessToken = getCookie('access_token');
+
+  const authCookies = extractAuthCookies();
 
   const requestOptions: RequestInit = {
     ...options,
     method: options.method,
+    credentials: 'include',
     headers: {
       ...options.headers,
+      ...(authCookies ? {'Cookie': authCookies} : {}),
       ...(options.body instanceof FormData
               ? {}
               : {'Content-Type': 'application/json'}
       ),
-      ...(accessToken ? {'Authorization': `Bearer ${accessToken}`} : {}),
     },
   };
 
+
   let response = await fetch(url, requestOptions);
+
 
   if (response.ok) {
     return response;
@@ -101,15 +112,7 @@ export async function fetchWithAuth(
       return new Promise<Response>((resolve, reject) => {
         failedQueue.push({
           resolve: () => {
-            const newAccessToken = getCookie('access_token');
-            const retryOptions = {
-              ...requestOptions,
-              headers: {
-                ...requestOptions.headers,
-                ...(newAccessToken ? {'Authorization': `Bearer ${newAccessToken}`} : {}),
-              },
-            };
-            fetch(url, retryOptions).then(resolve).catch(reject);
+            fetch(url, requestOptions).then(resolve).catch(reject);
           },
           reject
         });
@@ -138,16 +141,7 @@ export async function fetchWithAuth(
       if (result.success) {
         processQueue(null);
 
-        const newAccessToken = getCookie('access_token');
-        const retryOptions = {
-          ...requestOptions,
-          headers: {
-            ...requestOptions.headers,
-            ...(newAccessToken ? {'Authorization': `Bearer ${newAccessToken}`} : {}),
-          },
-        };
-
-        response = await fetch(url, retryOptions);
+        response = await fetch(url, requestOptions);
         return response;
       } else {
         processQueue(new Error('Nie udało się odświeżyć tokena'));
@@ -163,3 +157,5 @@ export async function fetchWithAuth(
 
   return response;
 }
+
+
