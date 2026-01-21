@@ -339,7 +339,7 @@ function PollsPageContent() {
                             <Button
                                 startIcon={<Plus size={18}/>}
                                 onClick={handleAddOption}
-                                sx={{mt: 2, color: white, bgColor: groupData.color}}
+                                sx={{mt: 2, color: '#ffffff', bgColor: groupData.color}}
                             >
                                 Dodaj opcję
                             </Button>
