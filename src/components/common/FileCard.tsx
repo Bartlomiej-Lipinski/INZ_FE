@@ -2,7 +2,6 @@
 
 import React from 'react';
 import {Avatar, Box, Button, Card, CardContent, Chip, IconButton, Typography} from '@mui/material';
-import {alpha} from '@mui/material/styles';
 import {Download, MoreVertical} from 'lucide-react';
 import {StoredFileResponseDto} from '@/lib/types/study-material';
 import {formatFileSize, formatTimestamp, getFileIcon} from '@/lib/utils/study-material';
@@ -67,7 +66,7 @@ export default function FileCard({file, canDelete, onOpenMenu, onDownload, group
                                 <Chip
                                     label={file.fileCategory.name}
                                     size="small"
-                                    sx={{bgcolor: groupColor, color: '#2196f3'}}
+                                    sx={{bgcolor: groupColor, color: '#ffffff'}}
                                 />
                             )}
 

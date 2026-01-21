@@ -339,7 +339,7 @@ function PollsPageContent() {
                             <Button
                                 startIcon={<Plus size={18}/>}
                                 onClick={handleAddOption}
-                                sx={{mt: 2, color: groupData.color}}
+                                sx={{mt: 2, color: white, bgColor: groupData.color}}
                             >
                                 Dodaj opcję
                             </Button>
@@ -347,7 +347,7 @@ function PollsPageContent() {
                         <DialogActions sx={{px: 3, pb: 2}}>
                             <Button
                                 onClick={() => setCreateDialog(false)}
-                                sx={{color: '#666'}}
+                                sx={{color: '#ffffff', bgcolor: groupData.color}}
                             >
                                 Anuluj
                             </Button>

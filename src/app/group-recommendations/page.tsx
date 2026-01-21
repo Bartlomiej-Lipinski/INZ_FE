@@ -81,7 +81,7 @@ function getCategoryColor(category?: string): string {
         'Gry': '#9c27b0',
         'Aplikacje': '#00bcd4',
         'Restauracje': '#ff5722',
-        'Podróże': '#795548',
+        'Podróże': '#fff200',
     };
     return colors[category || ''] || '#757575';
 }
@@ -984,7 +984,7 @@ function RecommendationsPageContent() {
                     Dodaj rekomendację
                 </Button>
 
-                <Box sx={{ mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Box sx={{mb: 3, display: 'flex', gap: 1, flexWrap: 'wrap', bgColor: selectedCategory}}>
                     <Chip
                         label="Wszystkie"
                         onClick={() => setSelectedCategory('all')}
