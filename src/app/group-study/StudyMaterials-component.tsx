@@ -268,10 +268,13 @@ export function StudyMaterialsPage({
         handleCloseCategoryMenu();
     };
 
-    const uniqueAuthors = Array.from(new Set(files.map(f => f.uploadedByName || 'Nieznany')));
+    const uniqueAuthors = Array.from(
+        new Set(files.map(f => f.uploadedByName || 'Nieznany').filter(Boolean))
+    );
 
     const filteredFiles = files.filter(file => {
-        const matchesSearch = file.fileName.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!file || typeof file.fileName !== 'string') return false;
+        const matchesSearch = (file.fileName || '').toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === 'all' || file.fileCategory?.id === selectedCategory;
         const matchesAuthor = selectedAuthor === 'all' || file.uploadedByName === selectedAuthor;
         return matchesSearch && matchesCategory && matchesAuthor;
