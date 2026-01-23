@@ -98,9 +98,20 @@ export function StudyMaterialsPage({
                 throw new Error(errorData.message || 'Błąd podczas przesyłania pliku');
             }
 
-            const newFile: StoredFileResponseDto = await response.json();
+            await response.json();
 
-            onFilesChange([newFile, ...files]);
+            const filesResponse = await fetchWithAuth(
+                `${API_ROUTES.GET_FILES}?groupId=${groupData.id}`,
+                {
+                    method: 'GET',
+                    credentials: 'include',
+                }
+            );
+
+            if (filesResponse.ok) {
+                const updatedFiles: StoredFileResponseDto[] = await filesResponse.json();
+                onFilesChange(updatedFiles);
+            }
 
             setUploadDialogOpen(false);
             setUploadFile(null);

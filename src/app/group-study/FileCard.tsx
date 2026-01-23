@@ -55,6 +55,7 @@ export default function FileCard({file, canDelete, onOpenMenu, onDownload, group
                                 <IconButton
                                     size="small"
                                     onClick={(e) => onOpenMenu(e, file.id)}
+                                    sx={{color: 'white'}}
                                 >
                                     <MoreVertical/>
                                 </IconButton>
