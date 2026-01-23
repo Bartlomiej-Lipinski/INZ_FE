@@ -109,7 +109,8 @@ export function StudyMaterialsPage({
             );
 
             if (filesResponse.ok) {
-                const updatedFiles: StoredFileResponseDto[] = await filesResponse.json();
+                const data = await response.json();
+                const updatedFiles: StoredFileResponseDto[] = data.data;
                 onFilesChange(updatedFiles);
             }
 
