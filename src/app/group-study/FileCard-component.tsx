@@ -14,7 +14,7 @@ interface FileCardProps {
     groupColor?: string;
 }
 
-export default function FileCard({file, canDelete, onOpenMenu, onDownload, groupColor}: FileCardProps) {
+export default function FileCardComponent({file, canDelete, onOpenMenu, onDownload, groupColor}: FileCardProps) {
     const FileIcon = getFileIcon(file.contentType);
 
     return (
