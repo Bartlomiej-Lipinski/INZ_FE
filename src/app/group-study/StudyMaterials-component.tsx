@@ -101,7 +101,7 @@ export function StudyMaterialsPage({
             await response.json();
 
             const filesResponse = await fetchWithAuth(
-                `${API_ROUTES.GET_FILES}?groupId=${groupData.id}`,
+                `${API_ROUTES.GET_GROUP_MATERIALS}?groupId=${groupData.id}`,
                 {
                     method: 'GET',
                     credentials: 'include',
