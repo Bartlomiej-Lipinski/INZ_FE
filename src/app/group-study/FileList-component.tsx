@@ -2,7 +2,7 @@
 
 import React from 'react';
 import {Alert, Box} from '@mui/material';
-import FileCard from '@/components/common/FileCard';
+import FileCard from '@/app/group-study/FileCard-component';
 import {StoredFileResponseDto} from '@/lib/types/study-material';
 
 interface FileListProps {
