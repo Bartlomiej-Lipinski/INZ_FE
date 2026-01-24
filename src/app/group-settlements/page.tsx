@@ -195,6 +195,9 @@ function SettlementsPageContent() {
 
     const handleSaveExpense = async (expenseData: Omit<ExpenseResponseDto, 'id' | 'groupId' | 'createdAt'>) => {
         if (editingExpense) {
+            const beneficieresForApi = expenseData.beneficiaries.map(b => ({
+                UserId: b.userId,
+                Share: b.share}));
             const request = {
                 PaidByUserId: expenseData.paidByUser.id,
                 Title: expenseData.title,
