@@ -90,9 +90,9 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    userId,
-                    user: member,
-                    share: Math.round(perPerson * 100) / 100,
+                    UserId,
+                    User: member,
+                    Share: Math.round(perPerson * 100) / 100,
                 };
             }).filter(Boolean) as ExpenseBeneficiaryDto[];
         } else {
@@ -100,9 +100,9 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    userId,
-                    user: member,
-                    share: parseFloat(customShares[userId] || '0'),
+                    UserId,
+                    User: member,
+                    Share: parseFloat(customShares[userId] || '0'),
                 };
             }).filter(Boolean) as ExpenseBeneficiaryDto[];
         }
