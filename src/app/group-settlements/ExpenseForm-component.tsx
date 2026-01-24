@@ -90,7 +90,7 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    UserId,
+                    UserId: userId,
                     User: member,
                     Share: Math.round(perPerson * 100) / 100,
                 };
@@ -100,7 +100,7 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    UserId,
+                    UserId: userId,
                     User: member,
                     Share: parseFloat(customShares[userId] || '0'),
                 };
@@ -121,6 +121,7 @@ export default function ExpenseFormComponent({
             beneficiaries,
         });
     };
+
 
     const totalCustom = Object.values(customShares).reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
     const isCustomValid = !isEvenSplit ? Math.abs(totalCustom - parseFloat(amount || '0')) < 0.01 : true;
