@@ -73,6 +73,10 @@ export default function ExpenseFormComponent({
         const amountNum = parseFloat(amount);
         if (!title.trim() || !amountNum || selectedParticipants.length === 0) return;
 
+        const validParticipants = selectedParticipants.filter(id => id && id.trim() !== '');
+
+        if (validParticipants.length === 0) return;
+
         let beneficiaries: ExpenseBeneficiaryDto[];
 
         if (isEvenSplit) {
@@ -107,7 +111,7 @@ export default function ExpenseFormComponent({
             phoneNumber: phoneNumber || undefined,
             bankAccount: bankAccount || undefined,
             isEvenSplit,
-            beneficiaries: beneficiaries.slice(2),
+            beneficiaries: beneficiaries,
         });
     };
 
