@@ -195,14 +195,14 @@ function SettlementsPageContent() {
 
     const handleSaveExpense = async (expenseData: Omit<ExpenseResponseDto, 'id' | 'groupId' | 'createdAt'>) => {
         if (editingExpense) {
-            const request: ExpenseRequestDto = {
-                paidByUserId: expenseData.paidByUser.id,
-                title: expenseData.title,
-                amount: expenseData.amount,
-                phoneNumber: expenseData.phoneNumber,
-                bankAccount: expenseData.bankAccount,
-                isEvenSplit: expenseData.isEvenSplit,
-                beneficiaries: expenseData.beneficiaries,
+            const request = {
+                PaidByUserId: expenseData.paidByUser.id,
+                Title: expenseData.title,
+                Amount: expenseData.amount,
+                PhoneNumber: expenseData.phoneNumber,
+                BankAccount: expenseData.bankAccount,
+                IsEvenSplit: expenseData.isEvenSplit,
+                Beneficiaries: expenseData.beneficiaries,
             };
             try {
                 const response = await fetchWithAuth(`${API_ROUTES.PUT_SPECIFIC_EXPENSE}?groupId=${groupData.id}&expenseId=${editingExpense.id}`,
