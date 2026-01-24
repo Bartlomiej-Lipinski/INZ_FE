@@ -127,7 +127,7 @@ export default function ExpenseDetailsComponent({
                         <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
                             {expense.beneficiaries.map((beneficiary) => (
                                 <Box
-                                    key={beneficiary.userId}
+                                    key={beneficiary.UserId}
                                     sx={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
