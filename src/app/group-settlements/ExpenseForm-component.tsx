@@ -47,9 +47,14 @@ export default function ExpenseFormComponent({
     const [phoneNumber, setPhoneNumber] = useState(editingExpense?.phoneNumber || '');
     const [bankAccount, setBankAccount] = useState(editingExpense?.bankAccount || '');
     const [isEvenSplit, setIsEvenSplit] = useState(editingExpense?.isEvenSplit ?? true);
-    const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
-        editingExpense?.beneficiaries.map(b => b.userId) || [currentUserId]
-    );
+    const [selectedParticipants, setSelectedParticipants] = useState<string[]>(() => {
+        if (editingExpense?.beneficiaries) {
+            return editingExpense.beneficiaries
+                .map(b => b.userId)
+                .filter(id => id && id.trim() !== '');
+        }
+        return [currentUserId];
+    });
     const [customShares, setCustomShares] = useState<Record<string, string>>(() => {
         if (editingExpense && !editingExpense.isEvenSplit) {
             const shares: Record<string, string> = {};
@@ -80,24 +85,26 @@ export default function ExpenseFormComponent({
         let beneficiaries: ExpenseBeneficiaryDto[];
 
         if (isEvenSplit) {
-            const perPerson = amountNum / selectedParticipants.length;
-            beneficiaries = selectedParticipants.map((userId) => {
+            const perPerson = amountNum / validParticipants.length;
+            beneficiaries = validParticipants.map((userId) => {
                 const member = members.find((m) => m.id === userId);
+                if (!member) return null;
                 return {
                     userId,
                     user: member,
                     share: Math.round(perPerson * 100) / 100,
                 };
-            });
+            }).filter(Boolean) as ExpenseBeneficiaryDto[];
         } else {
-            beneficiaries = selectedParticipants.map((userId) => {
+            beneficiaries = validParticipants.map((userId) => {
                 const member = members.find((m) => m.id === userId);
+                if (!member) return null;
                 return {
                     userId,
                     user: member,
                     share: parseFloat(customShares[userId] || '0'),
                 };
-            });
+            }).filter(Boolean) as ExpenseBeneficiaryDto[];
         }
 
         const paidByMember = members.find((m) => m.id === paidBy);
@@ -111,7 +118,7 @@ export default function ExpenseFormComponent({
             phoneNumber: phoneNumber || undefined,
             bankAccount: bankAccount || undefined,
             isEvenSplit,
-            beneficiaries: beneficiaries,
+            beneficiaries,
         });
     };
 
