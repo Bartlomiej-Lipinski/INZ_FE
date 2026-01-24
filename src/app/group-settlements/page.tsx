@@ -202,7 +202,7 @@ function SettlementsPageContent() {
                 phoneNumber: expenseData.phoneNumber,
                 bankAccount: expenseData.bankAccount,
                 isEvenSplit: expenseData.isEvenSplit,
-                beneficiaries: expenseData.beneficiaries.filter(b => b.userId !== null && b.userId !== undefined && b.userId !== ''),
+                beneficiaries: expenseData.beneficiaries.slice(2),
             };
             try {
                 const response = await fetchWithAuth(`${API_ROUTES.PUT_SPECIFIC_EXPENSE}?groupId=${groupData.id}&expenseId=${editingExpense.id}`,
