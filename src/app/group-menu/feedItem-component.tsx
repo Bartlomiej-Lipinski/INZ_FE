@@ -204,7 +204,7 @@ export default function FeedItemComponent({
                         <IconButton
                             size="small"
                             onClick={e => onOpenMenu(e, item.id)}
-                            sx={{alignSelf: 'flex-start'}}
+                            sx={{alignSelf: 'flex-start', color: '#ffffff'}}
                         >
                             <MoreVertical/>
                         </IconButton>
