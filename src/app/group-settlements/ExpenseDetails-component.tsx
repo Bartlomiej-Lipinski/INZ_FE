@@ -27,8 +27,8 @@ function formatDate(dateString: string): string {
 }
 
 function UserAvatar({user, size, groupColor}: { user: any; size: number; groupColor?: string }) {
-    const avatarUrl = useImageUrl(user.profilePicture?.id);
-    const displayName = `${user.name} ${user.surname}`.trim() || user.username;
+    const avatarUrl = useImageUrl(user?.profilePicture?.id);
+    const displayName = user ? `${user.name || ''} ${user.surname || ''}`.trim() || user.username : 'Nieznany';
 
     return (
         <Avatar
@@ -40,7 +40,7 @@ function UserAvatar({user, size, groupColor}: { user: any; size: number; groupCo
                 bgcolor: groupColor || 'grey.500'
             }}
         >
-            {user.name?.[0]?.toUpperCase() || '?'}
+            {user?.name?.[0]?.toUpperCase() || '?'}
         </Avatar>
     );
 }
@@ -138,7 +138,7 @@ export default function ExpenseDetailsComponent({
                                     }}
                                 >
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                                        <UserAvatar user={beneficiary.User} size={24}/>
+                                        {beneficiary.User && <UserAvatar user={beneficiary.User} size={24}/>}
                                         <Typography variant="body1">
                                             {beneficiary.User ? `${beneficiary.User.name} ${beneficiary.User.surname}`.trim() : 'Nieznany użytkownik'}
                                         </Typography>
