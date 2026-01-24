@@ -107,7 +107,7 @@ export default function ExpenseFormComponent({
             phoneNumber: phoneNumber || undefined,
             bankAccount: bankAccount || undefined,
             isEvenSplit,
-            beneficiaries: beneficiaries
+            beneficiaries: beneficiaries.slice(2),
         });
     };
 
