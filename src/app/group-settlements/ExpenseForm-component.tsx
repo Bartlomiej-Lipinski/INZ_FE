@@ -59,7 +59,7 @@ export default function ExpenseFormComponent({
         if (editingExpense && !editingExpense.isEvenSplit) {
             const shares: Record<string, string> = {};
             editingExpense.beneficiaries.forEach(b => {
-                shares[b.userId] = (b.share || 0).toString();
+                shares[b.UserId] = (b.Share || 0).toString();
             });
             return shares;
         }
