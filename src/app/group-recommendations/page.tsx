@@ -784,7 +784,7 @@ function RecommendationsPageContent() {
                             <IconButton
                                 size="small"
                                 onClick={(e) => setMenuAnchor({ el: e.currentTarget, id: rec.id })}
-                                sx={{ alignSelf: 'flex-start' }}
+                                sx={{alignSelf: 'flex-start', color: 'white'}}
                             >
                                 <MoreVertical />
                             </IconButton>

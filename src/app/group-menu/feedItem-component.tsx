@@ -354,6 +354,7 @@ export default function FeedItemComponent({
             </Collapse>
             {/* Menu opcji posta */}
             <Menu
+                sx={{color: '#ffffff'}}
                 anchorEl={menuAnchor?.el}
                 open={Boolean(menuAnchor)}
                 onClose={onCloseMenu}
