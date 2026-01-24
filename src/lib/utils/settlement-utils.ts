@@ -12,9 +12,7 @@ interface OptimizedDebt {
 export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
     const balances: Record<string, { name: string; amount: number }> = {};
 
-    // Oblicz salda dla każdego użytkownika
     expenses.forEach((expense) => {
-        // Osoba która zapłaciła dostaje zwrot
         const payerId = expense.paidByUser.id;
         const payerName = `${expense.paidByUser.name} ${expense.paidByUser.surname}`.trim();
 
@@ -23,20 +21,18 @@ export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
         }
         balances[payerId].amount += expense.amount;
 
-        // Uczestnicy są dłużni
         expense.beneficiaries.forEach((beneficiary) => {
-            const userName = beneficiary.user
-                ? `${beneficiary.user.name} ${beneficiary.user.surname}`.trim()
+            const userName = beneficiary.User
+                ? `${beneficiary.User.name} ${beneficiary.User.surname}`.trim()
                 : 'Nieznany użytkownik';
 
-            if (!balances[beneficiary.userId]) {
-                balances[beneficiary.userId] = {name: userName, amount: 0};
+            if (!balances[beneficiary.UserId]) {
+                balances[beneficiary.UserId] = {name: userName, amount: 0};
             }
-            balances[beneficiary.userId].amount -= (beneficiary.share || 0);
+            balances[beneficiary.UserId].amount -= (beneficiary.Share || 0);
         });
     });
 
-    // Podziel na dłużników i wierzycieli
     const debtors: Array<{ userId: string; name: string; amount: number }> = [];
     const creditors: Array<{ userId: string; name: string; amount: number }> = [];
 
@@ -48,7 +44,6 @@ export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
         }
     });
 
-    // Optymalizuj transakcje
     const optimized: OptimizedDebt[] = [];
     let i = 0;
     let j = 0;
@@ -67,7 +62,7 @@ export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
                     .filter(
                         (e) =>
                             e.paidByUser.id === creditors[j].userId &&
-                            e.beneficiaries.some((p) => p.userId === debtors[i].userId)
+                            e.beneficiaries.some((p) => p.UserId === debtors[i].userId)
                     )
                     .map((e) => e.id),
             });
