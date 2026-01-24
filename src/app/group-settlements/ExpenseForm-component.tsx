@@ -90,7 +90,7 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    UserId,
+                    UserId: userId,
                     User: member,
                     Share: Math.round(perPerson * 100) / 100,
                 };
@@ -100,7 +100,7 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    UserId,
+                    UserId: userId,
                     User: member,
                     Share: parseFloat(customShares[userId] || '0'),
                 };
