@@ -23,7 +23,7 @@ export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
 
         expense.beneficiaries.forEach((beneficiary) => {
             const userName = beneficiary.User
-                ? `${beneficiary.user.name} ${beneficiary.User.surname}`.trim()
+                ? `${beneficiary.User.name} ${beneficiary.User.surname}`.trim()
                 : 'Nieznany użytkownik';
 
             if (!balances[beneficiary.UserId]) {
