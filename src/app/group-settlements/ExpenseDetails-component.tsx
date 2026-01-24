@@ -138,13 +138,13 @@ export default function ExpenseDetailsComponent({
                                     }}
                                 >
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                                        <UserAvatar user={beneficiary.user} size={24}/>
+                                        <UserAvatar user={beneficiary.User} size={24}/>
                                         <Typography variant="body1">
-                                            {beneficiary.user ? `${beneficiary.user.name} ${beneficiary.user.surname}`.trim() : 'Nieznany użytkownik'}
+                                            {beneficiary.User ? `${beneficiary.User.name} ${beneficiary.User.surname}`.trim() : 'Nieznany użytkownik'}
                                         </Typography>
                                     </Box>
                                     <Typography variant="h6" sx={{fontWeight: 600}}>
-                                        {formatCurrency(beneficiary.share || 0)}
+                                        {formatCurrency(beneficiary.Share || 0)}
                                     </Typography>
                                 </Box>
                             ))}
