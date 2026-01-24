@@ -50,7 +50,7 @@ export default function ExpenseFormComponent({
     const [selectedParticipants, setSelectedParticipants] = useState<string[]>(() => {
         if (editingExpense?.beneficiaries) {
             return editingExpense.beneficiaries
-                .map(b => b.userId)
+                .map(b => b.UserId)
                 .filter(id => id && id.trim() !== '');
         }
         return [currentUserId];
