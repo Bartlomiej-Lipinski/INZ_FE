@@ -50,7 +50,7 @@ export default function ExpenseFormComponent({
     const [selectedParticipants, setSelectedParticipants] = useState<string[]>(() => {
         if (editingExpense?.beneficiaries) {
             return editingExpense.beneficiaries
-                .map(b => b.UserId)
+                .map(b => b.userId)
                 .filter(id => id && id.trim() !== '');
         }
         return [currentUserId];
@@ -59,7 +59,7 @@ export default function ExpenseFormComponent({
         if (editingExpense && !editingExpense.isEvenSplit) {
             const shares: Record<string, string> = {};
             editingExpense.beneficiaries.forEach(b => {
-                shares[b.UserId] = (b.Share || 0).toString();
+                shares[b.userId] = (b.share || 0).toString();
             });
             return shares;
         }
@@ -90,9 +90,9 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    UserId: userId,
-                    User: member,
-                    Share: Math.round(perPerson * 100) / 100,
+                    userId: userId,
+                    user: member,
+                    share: Math.round(perPerson * 100) / 100,
                 };
             }).filter(Boolean) as ExpenseBeneficiaryDto[];
         } else {
@@ -100,9 +100,9 @@ export default function ExpenseFormComponent({
                 const member = members.find((m) => m.id === userId);
                 if (!member) return null;
                 return {
-                    UserId: userId,
-                    User: member,
-                    Share: parseFloat(customShares[userId] || '0'),
+                    userId: userId,
+                    user: member,
+                    share: parseFloat(customShares[userId] || '0'),
                 };
             }).filter(Boolean) as ExpenseBeneficiaryDto[];
         }

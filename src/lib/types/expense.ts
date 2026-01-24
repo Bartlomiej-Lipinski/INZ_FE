@@ -14,9 +14,9 @@ export interface ExpenseCreate {
 }
 
 export interface ExpenseBeneficiaryDto {
-    UserId: string;
-    User?: User;
-    Share?: number;
+    userId: string;
+    user?: User;
+    share?: number;
 }
 
 export interface ExpenseRequestDto {

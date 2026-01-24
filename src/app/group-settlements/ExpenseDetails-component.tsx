@@ -127,7 +127,7 @@ export default function ExpenseDetailsComponent({
                         <Box sx={{display: 'flex', flexDirection: 'column', gap: 1}}>
                             {expense.beneficiaries.map((beneficiary) => (
                                 <Box
-                                    key={beneficiary.UserId}
+                                    key={beneficiary.userId}
                                     sx={{
                                         display: 'flex',
                                         justifyContent: 'space-between',
@@ -138,13 +138,13 @@ export default function ExpenseDetailsComponent({
                                     }}
                                 >
                                     <Box sx={{display: 'flex', alignItems: 'center', gap: 2}}>
-                                        {beneficiary.User && <UserAvatar user={beneficiary.User} size={24}/>}
+                                        {beneficiary.user && <UserAvatar user={beneficiary.user} size={24}/>}
                                         <Typography variant="body1">
-                                            {beneficiary.User ? `${beneficiary.User.name} ${beneficiary.User.surname}`.trim() : 'Nieznany użytkownik'}
+                                            {beneficiary.user ? `${beneficiary.user.name} ${beneficiary.user.surname}`.trim() : 'Nieznany użytkownik'}
                                         </Typography>
                                     </Box>
                                     <Typography variant="h6" sx={{fontWeight: 600}}>
-                                        {formatCurrency(beneficiary.Share || 0)}
+                                        {formatCurrency(beneficiary.share || 0)}
                                     </Typography>
                                 </Box>
                             ))}

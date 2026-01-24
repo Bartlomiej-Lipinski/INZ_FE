@@ -22,14 +22,14 @@ export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
         balances[payerId].amount += expense.amount;
 
         expense.beneficiaries.forEach((beneficiary) => {
-            const userName = beneficiary.User
-                ? `${beneficiary.User.name} ${beneficiary.User.surname}`.trim()
+            const userName = beneficiary.user
+                ? `${beneficiary.user.name} ${beneficiary.user.surname}`.trim()
                 : 'Nieznany użytkownik';
 
-            if (!balances[beneficiary.UserId]) {
-                balances[beneficiary.UserId] = {name: userName, amount: 0};
+            if (!balances[beneficiary.userId]) {
+                balances[beneficiary.userId] = {name: userName, amount: 0};
             }
-            balances[beneficiary.UserId].amount -= (beneficiary.Share || 0);
+            balances[beneficiary.userId].amount -= (beneficiary.share || 0);
         });
     });
 
@@ -62,7 +62,7 @@ export function optimizeDebts(expenses: ExpenseResponseDto[]): OptimizedDebt[] {
                     .filter(
                         (e) =>
                             e.paidByUser.id === creditors[j].userId &&
-                            e.beneficiaries.some((p) => p.UserId === debtors[i].userId)
+                            e.beneficiaries.some((p) => p.userId === debtors[i].userId)
                     )
                     .map((e) => e.id),
             });
