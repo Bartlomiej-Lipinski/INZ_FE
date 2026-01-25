@@ -2,7 +2,7 @@ import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const USER_ENDPOINT = process.env.USER;
+const USER = process.env.USER;
 
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
