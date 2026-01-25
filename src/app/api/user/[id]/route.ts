@@ -2,13 +2,13 @@ import {NextRequest, NextResponse} from 'next/server';
 import {fetchWithAuth} from "@/lib/api/fetch-with-auth";
 
 const BASE_URL = process.env.BASE_URL;
-const USER_ENDPOINT = process.env.USER_ENDPOINT;
+const USER_ENDPOINT = process.env.USER;
 
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const backendUrl = `${BASE_URL}${USER_ENDPOINT}/${id}`;
+    const backendUrl = `${BASE_URL}${USER}/${id}`;
     const cookieHeader = request.headers.get('cookie') ?? '';
       const response = await fetchWithAuth(backendUrl, {
       method: 'GET',
