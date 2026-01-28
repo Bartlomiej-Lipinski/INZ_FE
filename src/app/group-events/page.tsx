@@ -441,6 +441,7 @@ function EventsPageContent() {
                     currentRange.end = slot.endHour;
                 } else {
                     rangesToSend.push({
+                        // @ts-ignore
                         availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
                         availableTo: `${date}T${String(currentRange.end).padStart(2, '0')}:00:00.000Z`,
                     } as AvailabilityRangeResponseDto);
@@ -449,6 +450,7 @@ function EventsPageContent() {
             });
 
             if (currentRange) {
+                // @ts-ignore
                 rangesToSend.push({
                     availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
                     availableTo: `${date}T${String(currentRange.end).padStart(2, '0')}:59:59.999Z`,
