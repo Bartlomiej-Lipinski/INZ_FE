@@ -438,7 +438,7 @@ function EventsPageContent() {
                 if (!currentRange) {
                     currentRange = {start: slot.startHour, end: slot.endHour};
                 } else if (currentRange.end === slot.startHour) {
-                    currentRange.end = slot.endHour;
+                    currentRange.end = slot.endHour - 1;
                 } else {
                     rangesToSend.push({
                         // @ts-ignore
@@ -455,7 +455,7 @@ function EventsPageContent() {
                     // @ts-ignore
                     availableFrom: `${date}T${String(currentRange.start).padStart(2, '0')}:00:00.000Z`,
                     // @ts-ignore
-                    availableTo: `${date}T${String(currentRange.end).padStart(2, '0')}:59:59.999Z`,
+                    availableTo: `${date}T${String(currentRange.end - 1).padStart(2, '0')}:59:59.999Z`,
                 } as AvailabilityRangeResponseDto);
             }
         });
