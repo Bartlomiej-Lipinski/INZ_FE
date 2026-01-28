@@ -17,7 +17,6 @@ import {
     Coffee,
     DollarSign,
     LogOut,
-    MessageCircle,
     Notebook,
     PieChart,
     Settings,
@@ -36,7 +35,6 @@ import {useIsAdmin} from "@/hooks/use-isAdmin";
 
 const MENU_ITEMS = [
     {key: 'news', label: 'NOWOŚCI', icon: Bell, path: '/group-menu', adminOnly: false},
-    {key: 'chat', label: 'CZAT', icon: MessageCircle, path: '/chat', adminOnly: false},
     {key: 'events', label: 'WYDARZENIA', icon: Coffee, path: '/group-events', adminOnly: false},
     {key: 'settlements', label: 'ROZLICZENIA', icon: DollarSign, path: '/group-settlements', adminOnly: false},
     {key: 'recommendations', label: 'REKOMENDACJE', icon: Star, path: '/group-recommendations', adminOnly: false},
