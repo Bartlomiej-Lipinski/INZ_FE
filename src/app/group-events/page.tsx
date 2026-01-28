@@ -432,7 +432,7 @@ function EventsPageContent() {
 
         Object.keys(groupedByDate).forEach(date => {
             const slots = groupedByDate[date].sort((a, b) => a.startHour - b.startHour);
-            let currentRange: { start: number; end: number } = {start: 0, end: 0};
+            let currentRange: { start: number; end: number } | null = null;
 
             slots.forEach(slot => {
                 if (!currentRange) {
